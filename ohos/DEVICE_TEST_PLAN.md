@@ -26,3 +26,15 @@ Status: **not executed on a device or emulator**. An unsigned HAP requires an ap
 - Measure CPU, memory, dropped frames, and battery for intended resolutions. Native AVPlayer is not a guarantee of hardware decode on every device.
 
 Record device model, OS/API, video container/codecs/resolution, orientation/window size, result and reproduction steps. Passing Node mocks or an SDK package build does not satisfy these runtime checks.
+
+## 0.4 resource-library checks (not executed on device)
+
+- Put synthetic `film.mp4`, `film.funscript`, `film.pitch.funscript` in a directory with `.nomedia`, `.DS_Store` and unrelated documents. Select the folder; one video group should appear and unsupported entries should be counted, not abort indexing.
+- Select just video and scripts through the multi-file picker. Verify equal filenames from different parents do not pair, no parent is scanned, and videos are not copied.
+- Open the pair; no autoplay. Confirm base L0 plus pitch R2. Add competing aliases and an embedded multi-axis script, then check source-rule fixtures and the selected filenames.
+- Two same-stem videos must require explicit video selection. Manual candidate selection still uses original script priority.
+- Cancel during scan, select a newer source, background during script reading, and reopen another pair. Stale work must never replace the latest source or resume playback.
+- Refresh after moving/removing files or revoking access. Clearly request reselection; do not silently widen access.
+- Verify 1,000-entry/depth-4 truncation and 64-candidate/text/action budgets produce clear messages. Try a symbolic-link entry and nonregular file; neither should be followed/opened for playback.
+- API20 devices may lack phone folder selection: multi-file selection must remain usable. API26 phone/tablet/2in1 single-folder support still needs device confirmation.
+- Close/restart the application: session library is not restored and no persistent grant is claimed.

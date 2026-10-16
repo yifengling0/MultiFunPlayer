@@ -37,3 +37,15 @@ M2 independent review: no safety blocker; adjacent-chapter boundary labels now u
 - First pre-final build process exited 255 after ArkTS compilation; low-memory retry and final clean build succeeded. HAP ZIP timestamps may change hashes across rebuilds; this hash identifies the delivered clean-build artifact.
 - **Not tested:** on-device video/audio playback, actual picker access, rotation/multi-window, seek accuracy, codec compatibility, hardware decoding, battery/performance, signing or installation. See DEVICE_TEST_PLAN.md.
 - No physical device outputs or network permissions were added. Original Windows sources remain unchanged.
+
+## M4 — 0.4.0 authorized resource library
+
+- **170 Node tests passed, 0 failed**, including 22 resource-selection tests, 17 mocked file-I/O tests (with real catalog-boundary integration), and 6 tests executing actual extracted Index controller methods with mocked dependencies. These cover stale picker/scan completion, background-cancelled pair replacement, and count/text/action budgets.
+- Final application source passed an official SDK **clean build**: 33 tasks (32 executed, 1 up-to-date), 8.774 seconds. Actual ArkTS/resource compilation, HAP packaging and checks succeeded. The six additional controller regression tests were then run in the final 170-test suite without changing application code.
+- HAP: **429610 bytes**; SHA256 `0b276aa4f33b249f3b9ed8476115bbe61effc9dd0e401fb08334598c8dc6fa74`. Metadata confirms version 0.4.0 and phone/tablet/2in1.
+- Two preliminary builds exited 255 during compilation/packaging under limited memory. Setting the Java packaging heap to 256 MiB resolved this; tools/build.sh now sets that default unless the caller supplies JAVA_TOOL_OPTIONS. ArkTS remains one worker/512 MiB.
+- Review findings fixed: multi-file provider identity mismatch; cumulative candidate memory bounds; actual-background cancellation of pair loading; unsupported dotfiles aborting an index; final video open now rejects nonregular files and uses NOFOLLOW/NONBLOCK.
+- Remaining compiler warnings concern native multimedia capability availability and filesystem APIs that may throw. I/O callers catch and report failures; signingConfig remains absent by design.
+- Source-led matching covers loose files, multi-axis priority/blocking and ordered axis aliases. **ZIP archives, configured cross-directory/remote repositories and full visual parity are not implemented.** See LIBRARY_MATCHING.md and UI_PARITY_AUDIT.md for exact differences.
+- **Not performed:** real folder/file-picker grants, Download provider access, revoked permissions on a device, video/audio playback, installation/signing, phone/tablet/PC screenshot comparison or Windows C# execution.
+- Public path APIs cannot guarantee race-free traversal against hostile concurrent ancestor replacement. Platform grants remain the access boundary; no broad storage permission or physical output was added.

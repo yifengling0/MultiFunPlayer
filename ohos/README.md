@@ -1,9 +1,12 @@
-# MultiFunPlayer for OHOS — 0.3 native video preview
+# MultiFunPlayer for OHOS — 0.4 resource library preview
 
 Native ArkTS/ArkUI port in progress. Original Windows application is unchanged.
 Upstream baseline: `36c08fbb99ac9398a63ff1cca1bbf68cd2228a94`.
 
 ## Included
+
+- User-selected folder scan or multi-file selection, video/script resource list, explicit mapping and one-click paired opening. No video copying or broad Downloads access.
+- Source-led loose-file matching priority; ZIP archives and configured cross-directory repositories remain unported. See [matching scope and differences](LIBRARY_MATCHING.md).
 
 - Native AVPlayer local video with stable XComponent surface, play/pause, seek, volume and 0.25–4× rate controls.
 - Script synchronization follows confirmed native media time, including video lengths different from scripts.
@@ -17,7 +20,7 @@ Upstream baseline: `36c08fbb99ac9398a63ff1cca1bbf68cd2228a94`.
 - Foreground lifecycle safety gate, no automatic resume after background/disconnect.
 - 48 vp or larger principal buttons, persistent transport controls, monotonic elapsed clock.
 
-This is an early interface and core milestone, not full feature or visual parity with the desktop application. PC means HarmonyOS PC. Window layout is driven by available width/height, including split-screen and resizing, rather than a device-name check.
+This is a functional interface/core prototype, not full feature or visual parity with the desktop application. The original layout/control inventory and required phone adaptations are recorded in [UI parity audit](UI_PARITY_AUDIT.md); that visual port has not yet been implemented. PC means HarmonyOS PC. Window layout is driven by available width/height, including split-screen and resizing, rather than a device-name check.
 
 ## Safety and limitations
 
