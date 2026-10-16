@@ -5,7 +5,7 @@ registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier)) return nextResolve(specifier + '.ts', context);
   return nextResolve(specifier, context);
 } });
-const { ResourceLibrary: Library, ResourceFileEntry: File } = await import('../entry/src/main/ets/core/ResourceLibrary.ts');
+const { ResourceLibrary: Library, ResourceFileEntry: File, ResourceLibraryCatalog: SearchCatalog } = await import('../entry/src/main/ets/core/ResourceLibrary.ts');
 const { FunscriptParser: Parser } = await import('../entry/src/main/ets/core/Funscript.ts');
 const { AxisMapping } = await import('../entry/src/main/ets/core/AxisMapping.ts');
 const file = (path, uri = 'file://' + path) => new File(uri, path.replace(/\\/g, '/').split('/').at(-1), path);
@@ -39,6 +39,123 @@ test('upstream loose discovery preserves all media.*funscript candidates before 
     ['movie.customfunscript', 'movie.funscript', 'movie.unknown.funscript']);
   const unknown = source('movie.unknown.funscript', embedded('R2', 33));
   assert.deepEqual(values(Library.selectDocuments('movie.mp4', [unknown])), [['R2', 33]]);
+});
+
+test('catalog recognizes exact same-stem ZIPs including archive-only resources', () => {
+  const result = catalog(['one/Movie.MP4', 'one/MOVIE.ZIP', 'one/movie.pitch.zip', 'two/movie.zip', 'notes.rar']);
+  const paired = result.items.find(item => item.id === 'one/movie');
+  assert.equal(paired.status, 'paired');
+  assert.equal(paired.scripts.length, 0);
+  assert.deepEqual(paired.archives.map(file => file.name), ['MOVIE.ZIP']);
+  assert.equal(paired.video.name, 'Movie.MP4');
+  assert.deepEqual(result.items.filter(item => item.status === 'script-only').map(item => item.id),
+    ['one/movie.pitch', 'two/movie']);
+  assert.deepEqual(result.ignoredFiles.map(file => file.name), ['notes.rar']);
+  const duplicate = Library.build([file('movie.mp4'), file('movie.zip', 'shared'), file('movie.ZIP', 'shared')]).items[0];
+  assert.equal(duplicate.status, 'ambiguous');
+  assert.equal(duplicate.archives.length, 2);
+});
+
+test('search plan follows media ZIP, media loose, then ordered library ZIP and loose tiers', () => {
+  const media = file('movies/Movie.mp4');
+  const local = ['movies/movie.pitch.funscript', 'movies/movie.zip', 'movies/movie.funscript',
+    'movies/movie.unknown.funscript', 'movies/movie.customfunscript', 'movies/movieExtra.funscript',
+    'movies/sub/movie.zip', 'movies/sub/movie.funscript', 'elsewhere/movie.zip', 'movies/movie.pitch.zip'].map(path => file(path));
+  const libraries = [new SearchCatalog('first-root', ['z/movie.funscript', 'z/movie.zip', 'a/movie.zip',
+    'a/movie.pitch.funscript', 'movie.funscript'].map(path => file(path, 'first:' + path)), true),
+    new SearchCatalog('second-root', ['movie.zip', 'movie.funscript'].map(path => file(path, 'second:' + path)))];
+  const plan = Library.planSearch(media, local, libraries, 'selected-media-root');
+  assert.deepEqual(plan.map(entry => [entry.kind, entry.rootIdentity, entry.file.relativePath]), [
+    ['zip', 'selected-media-root', 'movies/movie.zip'],
+    ['script', 'selected-media-root', 'movies/movie.customfunscript'],
+    ['script', 'selected-media-root', 'movies/movie.funscript'],
+    ['script', 'selected-media-root', 'movies/movie.pitch.funscript'],
+    ['script', 'selected-media-root', 'movies/movie.unknown.funscript'],
+    ['zip', 'first-root', 'a/movie.zip'], ['zip', 'first-root', 'z/movie.zip'],
+    ['script', 'first-root', 'a/movie.pitch.funscript'], ['script', 'first-root', 'movie.funscript'],
+    ['script', 'first-root', 'z/movie.funscript'],
+    ['zip', 'second-root', 'movie.zip'], ['script', 'second-root', 'movie.funscript']
+  ]);
+  assert.deepEqual(plan.map(entry => [entry.source, entry.libraryIndex]),
+    [...Array(5).fill(['media', -1]), ...Array(5).fill(['library', 0]), ...Array(2).fill(['library', 1])]);
+});
+
+test('nonrecursive libraries use root-relative direct children and never infer files from root identity or URI', () => {
+  const entries = ['Movie.ZIP', 'movie.FUNSCRIPT', 'nested/movie.zip', 'nested/movie.funscript'].map(path => file(path));
+  const root = 'file://opaque/provider%2Fnot-a-path/../identity';
+  const direct = Library.planSearch(file('movie.mp4'), [], [new SearchCatalog(root, entries)]);
+  assert.deepEqual(direct.map(entry => entry.file.name), ['Movie.ZIP', 'movie.FUNSCRIPT']);
+  assert.ok(direct.every(entry => entry.rootIdentity === root));
+  assert.equal(Library.planSearch(file('movie.mp4'), [], [new SearchCatalog(root, [], true)]).length, 0);
+  assert.equal(Library.planSearch(file('movie.mp4'), [], [new SearchCatalog(root, entries, true)]).length, 4);
+  assert.deepEqual(Library.planSearch(file('one/movie.mp4'), [file('One/movie.zip'), file('two/movie.funscript')], []), []);
+});
+
+test('search order preserves configured library order, duplicate sources and isolated output objects', () => {
+  const earlier = new SearchCatalog('z-root', [file('movie.funscript', 'same')]);
+  const later = new SearchCatalog('a-root', [file('movie.funscript', 'same')]);
+  const plan = Library.planSearch(file('movie.mp4'), [], [earlier, later, earlier]);
+  assert.deepEqual(plan.map(entry => entry.rootIdentity), ['z-root', 'a-root', 'z-root']);
+  assert.deepEqual(plan.map(entry => entry.libraryIndex), [0, 1, 2]);
+  earlier.files[0].name = 'mutated.funscript';
+  assert.equal(plan[0].file.name, 'movie.funscript');
+  plan[0].file.uri = 'changed';
+  assert.equal(plan[2].file.uri, 'same');
+  assert.equal(later.files[0].uri, 'same');
+});
+
+test('search plan validates every catalog and bounds combined files and text atomically', () => {
+  const media = file('movie.mp4');
+  for (const bad of [null, {}, 'files']) {
+    assert.throws(() => Library.planSearch(media, bad, []));
+    assert.throws(() => Library.planSearch(media, [], bad));
+  }
+  for (const bad of [null, [], {}, new SearchCatalog('', []), new SearchCatalog('root', [], 'yes'),
+    new SearchCatalog('root', [new File('u', 'movie.zip', '../movie.zip')]),
+    new SearchCatalog('root', null), new SearchCatalog('bad\nroot', [])]) {
+    assert.throws(() => Library.planSearch(media, [], [bad]));
+  }
+  assert.throws(() => Library.planSearch(null, [], []));
+  assert.throws(() => Library.planSearch(media, [], [], ''));
+  assert.throws(() => Library.planSearch(media, [], Array(Library.MAX_LIBRARIES + 1).fill(new SearchCatalog('root', []))));
+  assert.throws(() => Library.planSearch(media, Array(1001).fill(file('movie.zip')),
+    [new SearchCatalog('root', Array(1000).fill(file('movie.funscript')))]));
+  assert.throws(() => Library.planSearch(media, [],
+    [new SearchCatalog('root', Array.from({ length: 1000 }, (_, index) => file(index + '.zip', 'u'.repeat(3000))))]));
+});
+
+test('search order survives invalid-source skips and ZIP entry order before content-led selection', () => {
+  const media = file('movie.mp4');
+  const plan = Library.planSearch(media, [file('movie.zip'), file('movie.funscript')], [
+    new SearchCatalog('library', [file('movie.zip', 'library:zip'), file('movie.pitch.funscript', 'library:loose')])]);
+  // The IO layer expands each ZIP in central-directory order without sorting by
+  // entry name and catches malformed entries one at a time. Archive matching is
+  // by the outer name; embedded resources can have unrelated entry names.
+  const content = new Map([
+    ['file://movie.zip', [['z/invalid.funscript', '{'], ['z/anything.funscript', JSON.stringify(embedded('R2', 12))],
+      ['a/first-alphabetically.funscript', JSON.stringify(embedded('L0', 99))]]],
+    ['file://movie.funscript', [['movie.funscript', JSON.stringify(ordinary(50))]]],
+    ['library:zip', [['movie.funscript', JSON.stringify(embedded('L0', 66))]]],
+    ['library:loose', [['movie.pitch.funscript', JSON.stringify(ordinary(70))]]]
+  ]);
+  const candidates = [];
+  for (const entry of plan) {
+    for (const [path, json] of content.get(entry.file.uri)) {
+      try { candidates.push(Library.parseCandidate(json, file(path, entry.file.uri + '!' + path))); } catch {}
+    }
+  }
+  assert.deepEqual(values(Library.selectDocuments(media.name, candidates)), [['R2', 12]]);
+  assert.deepEqual(candidates.map(candidate => candidate.file.name),
+    ['anything.funscript', 'first-alphabetically.funscript', 'movie.funscript', 'movie.funscript', 'movie.pitch.funscript']);
+});
+
+test('discovery tiers remain subordinate to global multi-axis and per-axis alias priorities', () => {
+  const plan = Library.planSearch(file('movie.mp4'), [file('movie.stroke.funscript')], [
+    new SearchCatalog('configured', [file('movie.funscript', 'library:base'), file('movie.unknown.funscript', 'library:multi')])]);
+  const singles = plan.slice(0, 2).map((entry, index) => Library.parseCandidate(JSON.stringify(ordinary(index + 10)), entry.file));
+  assert.deepEqual(values(Library.selectDocuments('movie.mp4', singles)), [['L0', 11]]);
+  const multi = Library.parseCandidate(JSON.stringify(embedded('R1', 88)), plan[2].file);
+  assert.deepEqual(values(Library.selectDocuments('movie.mp4', [...singles, multi])), [['R1', 88]]);
 });
 
 test('unmatched scripts and videos remain visible including disabled and unavailable suffix hints', () => {

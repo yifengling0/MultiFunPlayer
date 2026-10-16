@@ -86,7 +86,7 @@ export class LibraryFiles {
     if (dot <= 0 || name.slice(0, dot).trim().length === 0) { return false; }
     const extension = name.slice(dot + 1).toLowerCase();
     return extension === 'mp4' || extension === 'mkv' || extension === 'ts' ||
-      extension === 'm4v' || extension.endsWith('funscript');
+      extension === 'm4v' || extension === 'zip' || extension.endsWith('funscript');
   }
 
   private static directoryPath(uri: string): string {

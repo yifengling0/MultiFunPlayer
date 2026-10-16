@@ -12,6 +12,36 @@ export class ResourceFileEntry {
   }
 }
 
+/** Files supplied by the IO layer from one user-authorized library root.
+ * rootIdentity is opaque and never treated as a filesystem path. Each file path
+ * is relative to that root; recursive=false admits only direct root children. */
+export class ResourceLibraryCatalog {
+  rootIdentity: string;
+  files: ResourceFileEntry[];
+  recursive: boolean;
+  constructor(rootIdentity: string, files: ResourceFileEntry[], recursive: boolean = false) {
+    this.rootIdentity = rootIdentity; this.files = files; this.recursive = recursive;
+  }
+}
+
+export type ResourceDiscoveryKind = 'zip' | 'script';
+export type ResourceDiscoverySource = 'media' | 'library';
+
+/** One read operation in source discovery order. Expand ZIPs in their existing
+ * entry order at this position; do not sort their contents or the final list. */
+export class ResourceDiscoveryCandidate {
+  file: ResourceFileEntry;
+  kind: ResourceDiscoveryKind;
+  rootIdentity: string;
+  source: ResourceDiscoverySource;
+  libraryIndex: number;
+  constructor(file: ResourceFileEntry, kind: ResourceDiscoveryKind, rootIdentity: string,
+    source: ResourceDiscoverySource, libraryIndex: number) {
+    this.file = file; this.kind = kind; this.rootIdentity = rootIdentity;
+    this.source = source; this.libraryIndex = libraryIndex;
+  }
+}
+
 export class ResourceScriptMatch {
   file: ResourceFileEntry;
   axisName: string;
@@ -30,6 +60,7 @@ export class ResourceLibraryItem {
   parentPath: string;
   videos: ResourceFileEntry[] = [];
   scripts: ResourceScriptMatch[] = [];
+  archives: ResourceFileEntry[] = [];
   status: ResourceLibraryStatus = 'script-only';
   reasons: string[] = [];
   /** Available only when there is one video and no filename ambiguity. */
@@ -93,13 +124,15 @@ class ParsedResourceFile {
  * exactly with name. No URL decoding, Unicode normalization or URI inference.
  * Duplicate videos/URI identities are ambiguous. Competing scripts remain
  * candidates: selection follows upstream priorities, never a merge of aliases.
- * Discovery is bounded to authorized same-parent loose files. Upstream ZIP and
- * configured library searching must be supplied by a separate IO layer.
+ * build() groups same-parent files for display. planSearch() orders only the
+ * supplied authorized media/library catalogs; ZIP reads and filesystem access
+ * belong to a separate IO layer. Neither method derives paths from a root URI.
  * Ordering uses ordinal full relative paths, not upstream culture-sensitive
  * .NET OrderBy; this intentional deterministic boundary is not locale parity.
  */
 export class ResourceLibrary {
   static readonly MAX_FILES: number = 2000;
+  static readonly MAX_LIBRARIES: number = 8;
   static readonly MAX_STRING_LENGTH: number = 4096;
   static readonly MAX_TOTAL_TEXT_LENGTH: number = 2 * 1024 * 1024;
 
@@ -128,6 +161,10 @@ export class ResourceLibrary {
       if (ResourceLibrary.isVideo(file.extension)) {
         const item: ResourceLibraryItem = ResourceLibrary.getGroup(groups, file.parentPath, file.stem);
         item.videos.push(file.file);
+        ResourceLibrary.checkDuplicateUri(item, file.file, uriCounts);
+      } else if (file.extension === 'zip') {
+        const item: ResourceLibraryItem = ResourceLibrary.getGroup(groups, file.parentPath, file.stem);
+        item.archives.push(file.file);
         ResourceLibrary.checkDuplicateUri(item, file.file, uriCounts);
       } else if (!file.extension.endsWith('funscript')) {
         ignoredFiles.push(file.file);
@@ -163,6 +200,80 @@ export class ResourceLibrary {
     return new ResourceLibraryResult(items, ignoredFiles);
   }
 
+  /** LocalScriptRepository discovery at upstream 36c08fbb:
+   * media same-stem ZIP, sorted same-parent loose scripts, then each configured
+   * library in caller order (sorted ZIPs before sorted loose scripts). Library
+   * sorting is by full root-relative path, equivalent within one root; ordinal
+   * order intentionally replaces .NET's culture-sensitive ordering.
+   * ZIP entries are not inspected here. The caller expands each ZIP in archive
+   * order and skips failed reads/parses individually before selectDocuments().
+   * Unknown loose suffixes remain candidates because content may be multi-axis.
+   * Input roots are never combined, URI-decoded or used to infer other files.
+   * Limits apply across all supplied catalogs, even files which do not match.
+   */
+  static planSearch(media: ResourceFileEntry, mediaFiles: ResourceFileEntry[],
+    libraries: ResourceLibraryCatalog[], mediaRootIdentity: string = 'media'): ResourceDiscoveryCandidate[] {
+    const checkedMedia: ParsedResourceFile = ResourceLibrary.validateEntry(media);
+    if (!Array.isArray(mediaFiles) || !Array.isArray(libraries) || libraries.length > ResourceLibrary.MAX_LIBRARIES) {
+      throw new Error('Search requires file catalogs and at most 8 configured libraries.');
+    }
+    const catalogs: ResourceLibraryCatalog[] = [new ResourceLibraryCatalog(mediaRootIdentity, mediaFiles)];
+    for (const library of libraries) {
+      if (library === null || typeof library !== 'object' || Array.isArray(library)) {
+        throw new Error('Each configured library must be a catalog.');
+      }
+      catalogs.push(library);
+    }
+    const result: ResourceDiscoveryCandidate[] = [];
+    const mediaStem: string = checkedMedia.stem.toLowerCase();
+    let fileCount: number = 0;
+    let textLength: number = checkedMedia.file.uri.length + checkedMedia.file.name.length +
+      checkedMedia.file.relativePath.length;
+    for (let index: number = 0; index < catalogs.length; index++) {
+      const catalog: ResourceLibraryCatalog = catalogs[index];
+      if (typeof catalog.rootIdentity !== 'string' || catalog.rootIdentity.length === 0 ||
+          catalog.rootIdentity.length > ResourceLibrary.MAX_STRING_LENGTH ||
+          /[\u0000-\u001f\u007f]/.test(catalog.rootIdentity) ||
+          typeof catalog.recursive !== 'boolean' || !Array.isArray(catalog.files)) {
+        throw new Error('Invalid library root identity, recursion flag or file catalog.');
+      }
+      fileCount += catalog.files.length;
+      if (fileCount > ResourceLibrary.MAX_FILES) {
+        throw new Error('Search catalogs exceed 2000 total files; narrow the selected folders.');
+      }
+      textLength += catalog.rootIdentity.length;
+      if (textLength > ResourceLibrary.MAX_TOTAL_TEXT_LENGTH) {
+        throw new Error('Search catalog names and URIs exceed the 2 MiB text limit.');
+      }
+      const files: ParsedResourceFile[] = [];
+      for (const entry of catalog.files) {
+        const file: ParsedResourceFile = ResourceLibrary.validateEntry(entry);
+        textLength += file.file.uri.length + file.file.name.length + file.file.relativePath.length;
+        if (textLength > ResourceLibrary.MAX_TOTAL_TEXT_LENGTH) {
+          throw new Error('Search catalog names and URIs exceed the 2 MiB text limit.');
+        }
+        if (index === 0 ? file.parentPath !== checkedMedia.parentPath :
+          !catalog.recursive && file.parentPath.length > 0) { continue; }
+        files.push(file);
+      }
+      files.sort((left: ParsedResourceFile, right: ParsedResourceFile): number =>
+        ResourceLibrary.compareFiles(left.file, right.file));
+      const archives: ResourceDiscoveryCandidate[] = [];
+      const scripts: ResourceDiscoveryCandidate[] = [];
+      const origin: ResourceDiscoverySource = index === 0 ? 'media' : 'library';
+      for (const file of files) {
+        if (file.extension === 'zip' && file.stem.toLowerCase() === mediaStem) {
+          archives.push(new ResourceDiscoveryCandidate(file.file, 'zip', catalog.rootIdentity, origin, index - 1));
+        } else if (file.extension.endsWith('funscript') && file.file.name.toLowerCase().startsWith(mediaStem + '.')) {
+          scripts.push(new ResourceDiscoveryCandidate(file.file, 'script', catalog.rootIdentity, origin, index - 1));
+        }
+      }
+      for (const archive of archives) { result.push(archive); }
+      for (const script of scripts) { result.push(script); }
+    }
+    return result;
+  }
+
   /** Follows FunscriptReader's distinction between a conventional source and
    * embedded axis resources. The existing OHOS parser remains stricter than
    * upstream for malformed data, duplicate IDs and out-of-range actions. */
@@ -196,8 +307,8 @@ export class ResourceLibrary {
    *    enabled axes are blocked; single-axis sources never fill these holes.
    * 2. Otherwise, each axis tries its aliases in device order, then source names
    *    and same-name sources in found order; the first match wins (TryAdd).
-   * Caller provides upstream discovery order, including any future ZIP/library
-   * tiers. This function neither re-sorts nor guesses source priority.
+   * Caller provides discovery order from planSearch() after ZIP expansion.
+   * This function neither re-sorts nor guesses source priority.
    * The aggregate preview can hold one metadata set: use selected L0 metadata,
    * otherwise the first selected axis. Upstream retains metadata per resource.
    */
@@ -405,7 +516,8 @@ export class ResourceLibrary {
       ResourceLibrary.compareFiles(left.file, right.file));
     item.reasons.sort((left: string, right: string): number => ResourceLibrary.compareText(left, right));
     item.status = item.reasons.length > 0 ? 'ambiguous' :
-      item.videos.length === 0 ? 'script-only' : item.scripts.length === 0 ? 'video-only' : 'paired';
+      item.videos.length === 0 ? 'script-only' :
+        item.scripts.length === 0 && item.archives.length === 0 ? 'video-only' : 'paired';
     if (item.videos.length === 1 && item.status !== 'ambiguous') { item.video = item.videos[0]; }
   }
 
