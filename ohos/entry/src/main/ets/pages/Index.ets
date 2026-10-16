@@ -15,6 +15,7 @@ import { ScriptZipFiles } from '../library/ScriptZipFiles';
 import { ScriptZipCandidate } from '../core/ScriptZip';
 import { Heatmap, HeatmapBucket } from '../core/Heatmap';
 import { NativeVideoAdapter } from '../media/NativeVideoAdapter';
+import { t } from '../l10n/Texts';
 
 const DEMO: string = '{"actions":[{"at":0,"pos":50},{"at":1000,"pos":15},{"at":2000,"pos":85},{"at":3000,"pos":25},{"at":4000,"pos":75},{"at":5000,"pos":50}],"axes":[{"id":"R0","actions":[{"at":0,"pos":20},{"at":2500,"pos":80},{"at":5000,"pos":20}]}],"metadata":{"chapters":[{"name":"Rise","startTime":"00:00:00","endTime":"00:00:02.500"},{"name":"Return","startTime":"00:00:02.500","endTime":"00:00:05"}],"bookmarks":[{"name":"First low point","time":"00:00:01"},{"name":"Second low point","time":"00:00:03"}]}}';
 
@@ -539,23 +540,23 @@ struct Index {
   @Builder
   heading(title: string, detail: string) {
     Row() {
-      Text(title).fontSize(13).fontWeight(FontWeight.Medium).fontColor('#37474F').layoutWeight(1)
-      Text(detail).fontSize(12).fontColor('#607D8B')
+      Text(t(title)).fontSize(13).fontWeight(FontWeight.Medium).fontColor('#37474F').layoutWeight(1)
+      Text(t(detail)).fontSize(12).fontColor('#607D8B')
     }.width('100%').margin({ bottom: 6 })
   }
   @Builder
   mediaToolbar() {
     Row({ space: 2 }) {
-      Button('▣').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText('Load script').onClick(() => this.importScript()).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
-      Button('⌕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText('Script repositories and resources').onClick(() => { this.showResources = !this.showResources; })
-      Button('↻').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText('Refresh selected resource directory').enabled(this.libraryRoot.length > 0 && !this.libraryBusy).onClick(() => this.refreshLibrary())
-      Button('AB').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('AB loop is not ported yet')
+      Button('▣').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText(t('Load script')).onClick(() => this.importScript()).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
+      Button('⌕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText(t('Script repositories and resources')).onClick(() => { this.showResources = !this.showResources; })
+      Button('↻').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText(t('Refresh selected resource directory')).enabled(this.libraryRoot.length > 0 && !this.libraryBusy).onClick(() => this.refreshLibrary())
+      Button('AB').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText(t('AB loop is not ported yet'))
       Blank()
       Button(this.playing ? 'Ⅱ' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? '↶' : '▶')).flatButton()
-        .width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#008A19').fontSize(22).accessibilityText(this.playing ? 'Pause' : 'Play or rewind')
+        .width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#008A19').fontSize(22).accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
         .enabled(this.connected && this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (!this.videoMode || this.videoReady)).onClick(() => this.playPause())
-      Button('■').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(20).accessibilityText('Stop output').onClick(() => this.stop())
-      Button(this.showMediaSettings ? '⌃' : '⌄').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText('Media timing settings').onClick(() => { this.showMediaSettings = !this.showMediaSettings; })
+      Button('■').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(20).accessibilityText(t('Stop output')).onClick(() => this.stop())
+      Button(this.showMediaSettings ? '⌃' : '⌄').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Media timing settings')).onClick(() => { this.showMediaSettings = !this.showMediaSettings; })
     }.width('100%').backgroundColor('#F5F5F5').borderRadius(3)
   }
   @Builder
@@ -570,17 +571,17 @@ struct Index {
       Row() {
         Text((this.positionMs / 1000).toFixed(2) + ' / ' + (this.durationMs / 1000).toFixed(2) + ' s').fontSize(11).fontColor('#546E7A')
         Blank()
-        Button(this.showHeatSettings ? 'Heatmap ⌃' : 'Heatmap ⌄').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(12).onClick(() => { this.showHeatSettings = !this.showHeatSettings; })
+        Button(this.showHeatSettings ? t('Heatmap ⌃') : t('Heatmap ⌄')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(12).onClick(() => { this.showHeatSettings = !this.showHeatSettings; })
       }.width('100%')
       if (this.showHeatSettings) {
         Row() {
-          Text('Show range').fontSize(12).layoutWeight(1)
+          Text(t('Show range')).fontSize(12).layoutWeight(1)
           Toggle({ type: ToggleType.Switch, isOn: this.heatShowRange }).onChange((value: boolean) => { this.heatShowRange = value; this.drawTrace(); })
-          Text('Combine axes').fontSize(12).layoutWeight(1)
+          Text(t('Combine axes')).fontSize(12).layoutWeight(1)
           Toggle({ type: ToggleType.Switch, isOn: this.heatCombine }).onChange((value: boolean) => { this.heatCombine = value; this.drawTrace(); })
         }.height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48)
         Row() {
-          Text('Invert display Y').fontSize(12).layoutWeight(1)
+          Text(t('Invert display Y')).fontSize(12).layoutWeight(1)
           Toggle({ type: ToggleType.Switch, isOn: this.heatInvert }).onChange((value: boolean) => { this.heatInvert = value; this.drawTrace(); })
         }.height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48)
       }
@@ -589,7 +590,7 @@ struct Index {
   @Builder
   axes() {
     Column({ space: 0 }) {
-      Button((this.showAxisValues ? '⌃  ' : '⌄  ') + 'AXIS VALUES').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').fontSize(12).onClick(() => { this.showAxisValues = !this.showAxisValues; })
+      Button((this.showAxisValues ? '⌃  ' : '⌄  ') + t('AXIS VALUES')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').fontSize(12).onClick(() => { this.showAxisValues = !this.showAxisValues; })
       if (this.showAxisValues) {
         ForEach(this.axisNames, (name: string, index: number) => {
           Row({ space: 10 }) {
@@ -609,7 +610,7 @@ struct Index {
           ForEach(this.axisNames, (name: string, index: number) => {
             Column({ space: 0 }) {
               Text(name).fontSize(13).fontWeight(FontWeight.Bold).fontColor(index === this.selectedAxis ? '#455A64' : '#78909C')
-              Text('○ ○ ○ ○').fontSize(8).fontColor('#B0BEC5').accessibilityText('Link, motion, speed and smart-limit indicators not yet ported')
+              Text('○ ○ ○ ○').fontSize(8).fontColor('#B0BEC5').accessibilityText(t('Link, motion, speed and smart-limit indicators not yet ported'))
             }.width(52).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).justifyContent(FlexAlign.Center).backgroundColor(index === this.selectedAxis ? '#E1E6E8' : '#F5F5F5')
               .onClick(() => { this.selectedAxis = index; this.sync(); })
           })
@@ -617,21 +618,21 @@ struct Index {
       }.width('100%').scrollable(ScrollDirection.Horizontal)
       Scroll() {
         Row({ space: 0 }) {
-          Button('▣').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText('Script settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('↕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy).backgroundColor(this.axisInverted ? '#CFD8DC' : '#F5F5F5').accessibilityText('Invert selected script').onClick(() => { this.pauseTransport(); this.engine.setAxisInverted(this.axisNames[this.selectedAxis], !this.axisInverted); this.sync(); })
-          Button('Ⅱ').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Axis bypass not ported')
-          Button('↗').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Axis linking not ported')
-          Button('≋').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Motion provider not ported')
-          Button('⌁').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Smart limit not ported')
-          Button('◴').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Speed limit not ported')
-          Button('∿').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText('Interpolation settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('⌂').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Auto home not ported')
+          Button('▣').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Script settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('↕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy).backgroundColor(this.axisInverted ? '#CFD8DC' : '#F5F5F5').accessibilityText(t('Invert selected script')).onClick(() => { this.pauseTransport(); this.engine.setAxisInverted(this.axisNames[this.selectedAxis], !this.axisInverted); this.sync(); })
+          Button('Ⅱ').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText(t('Axis bypass not ported'))
+          Button('↗').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText(t('Axis linking not ported'))
+          Button('≋').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText(t('Motion provider not ported'))
+          Button('⌁').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText(t('Smart limit not ported'))
+          Button('◴').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText(t('Speed limit not ported'))
+          Button('∿').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Interpolation settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('⌂').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText(t('Auto home not ported'))
         }
       }.width('100%').scrollable(ScrollDirection.Horizontal)
       if (this.showAxisSettings) {
-        Text(this.fileName).fontSize(12).fontColor('#455A64').width('100%').padding(10)
+        Text(t(this.fileName)).fontSize(12).fontColor('#455A64').width('100%').padding(10)
         this.syncPanel()
-        Text('Grey controls are not implemented yet. Curve, inversion, scale and axis offset apply to the selected script axis.').fontSize(11).fontColor('#795548').padding(10)
+        Text(t('Grey controls are not implemented yet. Curve, inversion, scale and axis offset apply to the selected script axis.')).fontSize(11).fontColor('#795548').padding(10)
       }
     }.width('100%').backgroundColor('#F5F5F5').borderRadius(3)
   }
@@ -642,8 +643,8 @@ struct Index {
       if (this.showMediaSettings) { this.syncPanel() }
       this.timeline()
       Row() {
-        Text(this.chapterLabel).fontSize(12).fontColor('#455A64').layoutWeight(1).maxLines(1)
-        Button(this.showMarkerDetails ? 'Markers ⌃' : 'Markers ⌄').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(12).onClick(() => { this.showMarkerDetails = !this.showMarkerDetails; })
+        Text(t(this.chapterLabel)).fontSize(12).fontColor('#455A64').layoutWeight(1).maxLines(1)
+        Button(this.showMarkerDetails ? t('Markers ⌃') : t('Markers ⌄')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(12).onClick(() => { this.showMarkerDetails = !this.showMarkerDetails; })
       }.width('100%').backgroundColor('#ECEFF1')
       if (this.showMarkerDetails) { this.markerPanel() }
       this.axisToolbar()
@@ -655,43 +656,43 @@ struct Index {
   libraryPanel() {
     Column({ space: 10 }) {
       this.heading('Local resources', 'AUTHORIZED FILES')
-      Text('Session library · original ZIP-first script search. No video copies. Choose Downloads through the system picker if it offers access.').fontSize(12).fontColor('#546E7A').width('100%')
+      Text(t('Session library · original ZIP-first script search. No video copies. Choose Downloads through the system picker if it offers access.')).fontSize(12).fontColor('#546E7A').width('100%')
       Row({ space: 8 }) {
-        Button('Select folder').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.chooseLibrary(true))
-        Button('Select files').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.chooseLibrary(false))
+        Button(t('Select folder')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.chooseLibrary(true))
+        Button(t('Select files')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.chooseLibrary(false))
       }
       if (this.libraryBusy) {
-        Button('Cancel scan').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').onClick(() => this.cancelLibrary())
+        Button(t('Cancel scan')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').onClick(() => this.cancelLibrary())
       } else if (this.libraryRoot.length > 0) {
-        Button('Refresh selected folder').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.importing && !this.openingVideo).onClick(() => this.refreshLibrary())
+        Button(t('Refresh selected folder')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.importing && !this.openingVideo).onClick(() => this.refreshLibrary())
       }
-      Text(this.libraryMessage).fontSize(12).fontColor('#546E7A').width('100%')
+      Text(t(this.libraryMessage)).fontSize(12).fontColor('#546E7A').width('100%')
       ForEach(this.libraryItems.slice(0, this.libraryLimit), (item: ResourceLibraryItem) => {
         Column({ space: 8 }) {
           Text(item.title).fontColor('#37474F').width('100%').maxLines(2)
-          Text(item.status + ' · ' + item.videos.length + ' video / ' + item.scripts.length + ' scripts / ' + item.archives.length + ' ZIP').fontSize(12).fontColor('#546E7A').width('100%')
+          Text(t(item.status) + ' · ' + item.videos.length + t(' video / ') + item.scripts.length + t(' scripts / ') + item.archives.length + t(' ZIP')).fontSize(12).fontColor('#546E7A').width('100%')
           if (item.reasons.length > 0) { Text(item.reasons.join('; ')).fontSize(12).fontColor('#795548').width('100%') }
           if (item.videos.length === 1) {
-            Button('Open video + scripts').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item))
+            Button(t('Open video + scripts')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item))
           }
           if (item.videos.length > 0) {
-            Button('Choose mapping').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.beginMapping(item))
+            Button(t('Choose mapping')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.beginMapping(item))
           }
           if (this.manualItemId === item.id) {
-            Text('Select one video and candidate scripts. Original matcher priority chooses each axis.').fontSize(12).fontColor('#795548')
+            Text(t('Select one video and candidate scripts. Original matcher priority chooses each axis.')).fontSize(12).fontColor('#795548')
             ForEach(item.videos, (file: ResourceFileEntry) => {
               Button((this.manualVideoUri === file.uri ? '● ' : '○ ') + file.name).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').onClick(() => { this.manualVideoUri = file.uri; })
             }, (file: ResourceFileEntry) => file.uri)
             ForEach(item.scripts, (match: ResourceScriptMatch) => {
               Button((this.manualScriptUris.indexOf(match.file.uri) >= 0 ? '☑ ' : '☐ ') + match.file.name).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').onClick(() => this.toggleMappedScript(match.file.uri))
             }, (match: ResourceScriptMatch) => match.file.uri)
-            Button('Open selected video · original search').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item, true, true))
-            Button('Open selected mapping').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item, true))
+            Button(t('Open selected video · original search')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item, true, true))
+            Button(t('Open selected mapping')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item, true))
           }
         }.padding(12).backgroundColor('#ECEFF1').borderRadius(3).width('100%')
       }, (item: ResourceLibraryItem) => item.id)
       if (this.libraryItems.length > this.libraryLimit) {
-        Button('Show 20 more').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').onClick(() => { this.libraryLimit += 20; })
+        Button(t('Show 20 more')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').onClick(() => { this.libraryLimit += 20; })
       }
     }.padding(10).backgroundColor('#F5F5F5').borderRadius(3).width('100%')
   }
@@ -701,33 +702,33 @@ struct Index {
     Column({ space: 0 }) {
       Row({ space: 0 }) {
         Column({ space: 2 }) {
-          Text('Internal').fontSize(13).fontWeight(FontWeight.Bold)
-          Text(!this.videoMode ? 'Connected' : 'Inactive').fontSize(10).fontColor(!this.videoMode ? '#008000' : '#757575')
+          Text(t('Internal')).fontSize(13).fontWeight(FontWeight.Bold)
+          Text(!this.videoMode ? t('Connected') : t('Inactive')).fontSize(10).fontColor(!this.videoMode ? '#008000' : '#757575')
         }.width(100).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).justifyContent(FlexAlign.Center).backgroundColor(!this.videoMode ? '#E1E6E8' : '#F5F5F5')
           .onClick(() => { if (!this.importing && !this.openingVideo && !this.libraryBusy) { this.closeVideo(); } })
         Column({ space: 2 }) {
-          Text('Local video').fontSize(13).fontWeight(FontWeight.Bold)
-          Text(this.videoMode ? this.videoState : 'Disconnected').fontSize(10).fontColor(this.videoReady ? '#008000' : '#D32F2F')
+          Text(t('Local video')).fontSize(13).fontWeight(FontWeight.Bold)
+          Text(t(this.videoMode ? this.videoState : 'Disconnected')).fontSize(10).fontColor(this.videoReady ? '#008000' : '#D32F2F')
         }.width(112).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).justifyContent(FlexAlign.Center).backgroundColor(this.videoMode ? '#E1E6E8' : '#F5F5F5')
           .onClick(() => this.openVideo())
         Blank()
-        Button('⌕').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText('Resources and script libraries').onClick(() => { this.showResources = !this.showResources; })
-        Button(this.showSourceSettings ? '⌃' : '⚙').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText('Source settings').onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
+        Button('⌕').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Resources and script libraries')).onClick(() => { this.showResources = !this.showResources; })
+        Button(this.showSourceSettings ? '⌃' : '⚙').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
       }.width('100%')
       Divider().color('#B0BEC5')
       Row() {
-        Button(this.videoMode ? '■' : '▣').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(this.videoMode ? 'Close local video' : 'Import script').enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
+        Button(this.videoMode ? '■' : '▣').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(this.videoMode ? t('Close local video') : t('Import script')).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
           .onClick(() => { if (this.videoMode) { this.closeVideo(); } else { this.importScript(); } })
-        Text(this.videoMode ? this.videoName : this.fileName).fontSize(12).fontColor('#546E7A').layoutWeight(1).maxLines(1)
-        Button(this.showSourceSettings ? '⌃' : '⌄').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText('Expand source settings').onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
+        Text(t(this.videoMode ? this.videoName : this.fileName)).fontSize(12).fontColor('#546E7A').layoutWeight(1).maxLines(1)
+        Button(this.showSourceSettings ? '⌃' : '⌄').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Expand source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
       }
       if (this.showSourceSettings) {
-        Text('Local video is an OHOS addition. External-player adapters and the full Internal playlist are not ported yet.').fontSize(12).fontColor('#795548').padding(10)
-        Button('Open local video').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.importing && !this.openingVideo && !this.libraryBusy).onClick(() => this.openVideo())
-        Button('Import .funscript / JSON').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.importing && !this.openingVideo && !this.libraryBusy).onClick(() => this.importScript())
+        Text(t('Local video is an OHOS addition. External-player adapters and the full Internal playlist are not ported yet.')).fontSize(12).fontColor('#795548').padding(10)
+        Button(t('Open local video')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.importing && !this.openingVideo && !this.libraryBusy).onClick(() => this.openVideo())
+        Button(t('Import .funscript / JSON')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.importing && !this.openingVideo && !this.libraryBusy).onClick(() => this.importScript())
         if (this.videoMode) {
           Row() {
-            Text('Volume').fontSize(12).width(64)
+            Text(t('Volume')).fontSize(12).width(64)
             Slider({ value: this.volume, min: 0, max: 1, step: 0.01 }).layoutWeight(1).enabled(this.videoReady)
               .onChange((value: number) => { this.volume = value; this.video.setVolume(value); })
           }.padding(10)
@@ -740,23 +741,23 @@ struct Index {
     Column({ space: 0 }) {
       Row() {
         Column({ space: 2 }) {
-          Text('Simulator').fontSize(13).fontWeight(FontWeight.Bold)
-          Text(this.connected ? 'Connected' : 'Disconnected').fontSize(10).fontColor(this.connected ? '#008000' : '#D32F2F')
+          Text(t('Simulator')).fontSize(13).fontWeight(FontWeight.Bold)
+          Text(this.connected ? t('Connected') : t('Disconnected')).fontSize(10).fontColor(this.connected ? '#008000' : '#D32F2F')
         }.width(112).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).justifyContent(FlexAlign.Center).backgroundColor('#E1E6E8')
         Blank()
-        Button('+').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Physical output adapters are not implemented')
-        Button('⚙').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText('Output settings').onClick(() => { this.showOutputSettings = !this.showOutputSettings; })
+        Button('+').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText(t('Physical output adapters are not implemented'))
+        Button('⚙').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Output settings')).onClick(() => { this.showOutputSettings = !this.showOutputSettings; })
       }.width('100%')
       Divider().color('#B0BEC5')
       Row() {
-        Button(this.connected ? '■' : '▶').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText('Toggle simulator connection').onClick(() => {
+        Button(this.connected ? '■' : '▶').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Toggle simulator connection')).onClick(() => {
           this.connected = !this.connected; this.pauseTransport(); this.engine.setConnected(this.connected); this.sync();
         })
-        Text('No physical commands').fontSize(12).fontColor('#546E7A').layoutWeight(1)
+        Text(t('No physical commands')).fontSize(12).fontColor('#546E7A').layoutWeight(1)
         Button(this.showOutputSettings ? '⌃' : '⌄').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).onClick(() => { this.showOutputSettings = !this.showOutputSettings; })
       }
       if (this.showOutputSettings) {
-        Text('Simulation only. TCP/UDP, serial, Bluetooth, per-output ranges and update protocols are not ported yet.').fontSize(12).fontColor('#795548').padding(10)
+        Text(t('Simulation only. TCP/UDP, serial, Bluetooth, per-output ranges and update protocols are not ported yet.')).fontSize(12).fontColor('#795548').padding(10)
       }
     }.backgroundColor('#F5F5F5').borderRadius(3).width('100%')
   }
@@ -809,7 +810,7 @@ struct Index {
     Column({ space: 12 }) {
       this.heading('Synchronization', 'SIMULATION')
       Row({ space: 10 }) {
-        Text((this.axisNames[this.selectedAxis] || 'Axis') + ' curve').fontColor('#546E7A').layoutWeight(1)
+        Text((this.axisNames[this.selectedAxis] || t('Axis')) + t(' curve')).fontColor('#546E7A').layoutWeight(1)
         Select([{ value: 'Linear' }, { value: 'PCHIP' }, { value: 'Makima' }, { value: 'Step' }])
           .value(this.interpolationMode.toUpperCase()).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy)
           .onSelect((index: number) => {
@@ -818,28 +819,28 @@ struct Index {
           })
       }.width('100%')
       Row({ space: 10 }) {
-        Text('Playback speed').fontColor('#546E7A').layoutWeight(1)
+        Text(t('Playback speed')).fontColor('#546E7A').layoutWeight(1)
         Select([{ value: '0.25×' }, { value: '0.5×' }, { value: '1×' }, { value: '1.5×' }, { value: '2×' }, { value: '4×' }])
           .value(this.playbackSpeed.toString() + '×').height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
           .onSelect((index: number) => { const speeds: number[] = [0.25, 0.5, 1, 1.5, 2, 4]; if (this.videoMode) { this.video.setRate(speeds[index]); } else { this.engine.setSpeed(speeds[index]); } this.sync(); })
       }.width('100%')
-      Text('Script scale: ' + Math.round(this.axisScale * 100) + '%').fontColor('#546E7A').width('100%')
+      Text(t('Script scale: ') + Math.round(this.axisScale * 100) + '%').fontColor('#546E7A').width('100%')
       Slider({ value: this.axisScale, min: 0.01, max: 4, step: 0.01 }).width('100%')
         .enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy)
         .onChange((value: number) => { this.pauseTransport(); this.engine.setAxisScale(this.axisNames[this.selectedAxis], value); this.sync(); })
-      Text('Global offset: ' + this.globalOffsetMs + ' ms').fontColor('#546E7A').width('100%')
+      Text(t('Global offset: ') + this.globalOffsetMs + t(' ms')).fontColor('#546E7A').width('100%')
       Row({ space: 8 }) {
         Button('−50').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.changeOffset(false, -50))
-        Button('Reset').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.changeOffset(false, -this.globalOffsetMs))
+        Button(t('Reset')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.changeOffset(false, -this.globalOffsetMs))
         Button('+50').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.changeOffset(false, 50))
       }
-      Text((this.axisNames[this.selectedAxis] || 'Axis') + ' offset: ' + this.axisOffsetMs + ' ms').fontColor('#546E7A').width('100%')
+      Text((this.axisNames[this.selectedAxis] || t('Axis')) + t(' offset: ') + this.axisOffsetMs + t(' ms')).fontColor('#546E7A').width('100%')
       Row({ space: 8 }) {
         Button('−50').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.changeOffset(true, -50))
-        Button('Reset').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.changeOffset(true, -this.axisOffsetMs))
+        Button(t('Reset')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.changeOffset(true, -this.axisOffsetMs))
         Button('+50').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.changeOffset(true, 50))
       }
-      Text('Positive offsets delay the script. Offset and curve edits pause playback. Preview clock duration stays unchanged.').fontSize(12).fontColor('#607D8B')
+      Text(t('Positive offsets delay the script. Offset and curve edits pause playback. Preview clock duration stays unchanged.')).fontSize(12).fontColor('#607D8B')
     }.padding(10).backgroundColor('#F5F5F5').borderRadius(3).width('100%')
   }
   @Builder
@@ -847,19 +848,19 @@ struct Index {
     if (this.document.metadata.chapters.length > 0 || this.document.metadata.bookmarks.length > 0) {
       Column({ space: 12 }) {
         this.heading('Script markers', 'SELECTED AXIS')
-        Text(this.chapterLabel).fontColor('#546E7A').width('100%').maxLines(2)
+        Text(t(this.chapterLabel)).fontColor('#546E7A').width('100%').maxLines(2)
         if (this.document.metadata.chapters.length > 0) {
-          Text('Chapters: ' + this.document.metadata.chapters.length).fontColor('#607D8B').width('100%')
+          Text(t('Chapters: ') + this.document.metadata.chapters.length).fontColor('#607D8B').width('100%')
           Row({ space: 8 }) {
-            Button('Previous').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.jumpChapter(-1))
-            Button('Next').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.jumpChapter(1))
+            Button(t('Previous')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.jumpChapter(-1))
+            Button(t('Next')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.jumpChapter(1))
           }
         }
         if (this.document.metadata.bookmarks.length > 0) {
-          Text('Bookmarks: ' + this.document.metadata.bookmarks.length).fontColor('#607D8B').width('100%')
+          Text(t('Bookmarks: ') + this.document.metadata.bookmarks.length).fontColor('#607D8B').width('100%')
           Row({ space: 8 }) {
-            Button('Previous').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.jumpBookmark(-1))
-            Button('Next').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.jumpBookmark(1))
+            Button(t('Previous')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.jumpBookmark(-1))
+            Button(t('Next')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.jumpBookmark(1))
           }
         }
       }.padding(10).backgroundColor('#F5F5F5').borderRadius(3).width('100%')
@@ -868,17 +869,17 @@ struct Index {
   @Builder
   transport() {
     Row({ space: 12 }) {
-      Button(this.playing ? 'Pause' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? 'Rewind' : 'Play')).flatButton().height(52).layoutWeight(1).backgroundColor('#607D8B').fontColor('#FFFFFF')
+      Button(this.playing ? t('Pause') : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? t('Rewind') : t('Play'))).flatButton().height(52).layoutWeight(1).backgroundColor('#607D8B').fontColor('#FFFFFF')
         .enabled(this.connected && this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (!this.videoMode || this.videoReady)).onClick(() => this.playPause())
-      Button('Stop output').flatButton().height(52).layoutWeight(1).backgroundColor('#833D46').onClick(() => this.stop())
+      Button(t('Stop output')).flatButton().height(52).layoutWeight(1).backgroundColor('#833D46').onClick(() => this.stop())
     }.width('100%')
   }
   @Builder
   configuredLibraries() {
     Column({ space: 8 }) {
       this.heading('Script libraries', 'SEARCH ORDER')
-      Text('Media location first, then these libraries. Each location searches ZIP before loose scripts. Session-only access.').fontSize(12).fontColor('#546E7A')
-      Button('+ Add authorized script folder').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.addScriptLibrary())
+      Text(t('Media location first, then these libraries. Each location searches ZIP before loose scripts. Session-only access.')).fontSize(12).fontColor('#546E7A')
+      Button(t('+ Add authorized script folder')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.addScriptLibrary())
       ForEach(this.scriptLibraries, (source: ScriptLibrarySource, index: number) => {
         Column({ space: 4 }) {
           Text((index + 1) + '. ' + source.name).fontSize(13).fontColor('#37474F').width('100%')
@@ -888,7 +889,7 @@ struct Index {
             Button('↻').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(!this.libraryBusy).onClick(() => this.refreshScriptLibrary(index))
             Button('×').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(!this.libraryBusy).onClick(() => this.editScriptLibrary(index, 'remove'))
             Blank()
-            Text('Recursive').fontSize(12)
+            Text(t('Recursive')).fontSize(12)
             Toggle({ type: ToggleType.Switch, isOn: source.recursive }).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onChange(() => this.editScriptLibrary(index, 'recursive'))
           }.width('100%')
         }.padding(8).backgroundColor('#ECEFF1').width('100%')
@@ -910,11 +911,11 @@ struct Index {
         Text('MultiFunPlayer').fontSize(14).fontColor('#FFFFFF').fontWeight(FontWeight.Medium)
         Text('│ 0.5.1 OHOS').fontSize(12).fontColor('#CFD8DC')
         Blank()
-        Button('⌕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#FFFFFF').backgroundColor('#455A64').accessibilityText('Resources and script libraries').onClick(() => { this.showResources = !this.showResources; })
-        Button('?').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#FFFFFF').backgroundColor('#455A64').accessibilityText('Port status and limitations').onClick(() => { this.showPortInfo = !this.showPortInfo; })
+        Button('⌕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#FFFFFF').backgroundColor('#455A64').accessibilityText(t('Resources and script libraries')).onClick(() => { this.showResources = !this.showResources; })
+        Button('?').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#FFFFFF').backgroundColor('#455A64').accessibilityText(t('Port status and limitations')).onClick(() => { this.showPortInfo = !this.showPortInfo; })
       }.padding({ left: 10, right: 4 }).width('100%').backgroundColor('#455A64')
       if (this.showPortInfo) {
-        Text('Source-led main layout in progress. Grey tools are unavailable. No physical output. ZIP32 local search is bounded; device playback and visual parity are not yet validated.').fontSize(12).fontColor('#795548').padding(10)
+        Text(t('Source-led main layout in progress. Grey tools are unavailable. No physical output. ZIP32 local search is bounded; device playback and visual parity are not yet validated.')).fontSize(12).fontColor('#795548').padding(10)
       }
       if (this.videoMode) {
         XComponent({ id: 'mfp-native-video', type: 'surface', controller: this.videoSurface })
@@ -936,7 +937,7 @@ struct Index {
           }.padding(10).width('100%').constraintSize({ maxWidth: 600 })
         }.width('100%').layoutWeight(1).align(Alignment.Top)
       }
-      Text(this.status).fontSize(11).fontColor('#546E7A').width('100%').padding({ left: 10, right: 10, top: 4, bottom: 4 }).maxLines(2)
+      Text(t(this.status)).fontSize(11).fontColor('#546E7A').width('100%').padding({ left: 10, right: 10, top: 4, bottom: 4 }).maxLines(2)
       if (this.widthVp < 840 || this.heightVp < 500) { this.transport() }
     }.width('100%').height('100%').backgroundColor('#FAFAFA')
       .onAreaChange((_old: Area, area: Area) => { this.widthVp = Number(area.width); this.heightVp = Number(area.height); })
