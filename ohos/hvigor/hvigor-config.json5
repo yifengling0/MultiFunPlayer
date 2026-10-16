@@ -1,0 +1,13 @@
+{
+  "modelVersion": "26.0.0",
+  "dependencies": {},
+  "execution": {
+    "daemon": false,
+    "parallel": false,
+    "incremental": true
+  },
+  "properties": {
+    "hvigor.pool.maxSize": 1,
+    "ohos.arkCompile.maxSize": 1
+  }
+}
