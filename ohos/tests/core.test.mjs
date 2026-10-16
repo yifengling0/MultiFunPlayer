@@ -165,7 +165,7 @@ test('total action limit counts source entries before duplicate reduction', () =
   const points = Array.from({ length: 50001 }, () => ({ at: 0, pos: 50 }));
   assert.throws(() => parse({ axes: [{ id: 'L0', actions: points }, { id: 'L1', actions: points }] }));
 });
-test('metadata is deliberately ignored and cannot override timeline limits', () => {
+test('unsupported duration metadata and range/inverted flags cannot override actions', () => {
   const doc = parse({ version: '1.0', range: 50, inverted: true, metadata: { duration: 9999 },
     actions: [{ at: 0, pos: 5 }, { at: 100, pos: 95 }] });
   assert.equal(doc.durationMs, 100); assert.equal(interpolate(doc.axes[0], 0), 5);

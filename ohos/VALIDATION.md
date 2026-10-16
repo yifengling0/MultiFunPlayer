@@ -15,3 +15,13 @@ Earlier compilation needed a low-memory configuration (single worker, memory opt
 Not performed: signing, installation, emulator/phone/tablet/PC runtime or screenshot tests, real file-picker permission tests, physical device output, performance/battery tests, or Windows regression build. This HAP is an unsigned development artifact, not an install-ready release. Responsive UI code compiling is not a claim that three-device UI testing passed. GitHub CI is separately scoped to core tests only.
 
 Independent code review found no blocker for simulation scope. Follow-up fixes disable Play throughout asynchronous imports (also guarded in its handler) and catch rejected main-window load promises. Core tests and HAP build were rerun after these edits; actual delayed-picker/error UI scenarios still need device testing.
+
+## M2 — 0.2.0 synchronization milestone
+
+- 98 Node tests pass, including 1,272 independently generated reference samples across 44 interpolation datasets. Python exact-rational oracle transcribes pinned upstream kernels; the C# application was not executed.
+- Official SDK build passed: 33 tasks (17 executed, 16 up-to-date), 12.502 seconds. Actual ArkTS compilation, packaging and package metadata checks passed.
+- HAP: 208085 bytes; SHA256 `9a2c96308cc492f5dad13ecc49c3f70f3e0bfc206bd6888bd4025add928c366e`.
+- Metadata parsing/defensive copy, filename axis aliases, offset sign/addition, speed scaling, lifecycle gates and interpolation selection covered. Device-native controls and actual rendering remain untested.
+- No physical transport, signing or video playback added in this milestone.
+
+M2 independent review: no safety blocker; adjacent-chapter boundary labels now use half-open intervals, and unreachable shifted markers are reported instead of silently clamped. Three targeted regression tests pass. HAP source map lists only the M2 core/UI modules (no unfinished video adapter).

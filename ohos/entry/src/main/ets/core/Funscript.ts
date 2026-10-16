@@ -14,10 +14,80 @@ export class FunscriptAxis {
   }
 }
 
+/** Metadata is descriptive only; it never changes action positions or duration. */
+export class FunscriptChapter {
+  name: string;
+  startTimeMs: number;
+  endTimeMs: number;
+  constructor(name: string, startTimeMs: number, endTimeMs: number) {
+    this.name = name; this.startTimeMs = startTimeMs; this.endTimeMs = endTimeMs;
+  }
+}
+
+export class FunscriptBookmark {
+  name: string;
+  timeMs: number;
+  constructor(name: string, timeMs: number) { this.name = name; this.timeMs = timeMs; }
+}
+
+export class FunscriptMetadata {
+  static readonly MAX_ENTRIES: number = 1000;
+  static readonly MAX_NAME_LENGTH: number = 256;
+  chapters: FunscriptChapter[];
+  bookmarks: FunscriptBookmark[];
+  constructor(chapters: FunscriptChapter[] = [], bookmarks: FunscriptBookmark[] = []) {
+    this.chapters = chapters; this.bookmarks = bookmarks;
+  }
+
+  /** Validate and deep-copy normalized metadata, including programmatic documents. */
+  clone(): FunscriptMetadata {
+    if (!Array.isArray(this.chapters) || !Array.isArray(this.bookmarks) ||
+        this.chapters.length + this.bookmarks.length > FunscriptMetadata.MAX_ENTRIES) {
+      throw new Error('Metadata allows at most 1000 total chapters and bookmarks.');
+    }
+    const chapters: FunscriptChapter[] = [];
+    const bookmarks: FunscriptBookmark[] = [];
+    for (const chapter of this.chapters) {
+      if (chapter === null || typeof chapter !== 'object' || Array.isArray(chapter)) {
+        throw new Error('Invalid chapter.');
+      }
+      FunscriptMetadata.validateName(chapter.name);
+      FunscriptMetadata.validateTime(chapter.startTimeMs);
+      FunscriptMetadata.validateTime(chapter.endTimeMs);
+      if (chapter.endTimeMs < chapter.startTimeMs) { throw new Error('Chapter end precedes start.'); }
+      chapters.push(new FunscriptChapter(chapter.name, chapter.startTimeMs, chapter.endTimeMs));
+    }
+    for (const bookmark of this.bookmarks) {
+      if (bookmark === null || typeof bookmark !== 'object' || Array.isArray(bookmark)) {
+        throw new Error('Invalid bookmark.');
+      }
+      FunscriptMetadata.validateName(bookmark.name);
+      FunscriptMetadata.validateTime(bookmark.timeMs);
+      bookmarks.push(new FunscriptBookmark(bookmark.name, bookmark.timeMs));
+    }
+    chapters.sort((left: FunscriptChapter, right: FunscriptChapter): number => left.startTimeMs - right.startTimeMs);
+    bookmarks.sort((left: FunscriptBookmark, right: FunscriptBookmark): number => left.timeMs - right.timeMs);
+    return new FunscriptMetadata(chapters, bookmarks);
+  }
+
+  private static validateName(name: string): void {
+    if (typeof name !== 'string' || name.length > FunscriptMetadata.MAX_NAME_LENGTH) {
+      throw new Error('Metadata names must be strings of at most 256 characters.');
+    }
+  }
+
+  private static validateTime(timeMs: number): void {
+    if (typeof timeMs !== 'number' || !Number.isFinite(timeMs) || timeMs < 0 ||
+        timeMs > FunscriptParser.MAX_TIME_MS) { throw new Error('Metadata time is outside 0–24 hours.'); }
+  }
+}
+
 export class FunscriptDocument {
   axes: FunscriptAxis[];
   durationMs: number;
-  constructor(axes: FunscriptAxis[]) {
+  metadata: FunscriptMetadata;
+  constructor(axes: FunscriptAxis[], metadata: FunscriptMetadata = new FunscriptMetadata()) {
+    this.metadata = metadata.clone();
     this.axes = axes;
     this.durationMs = 0;
     for (const axis of axes) {
@@ -33,7 +103,25 @@ class RawAxis {
   name?: string;
   actions?: FunscriptAction[];
 }
+class RawChapter {
+  name?: string;
+  startTime?: string;
+  endTime?: string;
+}
+class RawBookmark {
+  name?: string;
+  time?: string;
+}
+class RawMetadata {
+  chapters?: RawChapter[];
+  bookmarks?: RawBookmark[];
+}
+class CloneAxesDocument {
+  axes: FunscriptAxis[];
+  constructor(axes: FunscriptAxis[]) { this.axes = axes; }
+}
 class RawDocument {
+  metadata?: RawMetadata;
   actions?: FunscriptAction[];
   axes?: RawAxis[] | Record<string, RawAxis>;
 }
@@ -105,7 +193,71 @@ export class FunscriptParser {
       count += axis.actions.length;
     }
     if (count > FunscriptParser.MAX_ACTIONS) { throw new Error('Too many total actions.'); }
-    return new FunscriptDocument(axes);
+    return new FunscriptDocument(axes, FunscriptParser.parseMetadata(raw.metadata));
+  }
+
+  /** Copy programmatic documents without trusting supplied duration or prototypes. */
+  static cloneDocument(document: FunscriptDocument): FunscriptDocument {
+    if (document === null || typeof document !== 'object' || Array.isArray(document)) {
+      throw new Error('Invalid document.');
+    }
+    const copy: FunscriptDocument = FunscriptParser.parse(JSON.stringify(new CloneAxesDocument(document.axes)));
+    if (document.metadata !== undefined) {
+      const metadata: FunscriptMetadata = document.metadata;
+      if (metadata === null || typeof metadata !== 'object' || Array.isArray(metadata)) {
+        throw new Error('Invalid normalized metadata.');
+      }
+      copy.metadata = new FunscriptMetadata(metadata.chapters, metadata.bookmarks).clone();
+    }
+    return copy;
+  }
+
+  /** Strict C# TimeSpan subset HH:mm:ss[.fffffff], preserving sub-ms precision.
+   * Day prefixes, negatives, whitespace, numeric values and malformed fields reject.
+   * 24:00:00 is allowed; later times are outside the preview timeline bound.
+   */
+  static parseTimeSpanMs(value: string): number {
+    if (typeof value !== 'string' || !/^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?$/.test(value)) {
+      throw new Error('Metadata times must use HH:mm:ss with an optional 1–7 digit fraction.');
+    }
+    const hours: number = Number(value.slice(0, 2));
+    const minutes: number = Number(value.slice(3, 5));
+    const seconds: number = Number(value.slice(6, 8));
+    const fractionMs: number = value.length > 8 ? Number('0' + value.slice(8)) * 1000 : 0;
+    const timeMs: number = ((hours * 60 + minutes) * 60 + seconds) * 1000 + fractionMs;
+    if (minutes > 59 || seconds > 59 || timeMs > FunscriptParser.MAX_TIME_MS) {
+      throw new Error('Metadata time is outside 0–24 hours or has invalid clock fields.');
+    }
+    return timeMs;
+  }
+
+  private static parseMetadata(raw: RawMetadata | undefined): FunscriptMetadata {
+    if (raw === undefined || raw === null) { return new FunscriptMetadata(); }
+    if (typeof raw !== 'object' || Array.isArray(raw)) { throw new Error('Metadata must be an object.'); }
+    const sourceChapters: RawChapter[] = raw.chapters === undefined ? [] : raw.chapters;
+    const sourceBookmarks: RawBookmark[] = raw.bookmarks === undefined ? [] : raw.bookmarks;
+    if (!Array.isArray(sourceChapters) || !Array.isArray(sourceBookmarks) ||
+        sourceChapters.length + sourceBookmarks.length > FunscriptMetadata.MAX_ENTRIES) {
+      throw new Error('Metadata allows at most 1000 total chapters and bookmarks.');
+    }
+    const chapters: FunscriptChapter[] = [];
+    const bookmarks: FunscriptBookmark[] = [];
+    for (const chapter of sourceChapters) {
+      if (chapter === null || typeof chapter !== 'object' || Array.isArray(chapter) ||
+          typeof chapter.name !== 'string' || typeof chapter.startTime !== 'string' || typeof chapter.endTime !== 'string') {
+        throw new Error('Chapter requires name, startTime and endTime.');
+      }
+      chapters.push(new FunscriptChapter(chapter.name, FunscriptParser.parseTimeSpanMs(chapter.startTime),
+        FunscriptParser.parseTimeSpanMs(chapter.endTime)));
+    }
+    for (const bookmark of sourceBookmarks) {
+      if (bookmark === null || typeof bookmark !== 'object' || Array.isArray(bookmark) ||
+          typeof bookmark.name !== 'string' || typeof bookmark.time !== 'string') {
+        throw new Error('Bookmark requires name and time.');
+      }
+      bookmarks.push(new FunscriptBookmark(bookmark.name, FunscriptParser.parseTimeSpanMs(bookmark.time)));
+    }
+    return new FunscriptMetadata(chapters, bookmarks).clone();
   }
 
   private static parseAxis(name: string, source: FunscriptAction[]): FunscriptAxis {
