@@ -16,5 +16,5 @@ jobs:
         with:
           node-version: '24'
       - name: Pure core tests (not an OHOS SDK build)
-        run: node --test tests/core.test.mjs
+        run: node --test tests/*.test.mjs
         working-directory: ohos

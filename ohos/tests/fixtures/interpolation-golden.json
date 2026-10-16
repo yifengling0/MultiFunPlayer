@@ -1,0 +1,7299 @@
+{
+  "provenance": {
+    "kind": "independent-python-exact-rational-reference",
+    "executedCSharp": false,
+    "upstreamCommit": "0b81a15dd67c6dda9a21a1f84300326f5cb57c2a",
+    "sourceSha256": {
+      "Source/MultiFunPlayer/Common/Utils/MathUtils.cs": "aa30c767e098e17f05a68a0e37b560d8d6670f24987b06716efeb5350384f30b",
+      "Source/MultiFunPlayer/Common/KeyframeCollection.cs": "28c26086eb35826d2a408530a82da726244bb3f1474b4ca549f5c60d80609045",
+      "Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs": "3104cecc1510ef394a786c04239bafc58d33af4465d2b3c04b0409995c19debe"
+    },
+    "notes": "C# runtime unavailable. Equation/padding equivalence evidence, not binary/runtime parity. Preview boundary holds and neutral empty value are adapter policies; raw kernels and final clamp are distinct."
+  },
+  "cases": [
+    {
+      "name": "empty",
+      "mode": "linear",
+      "actions": [],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "mode": "pchip",
+      "actions": [],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "mode": "makima",
+      "actions": [],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "mode": "step",
+      "actions": [],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        }
+      ]
+    },
+    {
+      "name": "one",
+      "mode": "linear",
+      "actions": [
+        [
+          123,
+          37
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 122.999,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 123,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 123.001,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        }
+      ]
+    },
+    {
+      "name": "one",
+      "mode": "pchip",
+      "actions": [
+        [
+          123,
+          37
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 122.999,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 123,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 123.001,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        }
+      ]
+    },
+    {
+      "name": "one",
+      "mode": "makima",
+      "actions": [
+        [
+          123,
+          37
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 122.999,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 123,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 123.001,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        }
+      ]
+    },
+    {
+      "name": "one",
+      "mode": "step",
+      "actions": [
+        [
+          123,
+          37
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 122.999,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 123,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 123.001,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        }
+      ]
+    },
+    {
+      "name": "two-rising",
+      "mode": "linear",
+      "actions": [
+        [
+          100,
+          0
+        ],
+        [
+          900,
+          100
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 1.25e-06,
+          "expected": 0.000125
+        },
+        {
+          "timeMs": 200.0,
+          "rawNormalized": 0.125,
+          "expected": 12.5
+        },
+        {
+          "timeMs": 300.0,
+          "rawNormalized": 0.25,
+          "expected": 25.0
+        },
+        {
+          "timeMs": 400.0,
+          "rawNormalized": 0.375,
+          "expected": 37.5
+        },
+        {
+          "timeMs": 500.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 600.0,
+          "rawNormalized": 0.625,
+          "expected": 62.5
+        },
+        {
+          "timeMs": 700.0,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 800.0,
+          "rawNormalized": 0.875,
+          "expected": 87.5
+        },
+        {
+          "timeMs": 899.999,
+          "rawNormalized": 0.99999875,
+          "expected": 99.999875
+        },
+        {
+          "timeMs": 900,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 900.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        }
+      ]
+    },
+    {
+      "name": "two-rising",
+      "mode": "pchip",
+      "actions": [
+        [
+          100,
+          0
+        ],
+        [
+          900,
+          100
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 4.68749609375e-12,
+          "expected": 4.68749609375e-10
+        },
+        {
+          "timeMs": 200.0,
+          "rawNormalized": 0.04296875,
+          "expected": 4.296875
+        },
+        {
+          "timeMs": 300.0,
+          "rawNormalized": 0.15625,
+          "expected": 15.625
+        },
+        {
+          "timeMs": 400.0,
+          "rawNormalized": 0.31640625,
+          "expected": 31.640625
+        },
+        {
+          "timeMs": 500.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 600.0,
+          "rawNormalized": 0.68359375,
+          "expected": 68.359375
+        },
+        {
+          "timeMs": 700.0,
+          "rawNormalized": 0.84375,
+          "expected": 84.375
+        },
+        {
+          "timeMs": 800.0,
+          "rawNormalized": 0.95703125,
+          "expected": 95.703125
+        },
+        {
+          "timeMs": 899.999,
+          "rawNormalized": 0.9999999999953125,
+          "expected": 99.99999999953125
+        },
+        {
+          "timeMs": 900,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 900.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        }
+      ]
+    },
+    {
+      "name": "two-rising",
+      "mode": "makima",
+      "actions": [
+        [
+          100,
+          0
+        ],
+        [
+          900,
+          100
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 1.2500437499628905e-07,
+          "expected": 1.2500437499628905e-05
+        },
+        {
+          "timeMs": 200.0,
+          "rawNormalized": 0.0525390625,
+          "expected": 5.25390625
+        },
+        {
+          "timeMs": 300.0,
+          "rawNormalized": 0.1703125,
+          "expected": 17.03125
+        },
+        {
+          "timeMs": 400.0,
+          "rawNormalized": 0.3310546875,
+          "expected": 33.10546875
+        },
+        {
+          "timeMs": 500.0,
+          "rawNormalized": 0.5125,
+          "expected": 51.25
+        },
+        {
+          "timeMs": 600.0,
+          "rawNormalized": 0.6923828125,
+          "expected": 69.23828125
+        },
+        {
+          "timeMs": 700.0,
+          "rawNormalized": 0.8484375,
+          "expected": 84.84375
+        },
+        {
+          "timeMs": 800.0,
+          "rawNormalized": 0.9583984375,
+          "expected": 95.83984375
+        },
+        {
+          "timeMs": 899.999,
+          "rawNormalized": 0.9999999999954687,
+          "expected": 99.99999999954687
+        },
+        {
+          "timeMs": 900,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 900.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        }
+      ]
+    },
+    {
+      "name": "two-rising",
+      "mode": "step",
+      "actions": [
+        [
+          100,
+          0
+        ],
+        [
+          900,
+          100
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 200.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 300.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 400.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 500.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 600.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 700.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 800.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 899.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 900,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 900.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        }
+      ]
+    },
+    {
+      "name": "two-falling",
+      "mode": "linear",
+      "actions": [
+        [
+          100,
+          100
+        ],
+        [
+          900,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 0.99999875,
+          "expected": 99.999875
+        },
+        {
+          "timeMs": 200.0,
+          "rawNormalized": 0.875,
+          "expected": 87.5
+        },
+        {
+          "timeMs": 300.0,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 400.0,
+          "rawNormalized": 0.625,
+          "expected": 62.5
+        },
+        {
+          "timeMs": 500.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 600.0,
+          "rawNormalized": 0.375,
+          "expected": 37.5
+        },
+        {
+          "timeMs": 700.0,
+          "rawNormalized": 0.25,
+          "expected": 25.0
+        },
+        {
+          "timeMs": 800.0,
+          "rawNormalized": 0.125,
+          "expected": 12.5
+        },
+        {
+          "timeMs": 899.999,
+          "rawNormalized": 1.25e-06,
+          "expected": 0.000125
+        },
+        {
+          "timeMs": 900,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 900.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "two-falling",
+      "mode": "pchip",
+      "actions": [
+        [
+          100,
+          100
+        ],
+        [
+          900,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 0.9999999999953125,
+          "expected": 99.99999999953125
+        },
+        {
+          "timeMs": 200.0,
+          "rawNormalized": 0.95703125,
+          "expected": 95.703125
+        },
+        {
+          "timeMs": 300.0,
+          "rawNormalized": 0.84375,
+          "expected": 84.375
+        },
+        {
+          "timeMs": 400.0,
+          "rawNormalized": 0.68359375,
+          "expected": 68.359375
+        },
+        {
+          "timeMs": 500.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 600.0,
+          "rawNormalized": 0.31640625,
+          "expected": 31.640625
+        },
+        {
+          "timeMs": 700.0,
+          "rawNormalized": 0.15625,
+          "expected": 15.625
+        },
+        {
+          "timeMs": 800.0,
+          "rawNormalized": 0.04296875,
+          "expected": 4.296875
+        },
+        {
+          "timeMs": 899.999,
+          "rawNormalized": 4.68749609375e-12,
+          "expected": 4.68749609375e-10
+        },
+        {
+          "timeMs": 900,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 900.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "two-falling",
+      "mode": "makima",
+      "actions": [
+        [
+          100,
+          100
+        ],
+        [
+          900,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 0.999999874995625,
+          "expected": 99.9999874995625
+        },
+        {
+          "timeMs": 200.0,
+          "rawNormalized": 0.9474609375,
+          "expected": 94.74609375
+        },
+        {
+          "timeMs": 300.0,
+          "rawNormalized": 0.8296875,
+          "expected": 82.96875
+        },
+        {
+          "timeMs": 400.0,
+          "rawNormalized": 0.6689453125,
+          "expected": 66.89453125
+        },
+        {
+          "timeMs": 500.0,
+          "rawNormalized": 0.4875,
+          "expected": 48.75
+        },
+        {
+          "timeMs": 600.0,
+          "rawNormalized": 0.3076171875,
+          "expected": 30.76171875
+        },
+        {
+          "timeMs": 700.0,
+          "rawNormalized": 0.1515625,
+          "expected": 15.15625
+        },
+        {
+          "timeMs": 800.0,
+          "rawNormalized": 0.0416015625,
+          "expected": 4.16015625
+        },
+        {
+          "timeMs": 899.999,
+          "rawNormalized": 4.5312462890625e-12,
+          "expected": 4.5312462890625e-10
+        },
+        {
+          "timeMs": 900,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 900.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "two-falling",
+      "mode": "step",
+      "actions": [
+        [
+          100,
+          100
+        ],
+        [
+          900,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 200.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 300.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 400.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 500.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 600.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 700.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 800.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 899.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 900,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 900.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "three-extremum",
+      "mode": "linear",
+      "actions": [
+        [
+          17,
+          9
+        ],
+        [
+          41,
+          97
+        ],
+        [
+          1800,
+          21
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 16.999,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 17,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 17.001,
+          "rawNormalized": 0.09003666666666667,
+          "expected": 9.003666666666666
+        },
+        {
+          "timeMs": 20.0,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 23.0,
+          "rawNormalized": 0.31,
+          "expected": 31.0
+        },
+        {
+          "timeMs": 26.0,
+          "rawNormalized": 0.42,
+          "expected": 42.0
+        },
+        {
+          "timeMs": 29.0,
+          "rawNormalized": 0.53,
+          "expected": 53.0
+        },
+        {
+          "timeMs": 32.0,
+          "rawNormalized": 0.64,
+          "expected": 64.0
+        },
+        {
+          "timeMs": 35.0,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 38.0,
+          "rawNormalized": 0.86,
+          "expected": 86.0
+        },
+        {
+          "timeMs": 40.999,
+          "rawNormalized": 0.9699633333333333,
+          "expected": 96.99633333333334
+        },
+        {
+          "timeMs": 41,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 41.001,
+          "rawNormalized": 0.9699995679363275,
+          "expected": 96.99995679363275
+        },
+        {
+          "timeMs": 260.875,
+          "rawNormalized": 0.875,
+          "expected": 87.5
+        },
+        {
+          "timeMs": 480.75,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 700.625,
+          "rawNormalized": 0.685,
+          "expected": 68.5
+        },
+        {
+          "timeMs": 920.5,
+          "rawNormalized": 0.59,
+          "expected": 59.0
+        },
+        {
+          "timeMs": 1140.375,
+          "rawNormalized": 0.495,
+          "expected": 49.5
+        },
+        {
+          "timeMs": 1360.25,
+          "rawNormalized": 0.4,
+          "expected": 40.0
+        },
+        {
+          "timeMs": 1580.125,
+          "rawNormalized": 0.305,
+          "expected": 30.5
+        },
+        {
+          "timeMs": 1799.999,
+          "rawNormalized": 0.21000043206367255,
+          "expected": 21.000043206367256
+        },
+        {
+          "timeMs": 1800,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        },
+        {
+          "timeMs": 1800.001,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        }
+      ]
+    },
+    {
+      "name": "three-extremum",
+      "mode": "pchip",
+      "actions": [
+        [
+          17,
+          9
+        ],
+        [
+          41,
+          97
+        ],
+        [
+          1800,
+          21
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 16.999,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 17,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 17.001,
+          "rawNormalized": 0.09000000458320602,
+          "expected": 9.000000458320601
+        },
+        {
+          "timeMs": 20.0,
+          "rawNormalized": 0.1278125,
+          "expected": 12.78125
+        },
+        {
+          "timeMs": 23.0,
+          "rawNormalized": 0.2275,
+          "expected": 22.75
+        },
+        {
+          "timeMs": 26.0,
+          "rawNormalized": 0.3684375,
+          "expected": 36.84375
+        },
+        {
+          "timeMs": 29.0,
+          "rawNormalized": 0.53,
+          "expected": 53.0
+        },
+        {
+          "timeMs": 32.0,
+          "rawNormalized": 0.6915625,
+          "expected": 69.15625
+        },
+        {
+          "timeMs": 35.0,
+          "rawNormalized": 0.8325,
+          "expected": 83.25
+        },
+        {
+          "timeMs": 38.0,
+          "rawNormalized": 0.9321875,
+          "expected": 93.21875
+        },
+        {
+          "timeMs": 40.999,
+          "rawNormalized": 0.9699999954167939,
+          "expected": 96.9999995416794
+        },
+        {
+          "timeMs": 41,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 41.001,
+          "rawNormalized": 0.9699999999992631,
+          "expected": 96.99999999992632
+        },
+        {
+          "timeMs": 260.875,
+          "rawNormalized": 0.93734375,
+          "expected": 93.734375
+        },
+        {
+          "timeMs": 480.75,
+          "rawNormalized": 0.85125,
+          "expected": 85.125
+        },
+        {
+          "timeMs": 700.625,
+          "rawNormalized": 0.72953125,
+          "expected": 72.953125
+        },
+        {
+          "timeMs": 920.5,
+          "rawNormalized": 0.59,
+          "expected": 59.0
+        },
+        {
+          "timeMs": 1140.375,
+          "rawNormalized": 0.45046875,
+          "expected": 45.046875
+        },
+        {
+          "timeMs": 1360.25,
+          "rawNormalized": 0.32875,
+          "expected": 32.875
+        },
+        {
+          "timeMs": 1580.125,
+          "rawNormalized": 0.24265625,
+          "expected": 24.265625
+        },
+        {
+          "timeMs": 1799.999,
+          "rawNormalized": 0.2100000000007369,
+          "expected": 21.00000000007369
+        },
+        {
+          "timeMs": 1800,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        },
+        {
+          "timeMs": 1800.001,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        }
+      ]
+    },
+    {
+      "name": "three-extremum",
+      "mode": "makima",
+      "actions": [
+        [
+          17,
+          9
+        ],
+        [
+          41,
+          97
+        ],
+        [
+          1800,
+          21
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 16.999,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 17,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 17.001,
+          "rawNormalized": 0.09000365802914945,
+          "expected": 9.000365802914946
+        },
+        {
+          "timeMs": 20.0,
+          "rawNormalized": 0.13620470798742365,
+          "expected": 13.620470798742366
+        },
+        {
+          "timeMs": 23.0,
+          "rawNormalized": 0.23983140765498986,
+          "expected": 23.983140765498984
+        },
+        {
+          "timeMs": 26.0,
+          "rawNormalized": 0.3812827163072811,
+          "expected": 38.12827163072811
+        },
+        {
+          "timeMs": 29.0,
+          "rawNormalized": 0.5409612512488798,
+          "expected": 54.09612512488799
+        },
+        {
+          "timeMs": 32.0,
+          "rawNormalized": 0.6992696297843687,
+          "expected": 69.92696297843686
+        },
+        {
+          "timeMs": 35.0,
+          "rawNormalized": 0.8366104692183299,
+          "expected": 83.66104692183299
+        },
+        {
+          "timeMs": 38.0,
+          "rawNormalized": 0.9333863868553463,
+          "expected": 93.33863868553462
+        },
+        {
+          "timeMs": 40.999,
+          "rawNormalized": 0.9699999955690273,
+          "expected": 96.99999955690272
+        },
+        {
+          "timeMs": 41,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 41.001,
+          "rawNormalized": 0.9700000000863721,
+          "expected": 97.00000000863722
+        },
+        {
+          "timeMs": 260.875,
+          "rawNormalized": 0.9373584141065706,
+          "expected": 93.73584141065706
+        },
+        {
+          "timeMs": 480.75,
+          "rawNormalized": 0.8512715472586343,
+          "expected": 85.12715472586343
+        },
+        {
+          "timeMs": 700.625,
+          "rawNormalized": 0.7295536950610774,
+          "expected": 72.95536950610774
+        },
+        {
+          "timeMs": 920.5,
+          "rawNormalized": 0.590019153118786,
+          "expected": 59.001915311878605
+        },
+        {
+          "timeMs": 1140.375,
+          "rawNormalized": 0.4504822170366464,
+          "expected": 45.048221703664645
+        },
+        {
+          "timeMs": 1360.25,
+          "rawNormalized": 0.32875718241954477,
+          "expected": 32.87571824195447
+        },
+        {
+          "timeMs": 1580.125,
+          "rawNormalized": 0.24265834487236723,
+          "expected": 24.265834487236724
+        },
+        {
+          "timeMs": 1799.999,
+          "rawNormalized": 0.21000000000073693,
+          "expected": 21.000000000073694
+        },
+        {
+          "timeMs": 1800,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        },
+        {
+          "timeMs": 1800.001,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        }
+      ]
+    },
+    {
+      "name": "three-extremum",
+      "mode": "step",
+      "actions": [
+        [
+          17,
+          9
+        ],
+        [
+          41,
+          97
+        ],
+        [
+          1800,
+          21
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 16.999,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 17,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 17.001,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 20.0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 23.0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 26.0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 29.0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 32.0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 35.0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 38.0,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 40.999,
+          "rawNormalized": 0.09,
+          "expected": 9.0
+        },
+        {
+          "timeMs": 41,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 41.001,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 260.875,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 480.75,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 700.625,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 920.5,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 1140.375,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 1360.25,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 1580.125,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 1799.999,
+          "rawNormalized": 0.97,
+          "expected": 97.0
+        },
+        {
+          "timeMs": 1800,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        },
+        {
+          "timeMs": 1800.001,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.21,
+          "expected": 21.0
+        }
+      ]
+    },
+    {
+      "name": "three-flat",
+      "mode": "linear",
+      "actions": [
+        [
+          0,
+          45
+        ],
+        [
+          1,
+          45
+        ],
+        [
+          86400000,
+          45
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.125,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.25,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.375,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.5,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.625,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.75,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.875,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.999,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 1,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 1.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 10800000.875,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 21600000.75,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 32400000.625,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 43200000.5,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 54000000.375,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 64800000.25,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 75600000.125,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86399999.999,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400000,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400000.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        }
+      ]
+    },
+    {
+      "name": "three-flat",
+      "mode": "pchip",
+      "actions": [
+        [
+          0,
+          45
+        ],
+        [
+          1,
+          45
+        ],
+        [
+          86400000,
+          45
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.125,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.25,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.375,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.5,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.625,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.75,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.875,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.999,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 1,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 1.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 10800000.875,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 21600000.75,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 32400000.625,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 43200000.5,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 54000000.375,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 64800000.25,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 75600000.125,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86399999.999,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400000,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400000.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        }
+      ]
+    },
+    {
+      "name": "three-flat",
+      "mode": "makima",
+      "actions": [
+        [
+          0,
+          45
+        ],
+        [
+          1,
+          45
+        ],
+        [
+          86400000,
+          45
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.125,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.25,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.375,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.5,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.625,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.75,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.875,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.999,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 1,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 1.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 10800000.875,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 21600000.75,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 32400000.625,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 43200000.5,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 54000000.375,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 64800000.25,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 75600000.125,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86399999.999,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400000,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400000.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        }
+      ]
+    },
+    {
+      "name": "three-flat",
+      "mode": "step",
+      "actions": [
+        [
+          0,
+          45
+        ],
+        [
+          1,
+          45
+        ],
+        [
+          86400000,
+          45
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.125,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.25,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.375,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.5,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.625,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.75,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.875,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 0.999,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 1,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 1.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 10800000.875,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 21600000.75,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 32400000.625,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 43200000.5,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 54000000.375,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 64800000.25,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 75600000.125,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86399999.999,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400000,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400000.001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        }
+      ]
+    },
+    {
+      "name": "nonuniform",
+      "mode": "linear",
+      "actions": [
+        [
+          0,
+          10
+        ],
+        [
+          13,
+          78
+        ],
+        [
+          91,
+          35
+        ],
+        [
+          105,
+          51
+        ],
+        [
+          890,
+          99
+        ],
+        [
+          1200,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.10005230769230769,
+          "expected": 10.005230769230769
+        },
+        {
+          "timeMs": 1.625,
+          "rawNormalized": 0.185,
+          "expected": 18.5
+        },
+        {
+          "timeMs": 3.25,
+          "rawNormalized": 0.27,
+          "expected": 27.0
+        },
+        {
+          "timeMs": 4.875,
+          "rawNormalized": 0.355,
+          "expected": 35.5
+        },
+        {
+          "timeMs": 6.5,
+          "rawNormalized": 0.44,
+          "expected": 44.0
+        },
+        {
+          "timeMs": 8.125,
+          "rawNormalized": 0.525,
+          "expected": 52.5
+        },
+        {
+          "timeMs": 9.75,
+          "rawNormalized": 0.61,
+          "expected": 61.0
+        },
+        {
+          "timeMs": 11.375,
+          "rawNormalized": 0.695,
+          "expected": 69.5
+        },
+        {
+          "timeMs": 12.999,
+          "rawNormalized": 0.7799476923076923,
+          "expected": 77.99476923076924
+        },
+        {
+          "timeMs": 13,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 13.001,
+          "rawNormalized": 0.7799944871794872,
+          "expected": 77.99944871794872
+        },
+        {
+          "timeMs": 22.75,
+          "rawNormalized": 0.72625,
+          "expected": 72.625
+        },
+        {
+          "timeMs": 32.5,
+          "rawNormalized": 0.6725,
+          "expected": 67.25
+        },
+        {
+          "timeMs": 42.25,
+          "rawNormalized": 0.61875,
+          "expected": 61.875
+        },
+        {
+          "timeMs": 52.0,
+          "rawNormalized": 0.565,
+          "expected": 56.5
+        },
+        {
+          "timeMs": 61.75,
+          "rawNormalized": 0.51125,
+          "expected": 51.125
+        },
+        {
+          "timeMs": 71.5,
+          "rawNormalized": 0.4575,
+          "expected": 45.75
+        },
+        {
+          "timeMs": 81.25,
+          "rawNormalized": 0.40375,
+          "expected": 40.375
+        },
+        {
+          "timeMs": 90.999,
+          "rawNormalized": 0.35000551282051284,
+          "expected": 35.00055128205128
+        },
+        {
+          "timeMs": 91,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 91.001,
+          "rawNormalized": 0.3500114285714286,
+          "expected": 35.00114285714286
+        },
+        {
+          "timeMs": 92.75,
+          "rawNormalized": 0.37,
+          "expected": 37.0
+        },
+        {
+          "timeMs": 94.5,
+          "rawNormalized": 0.39,
+          "expected": 39.0
+        },
+        {
+          "timeMs": 96.25,
+          "rawNormalized": 0.41,
+          "expected": 41.0
+        },
+        {
+          "timeMs": 98.0,
+          "rawNormalized": 0.43,
+          "expected": 43.0
+        },
+        {
+          "timeMs": 99.75,
+          "rawNormalized": 0.45,
+          "expected": 45.0
+        },
+        {
+          "timeMs": 101.5,
+          "rawNormalized": 0.47,
+          "expected": 47.0
+        },
+        {
+          "timeMs": 103.25,
+          "rawNormalized": 0.49,
+          "expected": 49.0
+        },
+        {
+          "timeMs": 104.999,
+          "rawNormalized": 0.5099885714285715,
+          "expected": 50.99885714285714
+        },
+        {
+          "timeMs": 105,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 105.001,
+          "rawNormalized": 0.5100006114649681,
+          "expected": 51.00006114649682
+        },
+        {
+          "timeMs": 203.125,
+          "rawNormalized": 0.57,
+          "expected": 57.0
+        },
+        {
+          "timeMs": 301.25,
+          "rawNormalized": 0.63,
+          "expected": 63.0
+        },
+        {
+          "timeMs": 399.375,
+          "rawNormalized": 0.69,
+          "expected": 69.0
+        },
+        {
+          "timeMs": 497.5,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 595.625,
+          "rawNormalized": 0.81,
+          "expected": 81.0
+        },
+        {
+          "timeMs": 693.75,
+          "rawNormalized": 0.87,
+          "expected": 87.0
+        },
+        {
+          "timeMs": 791.875,
+          "rawNormalized": 0.93,
+          "expected": 93.0
+        },
+        {
+          "timeMs": 889.999,
+          "rawNormalized": 0.9899993885350319,
+          "expected": 98.99993885350318
+        },
+        {
+          "timeMs": 890,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 890.001,
+          "rawNormalized": 0.9899968064516129,
+          "expected": 98.99968064516129
+        },
+        {
+          "timeMs": 928.75,
+          "rawNormalized": 0.86625,
+          "expected": 86.625
+        },
+        {
+          "timeMs": 967.5,
+          "rawNormalized": 0.7425,
+          "expected": 74.25
+        },
+        {
+          "timeMs": 1006.25,
+          "rawNormalized": 0.61875,
+          "expected": 61.875
+        },
+        {
+          "timeMs": 1045.0,
+          "rawNormalized": 0.495,
+          "expected": 49.5
+        },
+        {
+          "timeMs": 1083.75,
+          "rawNormalized": 0.37125,
+          "expected": 37.125
+        },
+        {
+          "timeMs": 1122.5,
+          "rawNormalized": 0.2475,
+          "expected": 24.75
+        },
+        {
+          "timeMs": 1161.25,
+          "rawNormalized": 0.12375,
+          "expected": 12.375
+        },
+        {
+          "timeMs": 1199.999,
+          "rawNormalized": 3.1935483870967742e-06,
+          "expected": 0.00031935483870967744
+        },
+        {
+          "timeMs": 1200,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 1200.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "nonuniform",
+      "mode": "pchip",
+      "actions": [
+        [
+          0,
+          10
+        ],
+        [
+          13,
+          78
+        ],
+        [
+          91,
+          35
+        ],
+        [
+          105,
+          51
+        ],
+        [
+          890,
+          99
+        ],
+        [
+          1200,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.10000001207038689,
+          "expected": 10.00000120703869
+        },
+        {
+          "timeMs": 1.625,
+          "rawNormalized": 0.12921875,
+          "expected": 12.921875
+        },
+        {
+          "timeMs": 3.25,
+          "rawNormalized": 0.20625,
+          "expected": 20.625
+        },
+        {
+          "timeMs": 4.875,
+          "rawNormalized": 0.31515625,
+          "expected": 31.515625
+        },
+        {
+          "timeMs": 6.5,
+          "rawNormalized": 0.44,
+          "expected": 44.0
+        },
+        {
+          "timeMs": 8.125,
+          "rawNormalized": 0.56484375,
+          "expected": 56.484375
+        },
+        {
+          "timeMs": 9.75,
+          "rawNormalized": 0.67375,
+          "expected": 67.375
+        },
+        {
+          "timeMs": 11.375,
+          "rawNormalized": 0.75078125,
+          "expected": 75.078125
+        },
+        {
+          "timeMs": 12.999,
+          "rawNormalized": 0.7799999879296131,
+          "expected": 77.9999987929613
+        },
+        {
+          "timeMs": 13,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 13.001,
+          "rawNormalized": 0.7799999997879703,
+          "expected": 77.99999997879702
+        },
+        {
+          "timeMs": 22.75,
+          "rawNormalized": 0.7615234375,
+          "expected": 76.15234375
+        },
+        {
+          "timeMs": 32.5,
+          "rawNormalized": 0.7128125,
+          "expected": 71.28125
+        },
+        {
+          "timeMs": 42.25,
+          "rawNormalized": 0.6439453125,
+          "expected": 64.39453125
+        },
+        {
+          "timeMs": 52.0,
+          "rawNormalized": 0.565,
+          "expected": 56.5
+        },
+        {
+          "timeMs": 61.75,
+          "rawNormalized": 0.4860546875,
+          "expected": 48.60546875
+        },
+        {
+          "timeMs": 71.5,
+          "rawNormalized": 0.4171875,
+          "expected": 41.71875
+        },
+        {
+          "timeMs": 81.25,
+          "rawNormalized": 0.3684765625,
+          "expected": 36.84765625
+        },
+        {
+          "timeMs": 90.999,
+          "rawNormalized": 0.35000000021202976,
+          "expected": 35.00000002120297
+        },
+        {
+          "timeMs": 91,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 91.001,
+          "rawNormalized": 0.3500000023322557,
+          "expected": 35.00000023322557
+        },
+        {
+          "timeMs": 92.75,
+          "rawNormalized": 0.3565625066514552,
+          "expected": 35.65625066514552
+        },
+        {
+          "timeMs": 94.5,
+          "rawNormalized": 0.3739285942335608,
+          "expected": 37.39285942335608
+        },
+        {
+          "timeMs": 96.25,
+          "rawNormalized": 0.3986161141879265,
+          "expected": 39.86161141879265
+        },
+        {
+          "timeMs": 98.0,
+          "rawNormalized": 0.4271429179561621,
+          "expected": 42.71429179561621
+        },
+        {
+          "timeMs": 99.75,
+          "rawNormalized": 0.4560268569798775,
+          "expected": 45.602685697987745
+        },
+        {
+          "timeMs": 101.5,
+          "rawNormalized": 0.4817857827006824,
+          "expected": 48.178578270068236
+        },
+        {
+          "timeMs": 103.25,
+          "rawNormalized": 0.5009375465601866,
+          "expected": 50.09375465601866
+        },
+        {
+          "timeMs": 104.999,
+          "rawNormalized": 0.5099983651660491,
+          "expected": 50.999836516604915
+        },
+        {
+          "timeMs": 105,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 105.001,
+          "rawNormalized": 0.510001632616488,
+          "expected": 51.0001632616488
+        },
+        {
+          "timeMs": 203.125,
+          "rawNormalized": 0.6532786393038215,
+          "expected": 65.32786393038215
+        },
+        {
+          "timeMs": 301.25,
+          "rawNormalized": 0.7652257557117377,
+          "expected": 76.52257557117376
+        },
+        {
+          "timeMs": 399.375,
+          "rawNormalized": 0.8496101621997267,
+          "expected": 84.96101621997268
+        },
+        {
+          "timeMs": 497.5,
+          "rawNormalized": 0.9102006717437668,
+          "expected": 91.02006717437668
+        },
+        {
+          "timeMs": 595.625,
+          "rawNormalized": 0.950766097319836,
+          "expected": 95.07660973198361
+        },
+        {
+          "timeMs": 693.75,
+          "rawNormalized": 0.9750752519039125,
+          "expected": 97.50752519039125
+        },
+        {
+          "timeMs": 791.875,
+          "rawNormalized": 0.9868969484719745,
+          "expected": 98.68969484719744
+        },
+        {
+          "timeMs": 889.999,
+          "rawNormalized": 0.989999999999743,
+          "expected": 98.99999999997429
+        },
+        {
+          "timeMs": 890,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 890.001,
+          "rawNormalized": 0.9899999999690947,
+          "expected": 98.99999999690948
+        },
+        {
+          "timeMs": 928.75,
+          "rawNormalized": 0.9474609375,
+          "expected": 94.74609375
+        },
+        {
+          "timeMs": 967.5,
+          "rawNormalized": 0.8353125,
+          "expected": 83.53125
+        },
+        {
+          "timeMs": 1006.25,
+          "rawNormalized": 0.6767578125,
+          "expected": 67.67578125
+        },
+        {
+          "timeMs": 1045.0,
+          "rawNormalized": 0.495,
+          "expected": 49.5
+        },
+        {
+          "timeMs": 1083.75,
+          "rawNormalized": 0.3132421875,
+          "expected": 31.32421875
+        },
+        {
+          "timeMs": 1122.5,
+          "rawNormalized": 0.1546875,
+          "expected": 15.46875
+        },
+        {
+          "timeMs": 1161.25,
+          "rawNormalized": 0.0425390625,
+          "expected": 4.25390625
+        },
+        {
+          "timeMs": 1199.999,
+          "rawNormalized": 3.090524050887852e-11,
+          "expected": 3.090524050887852e-09
+        },
+        {
+          "timeMs": 1200,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 1200.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "nonuniform",
+      "mode": "makima",
+      "actions": [
+        [
+          0,
+          10
+        ],
+        [
+          13,
+          78
+        ],
+        [
+          91,
+          35
+        ],
+        [
+          105,
+          51
+        ],
+        [
+          890,
+          99
+        ],
+        [
+          1200,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.10000508126805507,
+          "expected": 10.000508126805506
+        },
+        {
+          "timeMs": 1.625,
+          "rawNormalized": 0.13442785830226145,
+          "expected": 13.442785830226144
+        },
+        {
+          "timeMs": 3.25,
+          "rawNormalized": 0.2117505696725127,
+          "expected": 21.175056967251273
+        },
+        {
+          "timeMs": 4.875,
+          "rawNormalized": 0.3177452992478644,
+          "expected": 31.77452992478644
+        },
+        {
+          "timeMs": 6.5,
+          "rawNormalized": 0.4381892121654271,
+          "expected": 43.81892121654271
+        },
+        {
+          "timeMs": 8.125,
+          "rawNormalized": 0.5588594735623114,
+          "expected": 55.88594735623114
+        },
+        {
+          "timeMs": 9.75,
+          "rawNormalized": 0.6655332485756279,
+          "expected": 66.5533248575628
+        },
+        {
+          "timeMs": 11.375,
+          "rawNormalized": 0.7439877023424872,
+          "expected": 74.39877023424873
+        },
+        {
+          "timeMs": 12.999,
+          "rawNormalized": 0.7799938044866875,
+          "expected": 77.99938044866876
+        },
+        {
+          "timeMs": 13,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 13.001,
+          "rawNormalized": 0.7800062390108808,
+          "expected": 78.00062390108809
+        },
+        {
+          "timeMs": 22.75,
+          "rawNormalized": 0.7990149700888746,
+          "expected": 79.90149700888746
+        },
+        {
+          "timeMs": 32.5,
+          "rawNormalized": 0.7501023251905314,
+          "expected": 75.01023251905313
+        },
+        {
+          "timeMs": 42.25,
+          "rawNormalized": 0.6568308770715973,
+          "expected": 65.68308770715971
+        },
+        {
+          "timeMs": 52.0,
+          "rawNormalized": 0.5427694374986989,
+          "expected": 54.276943749869886
+        },
+        {
+          "timeMs": 61.75,
+          "rawNormalized": 0.4314868182384632,
+          "expected": 43.14868182384632
+        },
+        {
+          "timeMs": 71.5,
+          "rawNormalized": 0.3465518310575169,
+          "expected": 34.65518310575169
+        },
+        {
+          "timeMs": 81.25,
+          "rawNormalized": 0.3115332877224869,
+          "expected": 31.153328772248692
+        },
+        {
+          "timeMs": 90.999,
+          "rawNormalized": 0.34999148096065824,
+          "expected": 34.999148096065824
+        },
+        {
+          "timeMs": 91,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 91.001,
+          "rawNormalized": 0.3500085205804505,
+          "expected": 35.000852058045055
+        },
+        {
+          "timeMs": 92.75,
+          "rawNormalized": 0.3677507008818561,
+          "expected": 36.77507008818561
+        },
+        {
+          "timeMs": 94.5,
+          "rawNormalized": 0.38992429905119697,
+          "expected": 38.9924299051197
+        },
+        {
+          "timeMs": 96.25,
+          "rawNormalized": 0.4146306743097294,
+          "expected": 41.463067430972934
+        },
+        {
+          "timeMs": 98.0,
+          "rawNormalized": 0.43997970645916,
+          "expected": 43.997970645916006
+        },
+        {
+          "timeMs": 99.75,
+          "rawNormalized": 0.4640812753011957,
+          "expected": 46.40812753011957
+        },
+        {
+          "timeMs": 101.5,
+          "rawNormalized": 0.4850452606375431,
+          "expected": 48.50452606375431
+        },
+        {
+          "timeMs": 103.25,
+          "rawNormalized": 0.500981542269909,
+          "expected": 50.09815422699089
+        },
+        {
+          "timeMs": 104.999,
+          "rawNormalized": 0.5099971817016198,
+          "expected": 50.99971817016198
+        },
+        {
+          "timeMs": 105,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 105.001,
+          "rawNormalized": 0.5100028168585621,
+          "expected": 51.0002816858562
+        },
+        {
+          "timeMs": 203.125,
+          "rawNormalized": 0.7674765473685269,
+          "expected": 76.7476547368527
+        },
+        {
+          "timeMs": 301.25,
+          "rawNormalized": 0.9824558069143908,
+          "expected": 98.24558069143907
+        },
+        {
+          "timeMs": 399.375,
+          "rawNormalized": 1.147975487210562,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 497.5,
+          "rawNormalized": 1.2570732968300116,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 595.625,
+          "rawNormalized": 1.3027869443457096,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 693.75,
+          "rawNormalized": 1.2781541383306267,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 791.875,
+          "rawNormalized": 1.1762125873577334,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 889.999,
+          "rawNormalized": 0.99000235076081,
+          "expected": 99.000235076081
+        },
+        {
+          "timeMs": 890,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 890.001,
+          "rawNormalized": 0.9899976492187134,
+          "expected": 98.99976492187133
+        },
+        {
+          "timeMs": 928.75,
+          "rawNormalized": 0.8777184986949506,
+          "expected": 87.77184986949506
+        },
+        {
+          "timeMs": 967.5,
+          "rawNormalized": 0.7328338144089068,
+          "expected": 73.28338144089068
+        },
+        {
+          "timeMs": 1006.25,
+          "rawNormalized": 0.5700091816759446,
+          "expected": 57.00091816759446
+        },
+        {
+          "timeMs": 1045.0,
+          "rawNormalized": 0.40390783503013944,
+          "expected": 40.39078350301394
+        },
+        {
+          "timeMs": 1083.75,
+          "rawNormalized": 0.2491930090055668,
+          "expected": 24.919300900556678
+        },
+        {
+          "timeMs": 1122.5,
+          "rawNormalized": 0.12052793813630229,
+          "expected": 12.05279381363023
+        },
+        {
+          "timeMs": 1161.25,
+          "rawNormalized": 0.0325758569564215,
+          "expected": 3.25758569564215
+        },
+        {
+          "timeMs": 1199.999,
+          "rawNormalized": 2.332215030083131e-11,
+          "expected": 2.332215030083131e-09
+        },
+        {
+          "timeMs": 1200,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 1200.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "nonuniform",
+      "mode": "step",
+      "actions": [
+        [
+          0,
+          10
+        ],
+        [
+          13,
+          78
+        ],
+        [
+          91,
+          35
+        ],
+        [
+          105,
+          51
+        ],
+        [
+          890,
+          99
+        ],
+        [
+          1200,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 1.625,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 3.25,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 4.875,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 6.5,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 8.125,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 9.75,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 11.375,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 12.999,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 13,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 13.001,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 22.75,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 32.5,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 42.25,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 52.0,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 61.75,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 71.5,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 81.25,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 90.999,
+          "rawNormalized": 0.78,
+          "expected": 78.0
+        },
+        {
+          "timeMs": 91,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 91.001,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 92.75,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 94.5,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 96.25,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 98.0,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 99.75,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 101.5,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 103.25,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 104.999,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 105,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 105.001,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 203.125,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 301.25,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 399.375,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 497.5,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 595.625,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 693.75,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 791.875,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 889.999,
+          "rawNormalized": 0.51,
+          "expected": 51.0
+        },
+        {
+          "timeMs": 890,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 890.001,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 928.75,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 967.5,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 1006.25,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 1045.0,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 1083.75,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 1122.5,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 1161.25,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 1199.999,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 1200,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 1200.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "plateau",
+      "mode": "linear",
+      "actions": [
+        [
+          0,
+          0
+        ],
+        [
+          100,
+          0
+        ],
+        [
+          350,
+          80
+        ],
+        [
+          400,
+          80
+        ],
+        [
+          950,
+          20
+        ],
+        [
+          2000,
+          20
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 12.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 25.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 37.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 50.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 62.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 75.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 87.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 3.2e-06,
+          "expected": 0.00032
+        },
+        {
+          "timeMs": 131.25,
+          "rawNormalized": 0.1,
+          "expected": 10.0
+        },
+        {
+          "timeMs": 162.5,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 193.75,
+          "rawNormalized": 0.3,
+          "expected": 30.0
+        },
+        {
+          "timeMs": 225.0,
+          "rawNormalized": 0.4,
+          "expected": 40.0
+        },
+        {
+          "timeMs": 256.25,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 287.5,
+          "rawNormalized": 0.6,
+          "expected": 60.0
+        },
+        {
+          "timeMs": 318.75,
+          "rawNormalized": 0.7,
+          "expected": 70.0
+        },
+        {
+          "timeMs": 349.999,
+          "rawNormalized": 0.7999968,
+          "expected": 79.99968
+        },
+        {
+          "timeMs": 350,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 350.001,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 356.25,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 362.5,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 368.75,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 375.0,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 381.25,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 387.5,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 393.75,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 399.999,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 400,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 400.001,
+          "rawNormalized": 0.7999989090909091,
+          "expected": 79.99989090909091
+        },
+        {
+          "timeMs": 468.75,
+          "rawNormalized": 0.725,
+          "expected": 72.5
+        },
+        {
+          "timeMs": 537.5,
+          "rawNormalized": 0.65,
+          "expected": 65.0
+        },
+        {
+          "timeMs": 606.25,
+          "rawNormalized": 0.575,
+          "expected": 57.5
+        },
+        {
+          "timeMs": 675.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 743.75,
+          "rawNormalized": 0.425,
+          "expected": 42.5
+        },
+        {
+          "timeMs": 812.5,
+          "rawNormalized": 0.35,
+          "expected": 35.0
+        },
+        {
+          "timeMs": 881.25,
+          "rawNormalized": 0.275,
+          "expected": 27.5
+        },
+        {
+          "timeMs": 949.999,
+          "rawNormalized": 0.2000010909090909,
+          "expected": 20.000109090909092
+        },
+        {
+          "timeMs": 950,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 950.001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1081.25,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1212.5,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1343.75,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1475.0,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1606.25,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1737.5,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1868.75,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1999.999,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 2000,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 2000.001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        }
+      ]
+    },
+    {
+      "name": "plateau",
+      "mode": "pchip",
+      "actions": [
+        [
+          0,
+          0
+        ],
+        [
+          100,
+          0
+        ],
+        [
+          350,
+          80
+        ],
+        [
+          400,
+          80
+        ],
+        [
+          950,
+          20
+        ],
+        [
+          2000,
+          20
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 12.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 25.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 37.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 50.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 62.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 75.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 87.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 3.83998976e-11,
+          "expected": 3.83998976e-09
+        },
+        {
+          "timeMs": 131.25,
+          "rawNormalized": 0.034375,
+          "expected": 3.4375
+        },
+        {
+          "timeMs": 162.5,
+          "rawNormalized": 0.125,
+          "expected": 12.5
+        },
+        {
+          "timeMs": 193.75,
+          "rawNormalized": 0.253125,
+          "expected": 25.3125
+        },
+        {
+          "timeMs": 225.0,
+          "rawNormalized": 0.4,
+          "expected": 40.0
+        },
+        {
+          "timeMs": 256.25,
+          "rawNormalized": 0.546875,
+          "expected": 54.6875
+        },
+        {
+          "timeMs": 287.5,
+          "rawNormalized": 0.675,
+          "expected": 67.5
+        },
+        {
+          "timeMs": 318.75,
+          "rawNormalized": 0.765625,
+          "expected": 76.5625
+        },
+        {
+          "timeMs": 349.999,
+          "rawNormalized": 0.7999999999616001,
+          "expected": 79.99999999616001
+        },
+        {
+          "timeMs": 350,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 350.001,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 356.25,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 362.5,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 368.75,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 375.0,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 381.25,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 387.5,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 393.75,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 399.999,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 400,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 400.001,
+          "rawNormalized": 0.7999999999940496,
+          "expected": 79.99999999940496
+        },
+        {
+          "timeMs": 468.75,
+          "rawNormalized": 0.77421875,
+          "expected": 77.421875
+        },
+        {
+          "timeMs": 537.5,
+          "rawNormalized": 0.70625,
+          "expected": 70.625
+        },
+        {
+          "timeMs": 606.25,
+          "rawNormalized": 0.61015625,
+          "expected": 61.015625
+        },
+        {
+          "timeMs": 675.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 743.75,
+          "rawNormalized": 0.38984375,
+          "expected": 38.984375
+        },
+        {
+          "timeMs": 812.5,
+          "rawNormalized": 0.29375,
+          "expected": 29.375
+        },
+        {
+          "timeMs": 881.25,
+          "rawNormalized": 0.22578125,
+          "expected": 22.578125
+        },
+        {
+          "timeMs": 949.999,
+          "rawNormalized": 0.20000000000595042,
+          "expected": 20.00000000059504
+        },
+        {
+          "timeMs": 950,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 950.001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1081.25,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1212.5,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1343.75,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1475.0,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1606.25,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1737.5,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1868.75,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1999.999,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 2000,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 2000.001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        }
+      ]
+    },
+    {
+      "name": "plateau",
+      "mode": "makima",
+      "actions": [
+        [
+          0,
+          0
+        ],
+        [
+          100,
+          0
+        ],
+        [
+          350,
+          80
+        ],
+        [
+          400,
+          80
+        ],
+        [
+          950,
+          20
+        ],
+        [
+          2000,
+          20
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 12.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 25.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 37.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 50.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 62.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 75.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 87.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 6.154148379908673e-07,
+          "expected": 6.154148379908673e-05
+        },
+        {
+          "timeMs": 131.25,
+          "rawNormalized": 0.04631783735332464,
+          "expected": 4.631783735332464
+        },
+        {
+          "timeMs": 162.5,
+          "rawNormalized": 0.13710071707953064,
+          "expected": 13.710071707953064
+        },
+        {
+          "timeMs": 193.75,
+          "rawNormalized": 0.2577849983702738,
+          "expected": 25.77849983702738
+        },
+        {
+          "timeMs": 225.0,
+          "rawNormalized": 0.39380704041720993,
+          "expected": 39.38070404172099
+        },
+        {
+          "timeMs": 256.25,
+          "rawNormalized": 0.5306032024119948,
+          "expected": 53.06032024119948
+        },
+        {
+          "timeMs": 287.5,
+          "rawNormalized": 0.6536098435462843,
+          "expected": 65.36098435462843
+        },
+        {
+          "timeMs": 318.75,
+          "rawNormalized": 0.748263323011734,
+          "expected": 74.82633230117341
+        },
+        {
+          "timeMs": 349.999,
+          "rawNormalized": 0.799999186411248,
+          "expected": 79.99991864112481
+        },
+        {
+          "timeMs": 350,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 350.001,
+          "rawNormalized": 0.8000008135430509,
+          "expected": 80.00008135430508
+        },
+        {
+          "timeMs": 356.25,
+          "rawNormalized": 0.8044491525423729,
+          "expected": 80.44491525423729
+        },
+        {
+          "timeMs": 362.5,
+          "rawNormalized": 0.8076271186440678,
+          "expected": 80.76271186440678
+        },
+        {
+          "timeMs": 368.75,
+          "rawNormalized": 0.8095338983050847,
+          "expected": 80.95338983050847
+        },
+        {
+          "timeMs": 375.0,
+          "rawNormalized": 0.8101694915254237,
+          "expected": 81.01694915254237
+        },
+        {
+          "timeMs": 381.25,
+          "rawNormalized": 0.8095338983050847,
+          "expected": 80.95338983050847
+        },
+        {
+          "timeMs": 387.5,
+          "rawNormalized": 0.8076271186440678,
+          "expected": 80.76271186440678
+        },
+        {
+          "timeMs": 393.75,
+          "rawNormalized": 0.8044491525423729,
+          "expected": 80.44491525423729
+        },
+        {
+          "timeMs": 399.999,
+          "rawNormalized": 0.8000008135430509,
+          "expected": 80.00008135430508
+        },
+        {
+          "timeMs": 400,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 400.001,
+          "rawNormalized": 0.799999186437686,
+          "expected": 79.9999186437686
+        },
+        {
+          "timeMs": 468.75,
+          "rawNormalized": 0.731395656779661,
+          "expected": 73.1395656779661
+        },
+        {
+          "timeMs": 537.5,
+          "rawNormalized": 0.6433262711864407,
+          "expected": 64.33262711864407
+        },
+        {
+          "timeMs": 606.25,
+          "rawNormalized": 0.5446106991525423,
+          "expected": 54.461069915254235
+        },
+        {
+          "timeMs": 675.0,
+          "rawNormalized": 0.4440677966101695,
+          "expected": 44.40677966101695
+        },
+        {
+          "timeMs": 743.75,
+          "rawNormalized": 0.3505164194915254,
+          "expected": 35.05164194915254
+        },
+        {
+          "timeMs": 812.5,
+          "rawNormalized": 0.2727754237288136,
+          "expected": 27.277542372881356
+        },
+        {
+          "timeMs": 881.25,
+          "rawNormalized": 0.21966366525423728,
+          "expected": 21.96636652542373
+        },
+        {
+          "timeMs": 949.999,
+          "rawNormalized": 0.2000000000044712,
+          "expected": 20.00000000044712
+        },
+        {
+          "timeMs": 950,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 950.001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1081.25,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1212.5,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1343.75,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1475.0,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1606.25,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1737.5,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1868.75,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1999.999,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 2000,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 2000.001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        }
+      ]
+    },
+    {
+      "name": "plateau",
+      "mode": "step",
+      "actions": [
+        [
+          0,
+          0
+        ],
+        [
+          100,
+          0
+        ],
+        [
+          350,
+          80
+        ],
+        [
+          400,
+          80
+        ],
+        [
+          950,
+          20
+        ],
+        [
+          2000,
+          20
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 12.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 25.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 37.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 50.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 62.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 75.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 87.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 131.25,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 162.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 193.75,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 225.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 256.25,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 287.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 318.75,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 349.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 350,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 350.001,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 356.25,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 362.5,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 368.75,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 375.0,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 381.25,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 387.5,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 393.75,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 399.999,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 400,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 400.001,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 468.75,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 537.5,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 606.25,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 675.0,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 743.75,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 812.5,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 881.25,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 949.999,
+          "rawNormalized": 0.8,
+          "expected": 80.0
+        },
+        {
+          "timeMs": 950,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 950.001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1081.25,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1212.5,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1343.75,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1475.0,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1606.25,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1737.5,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1868.75,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 1999.999,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 2000,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 2000.001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.2,
+          "expected": 20.0
+        }
+      ]
+    },
+    {
+      "name": "alternating-extrema",
+      "mode": "linear",
+      "actions": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          10,
+          100
+        ],
+        [
+          100,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.001,
+          "expected": 0.1
+        },
+        {
+          "timeMs": 0.125,
+          "rawNormalized": 0.125,
+          "expected": 12.5
+        },
+        {
+          "timeMs": 0.25,
+          "rawNormalized": 0.25,
+          "expected": 25.0
+        },
+        {
+          "timeMs": 0.375,
+          "rawNormalized": 0.375,
+          "expected": 37.5
+        },
+        {
+          "timeMs": 0.5,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0.625,
+          "rawNormalized": 0.625,
+          "expected": 62.5
+        },
+        {
+          "timeMs": 0.75,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 0.875,
+          "rawNormalized": 0.875,
+          "expected": 87.5
+        },
+        {
+          "timeMs": 0.999,
+          "rawNormalized": 0.999,
+          "expected": 99.9
+        },
+        {
+          "timeMs": 1,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.001,
+          "rawNormalized": 0.999,
+          "expected": 99.9
+        },
+        {
+          "timeMs": 1.125,
+          "rawNormalized": 0.875,
+          "expected": 87.5
+        },
+        {
+          "timeMs": 1.25,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 1.375,
+          "rawNormalized": 0.625,
+          "expected": 62.5
+        },
+        {
+          "timeMs": 1.5,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 1.625,
+          "rawNormalized": 0.375,
+          "expected": 37.5
+        },
+        {
+          "timeMs": 1.75,
+          "rawNormalized": 0.25,
+          "expected": 25.0
+        },
+        {
+          "timeMs": 1.875,
+          "rawNormalized": 0.125,
+          "expected": 12.5
+        },
+        {
+          "timeMs": 1.999,
+          "rawNormalized": 0.001,
+          "expected": 0.1
+        },
+        {
+          "timeMs": 2,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 2.001,
+          "rawNormalized": 0.000125,
+          "expected": 0.0125
+        },
+        {
+          "timeMs": 3.0,
+          "rawNormalized": 0.125,
+          "expected": 12.5
+        },
+        {
+          "timeMs": 4.0,
+          "rawNormalized": 0.25,
+          "expected": 25.0
+        },
+        {
+          "timeMs": 5.0,
+          "rawNormalized": 0.375,
+          "expected": 37.5
+        },
+        {
+          "timeMs": 6.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 7.0,
+          "rawNormalized": 0.625,
+          "expected": 62.5
+        },
+        {
+          "timeMs": 8.0,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 9.0,
+          "rawNormalized": 0.875,
+          "expected": 87.5
+        },
+        {
+          "timeMs": 9.999,
+          "rawNormalized": 0.999875,
+          "expected": 99.9875
+        },
+        {
+          "timeMs": 10,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 10.001,
+          "rawNormalized": 0.9999888888888889,
+          "expected": 99.99888888888889
+        },
+        {
+          "timeMs": 21.25,
+          "rawNormalized": 0.875,
+          "expected": 87.5
+        },
+        {
+          "timeMs": 32.5,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 43.75,
+          "rawNormalized": 0.625,
+          "expected": 62.5
+        },
+        {
+          "timeMs": 55.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 66.25,
+          "rawNormalized": 0.375,
+          "expected": 37.5
+        },
+        {
+          "timeMs": 77.5,
+          "rawNormalized": 0.25,
+          "expected": 25.0
+        },
+        {
+          "timeMs": 88.75,
+          "rawNormalized": 0.125,
+          "expected": 12.5
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 1.1111111111111112e-05,
+          "expected": 0.0011111111111111111
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "alternating-extrema",
+      "mode": "pchip",
+      "actions": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          10,
+          100
+        ],
+        [
+          100,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 2.998e-06,
+          "expected": 0.0002998
+        },
+        {
+          "timeMs": 0.125,
+          "rawNormalized": 0.04296875,
+          "expected": 4.296875
+        },
+        {
+          "timeMs": 0.25,
+          "rawNormalized": 0.15625,
+          "expected": 15.625
+        },
+        {
+          "timeMs": 0.375,
+          "rawNormalized": 0.31640625,
+          "expected": 31.640625
+        },
+        {
+          "timeMs": 0.5,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0.625,
+          "rawNormalized": 0.68359375,
+          "expected": 68.359375
+        },
+        {
+          "timeMs": 0.75,
+          "rawNormalized": 0.84375,
+          "expected": 84.375
+        },
+        {
+          "timeMs": 0.875,
+          "rawNormalized": 0.95703125,
+          "expected": 95.703125
+        },
+        {
+          "timeMs": 0.999,
+          "rawNormalized": 0.999997002,
+          "expected": 99.9997002
+        },
+        {
+          "timeMs": 1,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.001,
+          "rawNormalized": 0.999997002,
+          "expected": 99.9997002
+        },
+        {
+          "timeMs": 1.125,
+          "rawNormalized": 0.95703125,
+          "expected": 95.703125
+        },
+        {
+          "timeMs": 1.25,
+          "rawNormalized": 0.84375,
+          "expected": 84.375
+        },
+        {
+          "timeMs": 1.375,
+          "rawNormalized": 0.68359375,
+          "expected": 68.359375
+        },
+        {
+          "timeMs": 1.5,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 1.625,
+          "rawNormalized": 0.31640625,
+          "expected": 31.640625
+        },
+        {
+          "timeMs": 1.75,
+          "rawNormalized": 0.15625,
+          "expected": 15.625
+        },
+        {
+          "timeMs": 1.875,
+          "rawNormalized": 0.04296875,
+          "expected": 4.296875
+        },
+        {
+          "timeMs": 1.999,
+          "rawNormalized": 2.998e-06,
+          "expected": 0.0002998
+        },
+        {
+          "timeMs": 2,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 2.001,
+          "rawNormalized": 4.687109375e-08,
+          "expected": 4.687109375e-06
+        },
+        {
+          "timeMs": 3.0,
+          "rawNormalized": 0.04296875,
+          "expected": 4.296875
+        },
+        {
+          "timeMs": 4.0,
+          "rawNormalized": 0.15625,
+          "expected": 15.625
+        },
+        {
+          "timeMs": 5.0,
+          "rawNormalized": 0.31640625,
+          "expected": 31.640625
+        },
+        {
+          "timeMs": 6.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 7.0,
+          "rawNormalized": 0.68359375,
+          "expected": 68.359375
+        },
+        {
+          "timeMs": 8.0,
+          "rawNormalized": 0.84375,
+          "expected": 84.375
+        },
+        {
+          "timeMs": 9.0,
+          "rawNormalized": 0.95703125,
+          "expected": 95.703125
+        },
+        {
+          "timeMs": 9.999,
+          "rawNormalized": 0.9999999531289062,
+          "expected": 99.99999531289062
+        },
+        {
+          "timeMs": 10,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 10.001,
+          "rawNormalized": 0.9999999996296324,
+          "expected": 99.99999996296324
+        },
+        {
+          "timeMs": 21.25,
+          "rawNormalized": 0.95703125,
+          "expected": 95.703125
+        },
+        {
+          "timeMs": 32.5,
+          "rawNormalized": 0.84375,
+          "expected": 84.375
+        },
+        {
+          "timeMs": 43.75,
+          "rawNormalized": 0.68359375,
+          "expected": 68.359375
+        },
+        {
+          "timeMs": 55.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 66.25,
+          "rawNormalized": 0.31640625,
+          "expected": 31.640625
+        },
+        {
+          "timeMs": 77.5,
+          "rawNormalized": 0.15625,
+          "expected": 15.625
+        },
+        {
+          "timeMs": 88.75,
+          "rawNormalized": 0.04296875,
+          "expected": 4.296875
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 3.703676268861454e-10,
+          "expected": 3.703676268861454e-08
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "alternating-extrema",
+      "mode": "makima",
+      "actions": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          10,
+          100
+        ],
+        [
+          100,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 7.974691993720565e-05,
+          "expected": 0.007974691993720565
+        },
+        {
+          "timeMs": 0.125,
+          "rawNormalized": 0.05005151098901099,
+          "expected": 5.0051510989010985
+        },
+        {
+          "timeMs": 0.25,
+          "rawNormalized": 0.16611067503924648,
+          "expected": 16.611067503924648
+        },
+        {
+          "timeMs": 0.375,
+          "rawNormalized": 0.325880592621664,
+          "expected": 32.588059262166404
+        },
+        {
+          "timeMs": 0.5,
+          "rawNormalized": 0.5070643642072213,
+          "expected": 50.706436420722135
+        },
+        {
+          "timeMs": 0.625,
+          "rawNormalized": 0.687365090266876,
+          "expected": 68.7365090266876
+        },
+        {
+          "timeMs": 0.75,
+          "rawNormalized": 0.8444858712715856,
+          "expected": 84.44858712715856
+        },
+        {
+          "timeMs": 0.875,
+          "rawNormalized": 0.9561298076923077,
+          "expected": 95.61298076923077
+        },
+        {
+          "timeMs": 0.999,
+          "rawNormalized": 0.999976711478807,
+          "expected": 99.9976711478807
+        },
+        {
+          "timeMs": 1,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.001,
+          "rawNormalized": 1.0000173434275117,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.125,
+          "rawNormalized": 0.9586293738125395,
+          "expected": 95.86293738125396
+        },
+        {
+          "timeMs": 1.25,
+          "rawNormalized": 0.8454027510307479,
+          "expected": 84.54027510307479
+        },
+        {
+          "timeMs": 1.375,
+          "rawNormalized": 0.6843010765499994,
+          "expected": 68.43010765499993
+        },
+        {
+          "timeMs": 1.5,
+          "rawNormalized": 0.499305295265668,
+          "expected": 49.9305295265668
+        },
+        {
+          "timeMs": 1.625,
+          "rawNormalized": 0.31439635207312816,
+          "expected": 31.43963520731282
+        },
+        {
+          "timeMs": 1.75,
+          "rawNormalized": 0.15355519186775407,
+          "expected": 15.355519186775407
+        },
+        {
+          "timeMs": 1.875,
+          "rawNormalized": 0.04076275954491993,
+          "expected": 4.076275954491993
+        },
+        {
+          "timeMs": 1.999,
+          "rawNormalized": -2.2895507748381175e-05,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 2,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 2.001,
+          "rawNormalized": 2.600739036075655e-05,
+          "expected": 0.002600739036075655
+        },
+        {
+          "timeMs": 3.0,
+          "rawNormalized": 0.06390697392962158,
+          "expected": 6.390697392962158
+        },
+        {
+          "timeMs": 4.0,
+          "rawNormalized": 0.18908949462018812,
+          "expected": 18.90894946201881
+        },
+        {
+          "timeMs": 5.0,
+          "rawNormalized": 0.35363736384413835,
+          "expected": 35.36373638441383
+        },
+        {
+          "timeMs": 6.0,
+          "rawNormalized": 0.535640383373911,
+          "expected": 53.564038337391096
+        },
+        {
+          "timeMs": 7.0,
+          "rawNormalized": 0.7131883549819448,
+          "expected": 71.31883549819447
+        },
+        {
+          "timeMs": 8.0,
+          "rawNormalized": 0.8643710804406783,
+          "expected": 86.43710804406784
+        },
+        {
+          "timeMs": 9.0,
+          "rawNormalized": 0.9672783615225505,
+          "expected": 96.72783615225505
+        },
+        {
+          "timeMs": 9.999,
+          "rawNormalized": 1.0000096285379652,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 10,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 10.001,
+          "rawNormalized": 0.999990325262388,
+          "expected": 99.99903252623879
+        },
+        {
+          "timeMs": 21.25,
+          "rawNormalized": 0.873701352242744,
+          "expected": 87.3701352242744
+        },
+        {
+          "timeMs": 32.5,
+          "rawNormalized": 0.7213060686015831,
+          "expected": 72.13060686015831
+        },
+        {
+          "timeMs": 43.75,
+          "rawNormalized": 0.5560479881266491,
+          "expected": 55.60479881266491
+        },
+        {
+          "timeMs": 55.0,
+          "rawNormalized": 0.39116094986807387,
+          "expected": 39.11609498680739
+        },
+        {
+          "timeMs": 66.25,
+          "rawNormalized": 0.23987879287598945,
+          "expected": 23.987879287598943
+        },
+        {
+          "timeMs": 77.5,
+          "rawNormalized": 0.11543535620052771,
+          "expected": 11.54353562005277
+        },
+        {
+          "timeMs": 88.75,
+          "rawNormalized": 0.031064478891820582,
+          "expected": 3.106447889182058
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 2.62873463124025e-10,
+          "expected": 2.6287346312402503e-08
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "alternating-extrema",
+      "mode": "step",
+      "actions": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          100
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          10,
+          100
+        ],
+        [
+          100,
+          0
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.125,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.25,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.375,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.625,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.75,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.875,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 1,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.125,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.25,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.375,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.625,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.75,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.875,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 1.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 2,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 2.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 3.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 4.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 5.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 6.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 7.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 8.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 9.0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 9.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 10,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 10.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 21.25,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 32.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 43.75,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 55.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 66.25,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 77.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 88.75,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        }
+      ]
+    },
+    {
+      "name": "overshoot",
+      "mode": "linear",
+      "actions": [
+        [
+          0,
+          50
+        ],
+        [
+          100,
+          100
+        ],
+        [
+          200,
+          100
+        ],
+        [
+          300,
+          50
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.500005,
+          "expected": 50.0005
+        },
+        {
+          "timeMs": 12.5,
+          "rawNormalized": 0.5625,
+          "expected": 56.25
+        },
+        {
+          "timeMs": 25.0,
+          "rawNormalized": 0.625,
+          "expected": 62.5
+        },
+        {
+          "timeMs": 37.5,
+          "rawNormalized": 0.6875,
+          "expected": 68.75
+        },
+        {
+          "timeMs": 50.0,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 62.5,
+          "rawNormalized": 0.8125,
+          "expected": 81.25
+        },
+        {
+          "timeMs": 75.0,
+          "rawNormalized": 0.875,
+          "expected": 87.5
+        },
+        {
+          "timeMs": 87.5,
+          "rawNormalized": 0.9375,
+          "expected": 93.75
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.999995,
+          "expected": 99.9995
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 112.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 125.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 137.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 150.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 162.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 175.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 187.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 199.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 200,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 200.001,
+          "rawNormalized": 0.999995,
+          "expected": 99.9995
+        },
+        {
+          "timeMs": 212.5,
+          "rawNormalized": 0.9375,
+          "expected": 93.75
+        },
+        {
+          "timeMs": 225.0,
+          "rawNormalized": 0.875,
+          "expected": 87.5
+        },
+        {
+          "timeMs": 237.5,
+          "rawNormalized": 0.8125,
+          "expected": 81.25
+        },
+        {
+          "timeMs": 250.0,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 262.5,
+          "rawNormalized": 0.6875,
+          "expected": 68.75
+        },
+        {
+          "timeMs": 275.0,
+          "rawNormalized": 0.625,
+          "expected": 62.5
+        },
+        {
+          "timeMs": 287.5,
+          "rawNormalized": 0.5625,
+          "expected": 56.25
+        },
+        {
+          "timeMs": 299.999,
+          "rawNormalized": 0.500005,
+          "expected": 50.0005
+        },
+        {
+          "timeMs": 300,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 300.001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        }
+      ]
+    },
+    {
+      "name": "overshoot",
+      "mode": "pchip",
+      "actions": [
+        [
+          0,
+          50
+        ],
+        [
+          100,
+          100
+        ],
+        [
+          200,
+          100
+        ],
+        [
+          300,
+          50
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.500000000149999,
+          "expected": 50.0000000149999
+        },
+        {
+          "timeMs": 12.5,
+          "rawNormalized": 0.521484375,
+          "expected": 52.1484375
+        },
+        {
+          "timeMs": 25.0,
+          "rawNormalized": 0.578125,
+          "expected": 57.8125
+        },
+        {
+          "timeMs": 37.5,
+          "rawNormalized": 0.658203125,
+          "expected": 65.8203125
+        },
+        {
+          "timeMs": 50.0,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 62.5,
+          "rawNormalized": 0.841796875,
+          "expected": 84.1796875
+        },
+        {
+          "timeMs": 75.0,
+          "rawNormalized": 0.921875,
+          "expected": 92.1875
+        },
+        {
+          "timeMs": 87.5,
+          "rawNormalized": 0.978515625,
+          "expected": 97.8515625
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.999999999850001,
+          "expected": 99.9999999850001
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 112.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 125.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 137.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 150.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 162.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 175.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 187.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 199.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 200,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 200.001,
+          "rawNormalized": 0.999999999850001,
+          "expected": 99.9999999850001
+        },
+        {
+          "timeMs": 212.5,
+          "rawNormalized": 0.978515625,
+          "expected": 97.8515625
+        },
+        {
+          "timeMs": 225.0,
+          "rawNormalized": 0.921875,
+          "expected": 92.1875
+        },
+        {
+          "timeMs": 237.5,
+          "rawNormalized": 0.841796875,
+          "expected": 84.1796875
+        },
+        {
+          "timeMs": 250.0,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 262.5,
+          "rawNormalized": 0.658203125,
+          "expected": 65.8203125
+        },
+        {
+          "timeMs": 275.0,
+          "rawNormalized": 0.578125,
+          "expected": 57.8125
+        },
+        {
+          "timeMs": 287.5,
+          "rawNormalized": 0.521484375,
+          "expected": 52.1484375
+        },
+        {
+          "timeMs": 299.999,
+          "rawNormalized": 0.500000000149999,
+          "expected": 50.0000000149999
+        },
+        {
+          "timeMs": 300,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 300.001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        }
+      ]
+    },
+    {
+      "name": "overshoot",
+      "mode": "makima",
+      "actions": [
+        [
+          0,
+          50
+        ],
+        [
+          100,
+          100
+        ],
+        [
+          200,
+          100
+        ],
+        [
+          300,
+          50
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.5000005001149993,
+          "expected": 50.00005001149993
+        },
+        {
+          "timeMs": 12.5,
+          "rawNormalized": 0.5228515625,
+          "expected": 52.28515625
+        },
+        {
+          "timeMs": 25.0,
+          "rawNormalized": 0.5734375,
+          "expected": 57.34375
+        },
+        {
+          "timeMs": 37.5,
+          "rawNormalized": 0.6435546875,
+          "expected": 64.35546875
+        },
+        {
+          "timeMs": 50.0,
+          "rawNormalized": 0.725,
+          "expected": 72.5
+        },
+        {
+          "timeMs": 62.5,
+          "rawNormalized": 0.8095703125,
+          "expected": 80.95703125
+        },
+        {
+          "timeMs": 75.0,
+          "rawNormalized": 0.8890625,
+          "expected": 88.90625
+        },
+        {
+          "timeMs": 87.5,
+          "rawNormalized": 0.9552734375,
+          "expected": 95.52734375
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.9999974999050008,
+          "expected": 99.99974999050006
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 1.0000025714021428,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 112.5,
+          "rawNormalized": 1.02802734375,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 125.0,
+          "rawNormalized": 1.0478794642857143,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 137.5,
+          "rawNormalized": 1.0596400669642858,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 150.0,
+          "rawNormalized": 1.0633928571428573,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 162.5,
+          "rawNormalized": 1.0592215401785714,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 175.0,
+          "rawNormalized": 1.0472098214285714,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 187.5,
+          "rawNormalized": 1.02744140625,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 199.999,
+          "rawNormalized": 1.0000024999757142,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 200,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 200.001,
+          "rawNormalized": 0.9999974999000008,
+          "expected": 99.99974999000007
+        },
+        {
+          "timeMs": 212.5,
+          "rawNormalized": 0.95458984375,
+          "expected": 95.458984375
+        },
+        {
+          "timeMs": 225.0,
+          "rawNormalized": 0.88671875,
+          "expected": 88.671875
+        },
+        {
+          "timeMs": 237.5,
+          "rawNormalized": 0.80517578125,
+          "expected": 80.517578125
+        },
+        {
+          "timeMs": 250.0,
+          "rawNormalized": 0.71875,
+          "expected": 71.875
+        },
+        {
+          "timeMs": 262.5,
+          "rawNormalized": 0.63623046875,
+          "expected": 63.623046875
+        },
+        {
+          "timeMs": 275.0,
+          "rawNormalized": 0.56640625,
+          "expected": 56.640625
+        },
+        {
+          "timeMs": 287.5,
+          "rawNormalized": 0.51806640625,
+          "expected": 51.806640625
+        },
+        {
+          "timeMs": 299.999,
+          "rawNormalized": 0.5000000001249992,
+          "expected": 50.000000012499925
+        },
+        {
+          "timeMs": 300,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 300.001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        }
+      ]
+    },
+    {
+      "name": "overshoot",
+      "mode": "step",
+      "actions": [
+        [
+          0,
+          50
+        ],
+        [
+          100,
+          100
+        ],
+        [
+          200,
+          100
+        ],
+        [
+          300,
+          50
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": -0.001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 0.001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 12.5,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 25.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 37.5,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 50.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 62.5,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 75.0,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 87.5,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 99.999,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 100,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 100.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 112.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 125.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 137.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 150.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 162.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 175.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 187.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 199.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 200,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 200.001,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 212.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 225.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 237.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 250.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 262.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 275.0,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 287.5,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 299.999,
+          "rawNormalized": 1.0,
+          "expected": 100.0
+        },
+        {
+          "timeMs": 300,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 300.001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.5,
+          "expected": 50.0
+        }
+      ]
+    },
+    {
+      "name": "long-offset-short-segments",
+      "mode": "linear",
+      "actions": [
+        [
+          86399000,
+          0
+        ],
+        [
+          86399001,
+          99
+        ],
+        [
+          86399003,
+          12
+        ],
+        [
+          86400000,
+          75
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86398999.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.001,
+          "rawNormalized": 0.00099,
+          "expected": 0.099
+        },
+        {
+          "timeMs": 86399000.125,
+          "rawNormalized": 0.12375,
+          "expected": 12.375
+        },
+        {
+          "timeMs": 86399000.25,
+          "rawNormalized": 0.2475,
+          "expected": 24.75
+        },
+        {
+          "timeMs": 86399000.375,
+          "rawNormalized": 0.37125,
+          "expected": 37.125
+        },
+        {
+          "timeMs": 86399000.5,
+          "rawNormalized": 0.495,
+          "expected": 49.5
+        },
+        {
+          "timeMs": 86399000.625,
+          "rawNormalized": 0.61875,
+          "expected": 61.875
+        },
+        {
+          "timeMs": 86399000.75,
+          "rawNormalized": 0.7425,
+          "expected": 74.25
+        },
+        {
+          "timeMs": 86399000.875,
+          "rawNormalized": 0.86625,
+          "expected": 86.625
+        },
+        {
+          "timeMs": 86399000.999,
+          "rawNormalized": 0.98901,
+          "expected": 98.901
+        },
+        {
+          "timeMs": 86399001,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399001.001,
+          "rawNormalized": 0.989565,
+          "expected": 98.9565
+        },
+        {
+          "timeMs": 86399001.25,
+          "rawNormalized": 0.88125,
+          "expected": 88.125
+        },
+        {
+          "timeMs": 86399001.5,
+          "rawNormalized": 0.7725,
+          "expected": 77.25
+        },
+        {
+          "timeMs": 86399001.75,
+          "rawNormalized": 0.66375,
+          "expected": 66.375
+        },
+        {
+          "timeMs": 86399002.0,
+          "rawNormalized": 0.555,
+          "expected": 55.5
+        },
+        {
+          "timeMs": 86399002.25,
+          "rawNormalized": 0.44625,
+          "expected": 44.625
+        },
+        {
+          "timeMs": 86399002.5,
+          "rawNormalized": 0.3375,
+          "expected": 33.75
+        },
+        {
+          "timeMs": 86399002.75,
+          "rawNormalized": 0.22875,
+          "expected": 22.875
+        },
+        {
+          "timeMs": 86399002.999,
+          "rawNormalized": 0.120435,
+          "expected": 12.0435
+        },
+        {
+          "timeMs": 86399003,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399003.001,
+          "rawNormalized": 0.12000063189568706,
+          "expected": 12.000063189568706
+        },
+        {
+          "timeMs": 86399127.625,
+          "rawNormalized": 0.19875,
+          "expected": 19.875
+        },
+        {
+          "timeMs": 86399252.25,
+          "rawNormalized": 0.2775,
+          "expected": 27.75
+        },
+        {
+          "timeMs": 86399376.875,
+          "rawNormalized": 0.35625,
+          "expected": 35.625
+        },
+        {
+          "timeMs": 86399501.5,
+          "rawNormalized": 0.435,
+          "expected": 43.5
+        },
+        {
+          "timeMs": 86399626.125,
+          "rawNormalized": 0.51375,
+          "expected": 51.375
+        },
+        {
+          "timeMs": 86399750.75,
+          "rawNormalized": 0.5925,
+          "expected": 59.25
+        },
+        {
+          "timeMs": 86399875.375,
+          "rawNormalized": 0.67125,
+          "expected": 67.125
+        },
+        {
+          "timeMs": 86399999.999,
+          "rawNormalized": 0.7499993681043129,
+          "expected": 74.9999368104313
+        },
+        {
+          "timeMs": 86400000,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 86400000.001,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        }
+      ]
+    },
+    {
+      "name": "long-offset-short-segments",
+      "mode": "pchip",
+      "actions": [
+        [
+          86399000,
+          0
+        ],
+        [
+          86399001,
+          99
+        ],
+        [
+          86399003,
+          12
+        ],
+        [
+          86400000,
+          75
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86398999.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.001,
+          "rawNormalized": 2.96802e-06,
+          "expected": 0.000296802
+        },
+        {
+          "timeMs": 86399000.125,
+          "rawNormalized": 0.0425390625,
+          "expected": 4.25390625
+        },
+        {
+          "timeMs": 86399000.25,
+          "rawNormalized": 0.1546875,
+          "expected": 15.46875
+        },
+        {
+          "timeMs": 86399000.375,
+          "rawNormalized": 0.3132421875,
+          "expected": 31.32421875
+        },
+        {
+          "timeMs": 86399000.5,
+          "rawNormalized": 0.495,
+          "expected": 49.5
+        },
+        {
+          "timeMs": 86399000.625,
+          "rawNormalized": 0.6767578125,
+          "expected": 67.67578125
+        },
+        {
+          "timeMs": 86399000.75,
+          "rawNormalized": 0.8353125,
+          "expected": 83.53125
+        },
+        {
+          "timeMs": 86399000.875,
+          "rawNormalized": 0.9474609375,
+          "expected": 94.74609375
+        },
+        {
+          "timeMs": 86399000.999,
+          "rawNormalized": 0.98999703198,
+          "expected": 98.999703198
+        },
+        {
+          "timeMs": 86399001,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399001.001,
+          "rawNormalized": 0.9899993477175,
+          "expected": 98.99993477175
+        },
+        {
+          "timeMs": 86399001.25,
+          "rawNormalized": 0.9526171875,
+          "expected": 95.26171875
+        },
+        {
+          "timeMs": 86399001.5,
+          "rawNormalized": 0.8540625,
+          "expected": 85.40625
+        },
+        {
+          "timeMs": 86399001.75,
+          "rawNormalized": 0.7147265625,
+          "expected": 71.47265625
+        },
+        {
+          "timeMs": 86399002.0,
+          "rawNormalized": 0.555,
+          "expected": 55.5
+        },
+        {
+          "timeMs": 86399002.25,
+          "rawNormalized": 0.3952734375,
+          "expected": 39.52734375
+        },
+        {
+          "timeMs": 86399002.5,
+          "rawNormalized": 0.2559375,
+          "expected": 25.59375
+        },
+        {
+          "timeMs": 86399002.75,
+          "rawNormalized": 0.1573828125,
+          "expected": 15.73828125
+        },
+        {
+          "timeMs": 86399002.999,
+          "rawNormalized": 0.1200006522825,
+          "expected": 12.00006522825
+        },
+        {
+          "timeMs": 86399003,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399003.001,
+          "rawNormalized": 0.12000000000190139,
+          "expected": 12.00000000019014
+        },
+        {
+          "timeMs": 86399127.625,
+          "rawNormalized": 0.1470703125,
+          "expected": 14.70703125
+        },
+        {
+          "timeMs": 86399252.25,
+          "rawNormalized": 0.2184375,
+          "expected": 21.84375
+        },
+        {
+          "timeMs": 86399376.875,
+          "rawNormalized": 0.3193359375,
+          "expected": 31.93359375
+        },
+        {
+          "timeMs": 86399501.5,
+          "rawNormalized": 0.435,
+          "expected": 43.5
+        },
+        {
+          "timeMs": 86399626.125,
+          "rawNormalized": 0.5506640625,
+          "expected": 55.06640625
+        },
+        {
+          "timeMs": 86399750.75,
+          "rawNormalized": 0.6515625,
+          "expected": 65.15625
+        },
+        {
+          "timeMs": 86399875.375,
+          "rawNormalized": 0.7229296875,
+          "expected": 72.29296875
+        },
+        {
+          "timeMs": 86399999.999,
+          "rawNormalized": 0.7499999999980986,
+          "expected": 74.99999999980986
+        },
+        {
+          "timeMs": 86400000,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 86400000.001,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        }
+      ]
+    },
+    {
+      "name": "long-offset-short-segments",
+      "mode": "makima",
+      "actions": [
+        [
+          86399000,
+          0
+        ],
+        [
+          86399001,
+          99
+        ],
+        [
+          86399003,
+          12
+        ],
+        [
+          86400000,
+          75
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86398999.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.001,
+          "rawNormalized": 9.026290106311638e-05,
+          "expected": 0.009026290106311638
+        },
+        {
+          "timeMs": 86399000.125,
+          "rawNormalized": 0.05090820295235508,
+          "expected": 5.090820295235508
+        },
+        {
+          "timeMs": 86399000.25,
+          "rawNormalized": 0.16698109342700745,
+          "expected": 16.698109342700743
+        },
+        {
+          "timeMs": 86399000.375,
+          "rawNormalized": 0.32604229866961487,
+          "expected": 32.60422986696148
+        },
+        {
+          "timeMs": 86399000.5,
+          "rawNormalized": 0.5059154459258351,
+          "expected": 50.59154459258351
+        },
+        {
+          "timeMs": 86399000.625,
+          "rawNormalized": 0.684424162441326,
+          "expected": 68.4424162441326
+        },
+        {
+          "timeMs": 86399000.75,
+          "rawNormalized": 0.8393920754617452,
+          "expected": 83.93920754617452
+        },
+        {
+          "timeMs": 86399000.875,
+          "rawNormalized": 0.9486428122327506,
+          "expected": 94.86428122327506
+        },
+        {
+          "timeMs": 86399000.999,
+          "rawNormalized": 0.9899969733427761,
+          "expected": 98.99969733427761
+        },
+        {
+          "timeMs": 86399001,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399001.001,
+          "rawNormalized": 0.990000853553612,
+          "expected": 99.0000853553612
+        },
+        {
+          "timeMs": 86399001.25,
+          "rawNormalized": 0.952895089329868,
+          "expected": 95.2895089329868
+        },
+        {
+          "timeMs": 86399001.5,
+          "rawNormalized": 0.8544499795519785,
+          "expected": 85.44499795519786
+        },
+        {
+          "timeMs": 86399001.75,
+          "rawNormalized": 0.7150997574588006,
+          "expected": 71.50997574588007
+        },
+        {
+          "timeMs": 86399002.0,
+          "rawNormalized": 0.5552795098428033,
+          "expected": 55.52795098428033
+        },
+        {
+          "timeMs": 86399002.25,
+          "rawNormalized": 0.3954243234964555,
+          "expected": 39.54243234964555
+        },
+        {
+          "timeMs": 86399002.5,
+          "rawNormalized": 0.25596928521222634,
+          "expected": 25.596928521222637
+        },
+        {
+          "timeMs": 86399002.75,
+          "rawNormalized": 0.15734948178258484,
+          "expected": 15.734948178258485
+        },
+        {
+          "timeMs": 86399002.999,
+          "rawNormalized": 0.12000026392673953,
+          "expected": 12.000026392673952
+        },
+        {
+          "timeMs": 86399003,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399003.001,
+          "rawNormalized": 0.12000038949967379,
+          "expected": 12.000038949967378
+        },
+        {
+          "timeMs": 86399127.625,
+          "rawNormalized": 0.18423471258887367,
+          "expected": 18.423471258887368
+        },
+        {
+          "timeMs": 86399252.25,
+          "rawNormalized": 0.2730464144163042,
+          "expected": 27.30464144163042
+        },
+        {
+          "timeMs": 86399376.875,
+          "rawNormalized": 0.37622022335031685,
+          "expected": 37.62202233503169
+        },
+        {
+          "timeMs": 86399501.5,
+          "rawNormalized": 0.48354125725893704,
+          "expected": 48.3541257258937
+        },
+        {
+          "timeMs": 86399626.125,
+          "rawNormalized": 0.5847946340101902,
+          "expected": 58.47946340101901
+        },
+        {
+          "timeMs": 86399750.75,
+          "rawNormalized": 0.6697654714721014,
+          "expected": 66.97654714721014
+        },
+        {
+          "timeMs": 86399875.375,
+          "rawNormalized": 0.7282388875126963,
+          "expected": 72.82388875126962
+        },
+        {
+          "timeMs": 86399999.999,
+          "rawNormalized": 0.7499999999984893,
+          "expected": 74.99999999984892
+        },
+        {
+          "timeMs": 86400000,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 86400000.001,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        }
+      ]
+    },
+    {
+      "name": "long-offset-short-segments",
+      "mode": "step",
+      "actions": [
+        [
+          86399000,
+          0
+        ],
+        [
+          86399001,
+          99
+        ],
+        [
+          86399003,
+          12
+        ],
+        [
+          86400000,
+          75
+        ]
+      ],
+      "samples": [
+        {
+          "timeMs": -100,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 0,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86398999.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.001,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.125,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.25,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.375,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.5,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.625,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.75,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.875,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399000.999,
+          "rawNormalized": 0.0,
+          "expected": 0.0
+        },
+        {
+          "timeMs": 86399001,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399001.001,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399001.25,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399001.5,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399001.75,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399002.0,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399002.25,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399002.5,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399002.75,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399002.999,
+          "rawNormalized": 0.99,
+          "expected": 99.0
+        },
+        {
+          "timeMs": 86399003,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399003.001,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399127.625,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399252.25,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399376.875,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399501.5,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399626.125,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399750.75,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399875.375,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86399999.999,
+          "rawNormalized": 0.12,
+          "expected": 12.0
+        },
+        {
+          "timeMs": 86400000,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 86400000.001,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        },
+        {
+          "timeMs": 86400001,
+          "rawNormalized": 0.75,
+          "expected": 75.0
+        }
+      ]
+    }
+  ]
+}
