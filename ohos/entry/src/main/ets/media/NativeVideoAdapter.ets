@@ -50,11 +50,11 @@ export class NativeVideoAdapter {
     let opened: fileIo.File | undefined = undefined;
     let created: media.AVPlayer | undefined = undefined;
     try {
-      opened = await fileIo.open(uri, fileIo.OpenMode.READ_ONLY);
+      opened = await fileIo.open(uri, fileIo.OpenMode.READ_ONLY | fileIo.OpenMode.NOFOLLOW | fileIo.OpenMode.NONBLOCK);
       if (!this.clock.accepts(generation)) { await this.destroy(created, opened); return; }
       const sourceStat = await fileIo.stat(opened.fd);
       if (!this.clock.accepts(generation)) { await this.destroy(created, opened); return; }
-      if (!Number.isFinite(sourceStat.size) || sourceStat.size <= 0) {
+      if (!sourceStat.isFile() || !Number.isFinite(sourceStat.size) || sourceStat.size <= 0) {
         throw new Error('The selected video is empty or has an invalid length.');
       }
       created = await media.createAVPlayer();

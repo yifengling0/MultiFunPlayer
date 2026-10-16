@@ -2,6 +2,8 @@
 set -euo pipefail
 # HARMONY_TOOLS_HOME must point to an already installed official command-line-tools directory.
 : "${HARMONY_TOOLS_HOME:?Set HARMONY_TOOLS_HOME to your official HarmonyOS command-line-tools installation}"
+# Bound Java packaging memory as well as the ArkTS worker heap. Caller may override.
+export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:--Xmx256m}"
 export DEVECO_HOME="$HARMONY_TOOLS_HOME"
 export DEVECO_SDK_HOME="$HARMONY_TOOLS_HOME/sdk"
 export DEVECO_NODE_HOME="$HARMONY_TOOLS_HOME/tool/node"

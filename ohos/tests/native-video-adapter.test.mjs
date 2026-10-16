@@ -10,11 +10,11 @@ function setup() {
   const calls = [];
   const players = [];
   let fd = 0;
-  const state = { releaseFailures: 0, closeFailures: 0, supported: true, createWait: undefined };
+  const state = { releaseFailures: 0, closeFailures: 0, supported: true, regularFile: true, createWait: undefined };
   const fileIo = {
-    OpenMode: { READ_ONLY: 0 },
+    OpenMode: { READ_ONLY: 0, NOFOLLOW: 1, NONBLOCK: 2 },
     async open(uri) { calls.push(`open:${uri}`); return { fd: ++fd }; },
-    async stat() { return { size: 1024 }; },
+    async stat() { return { size: 1024, isFile: () => state.regularFile }; },
     async close(file) { calls.push(`close:${file.fd}`); if (state.closeFailures-- > 0) throw Error('close rejected'); }
   };
   const media = {
@@ -114,4 +114,13 @@ test('failed stale creation cleanup is retained and recoverable without losing n
   assert.equal(calls.filter(c => c === 'release:2').length, 1);
   assert.equal(calls.filter(c => c === 'close:1').length, 1);
   assert.equal(calls.filter(c => c === 'close:2').length, 1);
+});
+
+test('nonregular video is rejected before creating player and closes descriptor', async () => {
+  const { adapter, calls, players, state } = setup();
+  state.regularFile = false;
+  await adapter.open('special', 'surface');
+  assert.equal(players.length, 0);
+  assert.equal(adapter.snapshot().state, 'error');
+  assert.deepEqual(calls, ['open:special', 'close:1']);
 });
