@@ -392,3 +392,8 @@ Implemented interactions: internal/local-video source switching, actual simulato
 Original nine axis-tool slots are represented in source order. Script and interpolation open actual existing controls; inversion, bypass, linking, motion, smart limit, speed limit and auto-home remain disabled. Their original menus and behavior are not yet implemented. Four axis status dots are neutral/unavailable, not invented live status. External-player source tabs, physical-output tabs/configuration, complete Internal playlist, shortcuts, native menus, original chapter-strip visuals and hover behavior also remain outstanding. Existing interpolation/offset settings are not a complete port of each original axis popup.
 
 This is a source-led structural implementation, not visual acceptance. No OHOS device/emulator screenshot or Windows runtime interaction was captured. Layout compilation cannot establish pixel equality, clipping, focus/keyboard behavior, touch ergonomics, font/icon metrics or multi-window lifecycle behavior. These require real runtime comparison, in addition to continuing the unported controls above.
+
+
+### 0.5.1 enabled axis controls
+
+The selected-axis inversion button now performs the original post-scale inversion; scale slider range/step is 0.01–4/0.01 as in ScriptView.xaml. Curve selection now applies per axis and the page initializes PCHIP, matching original AxisSettings. Six rather than seven tool slots remain disabled. Control edits pause the simulator/native transport and never reopen its gate. Original popup geometry, graph preview, persistent axis settings and the remaining state pipeline are still unported.

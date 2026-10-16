@@ -59,3 +59,11 @@ M2 independent review: no safety blocker; adjacent-chapter boundary labels now u
 - Native zlib streaming API signatures (`createZip`, `inflateInit2`, `getZStream`) are marked since API12 in the installed official SDK, below the declared API20 minimum. This is compile/API evidence, not a device execution result.
 - Main-window structural layout and heatmap source transcription implemented; full UI/control parity remains incomplete. See UI_PARITY_AUDIT.md for implemented and disabled controls.
 - No device/native DEFLATE execution, signing, installation, screenshots, rendering/keyboard/touch validation or physical outputs were performed. Tests of native APIs use mocks. Windows application was not executed.
+
+## M6 — 0.5.1 selected-axis script settings
+
+- 207 Node tests pass. Six added cases cover exact scale→clamp→invert order, neutral positions, independent interpolation, defensive settings copies/reset, bounds, internal/native safety gates and preview/output equivalence.
+- Actual SDK build succeeded in 9.168 seconds: 33 tasks (17 executed, 16 up-to-date), including ArkTS compilation and HAP packaging/metadata checks.
+- HAP 624353 bytes, SHA256 `2652760ade2b196858f07980cbf996d7d60696ca6373df26851359c2554ccc84`.
+- Source authority: ScriptViewModel.cs UpdateScript and AxisSettings; ScriptView.xaml scale slider; DeviceSettings default neutral values. Only script transforms are ported, not the complete mixed-output state pipeline.
+- No signing, device runtime, screenshot acceptance or physical commands. The 0.5.0 clean build remains the prior clean baseline; this patch was incrementally rebuilt with changed ArkTS compiled.

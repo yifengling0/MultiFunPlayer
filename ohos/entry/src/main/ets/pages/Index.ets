@@ -61,7 +61,9 @@ struct Index {
   @State fileName: string = 'Synthetic demo · 5 seconds';
   @State status: string = 'Simulation only · no device commands';
   @State importing: boolean = false;
-  @State interpolationMode: InterpolationMode = 'linear';
+  @State interpolationMode: InterpolationMode = 'pchip';
+  @State axisInverted: boolean = false;
+  @State axisScale: number = 1;
   @State playbackSpeed: number = 1;
   @State globalOffsetMs: number = 0;
   @State axisOffsetMs: number = 0;
@@ -118,6 +120,7 @@ struct Index {
   aboutToAppear(): void {
     this.viewActive = true;
     this.engine.load(this.document);
+    this.engine.setInterpolationMode('pchip');
     this.engine.setConnected(true);
     this.sync();
     this.lastTick = systemDateTime.getUptime(systemDateTime.TimeType.ACTIVE);
@@ -157,9 +160,14 @@ struct Index {
     this.axisValues = this.engine.previewSamples().map((sample) => sample.position);
     this.playbackSpeed = state.speed;
     this.globalOffsetMs = state.globalOffsetMs;
-    this.interpolationMode = state.interpolationMode;
+
     const axisName = this.axisNames[this.selectedAxis] || 'L0';
     this.axisOffsetMs = this.engine.getAxisOffset(axisName);
+    if (this.axisNames.length > 0) {
+      const settings = this.engine.getAxisScriptSettings(axisName);
+      this.interpolationMode = settings.interpolationMode || 'pchip';
+      this.axisInverted = settings.inverted; this.axisScale = settings.scale;
+    }
     const scriptTime = this.engine.getScriptPosition(axisName);
     const chapter = activeChapter(this.document.metadata, scriptTime);
     this.chapterLabel = chapter === undefined ? 'No active chapter' : chapter.name;
@@ -610,7 +618,7 @@ struct Index {
       Scroll() {
         Row({ space: 0 }) {
           Button('▣').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText('Script settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('↕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Invert axis not ported')
+          Button('↕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy).backgroundColor(this.axisInverted ? '#CFD8DC' : '#F5F5F5').accessibilityText('Invert selected script').onClick(() => { this.pauseTransport(); this.engine.setAxisInverted(this.axisNames[this.selectedAxis], !this.axisInverted); this.sync(); })
           Button('Ⅱ').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Axis bypass not ported')
           Button('↗').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Axis linking not ported')
           Button('≋').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText('Motion provider not ported')
@@ -623,7 +631,7 @@ struct Index {
       if (this.showAxisSettings) {
         Text(this.fileName).fontSize(12).fontColor('#455A64').width('100%').padding(10)
         this.syncPanel()
-        Text('Grey controls are not implemented yet. Interpolation currently applies globally; offsets support individual axes.').fontSize(11).fontColor('#795548').padding(10)
+        Text('Grey controls are not implemented yet. Curve, inversion, scale and axis offset apply to the selected script axis.').fontSize(11).fontColor('#795548').padding(10)
       }
     }.width('100%').backgroundColor('#F5F5F5').borderRadius(3)
   }
@@ -801,12 +809,12 @@ struct Index {
     Column({ space: 12 }) {
       this.heading('Synchronization', 'SIMULATION')
       Row({ space: 10 }) {
-        Text('Curve').fontColor('#546E7A').layoutWeight(1)
+        Text((this.axisNames[this.selectedAxis] || 'Axis') + ' curve').fontColor('#546E7A').layoutWeight(1)
         Select([{ value: 'Linear' }, { value: 'PCHIP' }, { value: 'Makima' }, { value: 'Step' }])
-          .value(this.interpolationMode.toUpperCase()).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
+          .value(this.interpolationMode.toUpperCase()).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy)
           .onSelect((index: number) => {
             const modes: InterpolationMode[] = ['linear', 'pchip', 'makima', 'step'];
-            this.pauseTransport(); this.engine.setInterpolationMode(modes[index]); this.status = 'Curve changed · press Play to resume'; this.sync();
+            this.pauseTransport(); this.engine.setAxisInterpolationMode(this.axisNames[this.selectedAxis], modes[index]); this.status = 'Curve changed · press Play to resume'; this.sync();
           })
       }.width('100%')
       Row({ space: 10 }) {
@@ -815,6 +823,10 @@ struct Index {
           .value(this.playbackSpeed.toString() + '×').height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
           .onSelect((index: number) => { const speeds: number[] = [0.25, 0.5, 1, 1.5, 2, 4]; if (this.videoMode) { this.video.setRate(speeds[index]); } else { this.engine.setSpeed(speeds[index]); } this.sync(); })
       }.width('100%')
+      Text('Script scale: ' + Math.round(this.axisScale * 100) + '%').fontColor('#546E7A').width('100%')
+      Slider({ value: this.axisScale, min: 0.01, max: 4, step: 0.01 }).width('100%')
+        .enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy)
+        .onChange((value: number) => { this.pauseTransport(); this.engine.setAxisScale(this.axisNames[this.selectedAxis], value); this.sync(); })
       Text('Global offset: ' + this.globalOffsetMs + ' ms').fontColor('#546E7A').width('100%')
       Row({ space: 8 }) {
         Button('−50').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).backgroundColor('#ECEFF1').onClick(() => this.changeOffset(false, -50))
@@ -896,7 +908,7 @@ struct Index {
       Row({ space: 8 }) {
         Text('▶').fontSize(20).fontColor('#FFFFFF')
         Text('MultiFunPlayer').fontSize(14).fontColor('#FFFFFF').fontWeight(FontWeight.Medium)
-        Text('│ 0.5.0 OHOS').fontSize(12).fontColor('#CFD8DC')
+        Text('│ 0.5.1 OHOS').fontSize(12).fontColor('#CFD8DC')
         Blank()
         Button('⌕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#FFFFFF').backgroundColor('#455A64').accessibilityText('Resources and script libraries').onClick(() => { this.showResources = !this.showResources; })
         Button('?').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#FFFFFF').backgroundColor('#455A64').accessibilityText('Port status and limitations').onClick(() => { this.showPortInfo = !this.showPortInfo; })

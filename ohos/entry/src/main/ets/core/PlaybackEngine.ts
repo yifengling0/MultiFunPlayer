@@ -13,6 +13,13 @@ export class AxisOffset {
   offsetMs: number;
   constructor(name: string, offsetMs: number) { this.name = name; this.offsetMs = offsetMs; }
 }
+export class AxisScriptSettings {
+  name: string;
+  inverted: boolean = false;
+  scale: number = 1;
+  interpolationMode?: InterpolationMode;
+  constructor(name: string) { this.name = name; }
+}
 export class PlaybackSnapshot {
   state: PlaybackState;
   positionMs: number;
@@ -42,6 +49,7 @@ export class PlaybackEngine {
   private globalOffsetMs: number = 0;
   private interpolationMode: InterpolationMode = 'linear';
   private axisOffsets: AxisOffset[] = [];
+  private axisScriptSettings: AxisScriptSettings[] = [];
   private externalClock: boolean = false;
   private mediaDurationMs: number = 0;
 
@@ -49,6 +57,7 @@ export class PlaybackEngine {
     this.stop();
     this.document = new FunscriptDocument([]);
     this.axisOffsets = [];
+    this.axisScriptSettings = [];
     // Revalidate typed data too; callers can construct or mutate documents directly.
     this.document = FunscriptParser.cloneDocument(document);
   }
@@ -105,6 +114,42 @@ export class PlaybackEngine {
     const entry = this.axisOffsets.find((axis) => axis.name === name);
     return entry === undefined ? 0 : entry.offsetMs;
   }
+  private settingsFor(name: string): AxisScriptSettings {
+    if (!this.document.axes.some((axis) => axis.name === name)) { throw new Error('Unknown script axis.'); }
+    let settings = this.axisScriptSettings.find((entry) => entry.name === name);
+    if (settings === undefined) { settings = new AxisScriptSettings(name); this.axisScriptSettings.push(settings); }
+    return settings;
+  }
+  getAxisScriptSettings(name: string): AxisScriptSettings {
+    const original = this.settingsFor(name);
+    const copy = new AxisScriptSettings(name);
+    copy.inverted = original.inverted; copy.scale = original.scale;
+    copy.interpolationMode = original.interpolationMode === undefined ? this.interpolationMode : original.interpolationMode;
+    return copy;
+  }
+  setAxisInverted(name: string, value: boolean): void {
+    if (typeof value !== 'boolean') { throw new Error('Invert must be boolean.'); }
+    const settings = this.settingsFor(name); this.pause(); settings.inverted = value;
+  }
+  setAxisScale(name: string, value: number): void {
+    if (!Number.isFinite(value) || value < 0.01 || value > 4) { throw new Error('Script scale must be from 0.01 to 4.'); }
+    const settings = this.settingsFor(name); this.pause(); settings.scale = value;
+  }
+  setAxisInterpolationMode(name: string, mode: InterpolationMode): void {
+    if (mode !== 'linear' && mode !== 'pchip' && mode !== 'makima' && mode !== 'step') { throw new Error('Unknown interpolation mode.'); }
+    const settings = this.settingsFor(name); this.pause(); settings.interpolationMode = mode;
+  }
+  private sampleAxis(name: string): number {
+    const axis = this.document.axes.find((entry) => entry.name === name);
+    if (axis === undefined) { throw new Error('Unknown script axis.'); }
+    const settings = this.getAxisScriptSettings(name);
+    const value = Math.max(0, Math.min(100, interpolateAxis(axis, this.getScriptPosition(name), settings.interpolationMode!)));
+    // DeviceSettings default TCode axes: six movement axes center at 0.5;
+    // auxiliary V*/A* axes start at zero. Custom profiles are not implemented.
+    const center = /^(V[01]|A[012])$/.test(name) ? 0 : 50;
+    const scaled = Math.max(0, Math.min(100, center + (value - center) * settings.scale));
+    return settings.inverted ? 100 - scaled : scaled;
+  }
   private validateOffset(offsetMs: number): void {
     if (!Number.isFinite(offsetMs) || Math.abs(offsetMs) > FunscriptParser.MAX_TIME_MS) {
       throw new Error('Offset must be finite and within 24 hours.');
@@ -140,7 +185,7 @@ export class PlaybackEngine {
     const samples: AxisSample[] = [];
     for (const axis of this.document.axes) {
       samples.push(new AxisSample(axis.name,
-        interpolateAxis(axis, this.getScriptPosition(axis.name), this.interpolationMode)));
+        this.sampleAxis(axis.name)));
     }
     return samples;
   }
@@ -151,7 +196,7 @@ export class PlaybackEngine {
       for (const axis of this.document.axes) {
         if (axis.actions.length > 0) {
           outputs.push(new AxisSample(axis.name,
-            interpolateAxis(axis, this.getScriptPosition(axis.name), this.interpolationMode)));
+            this.sampleAxis(axis.name)));
         }
       }
     }

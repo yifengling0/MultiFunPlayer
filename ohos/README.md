@@ -1,4 +1,4 @@
-# MultiFunPlayer for OHOS — 0.5 source-led layout and repository preview
+# MultiFunPlayer for OHOS — 0.5.1 source-led layout and repository preview
 
 Native ArkTS/ArkUI port in progress. Original Windows application is unchanged.
 Upstream baseline: `36c08fbb99ac9398a63ff1cca1bbf68cd2228a94`.
@@ -16,6 +16,7 @@ Upstream baseline: `36c08fbb99ac9398a63ff1cca1bbf68cd2228a94`.
 - Single/multi-axis keyframes, bounded validation, linear/PCHIP/makima/step interpolation, timeline and axis monitor.
 - Synthetic demonstration with chapters/bookmarks; playback/pause/seek/stop and simulator disconnect.
 - Original heatmap velocity/range computation, 0.25–4× UI speed, global/per-axis 50 ms offset controls.
+- Selected-axis interpolation, script inversion and 1–400% scaling around the default TCode neutral position; the UI defaults to upstream PCHIP.
 - Chapter/bookmark previous/next navigation and native filename-to-axis aliases (TCode 0.3 defaults).
 - Foreground lifecycle safety gate, no automatic resume after background/disconnect.
 - 48 vp phone principal buttons, compact desktop controls, persistent phone transport and monotonic elapsed clock.
@@ -68,3 +69,10 @@ Uses the platform AVPlayer rather than bundling FFmpeg. MP4 (H.264/AAC) is the f
 Seeking pauses output and uses actual `currentTime` after `seekDone`, not the requested timestamp. Playback must be explicitly resumed after seeking, buffering or audio interruption. After completion, Rewind returns to zero; press Play once ready. Backgrounding or surface destruction releases the source; reopen the file to continue. Layout branches share one video surface, but real-device rotation, multi-window, interruptions and picker behavior still require testing. Video playback does not advance from a synthetic timer; stale observations close the simulation gate.
 
 The app keeps the selected read-only file descriptor alive until native player release completes. It requests no broad storage/media permission, copies no video and uploads nothing. No device, emulator or audible/rendered playback has yet been validated.
+
+
+### Axis script controls (0.5.1)
+
+`ScriptViewModel.UpdateScript` evaluates and clamps interpolation, scales around the device default, clamps again, then inverts. The same order now applies to both preview and simulator samples. Curve/scale/inversion apply separately per axis. Edits pause playback; no edit opens the output gate. The UI starts with upstream PCHIP, while the pure engine retains its existing linear default for backward compatibility. Per-file settings reset on load; original persistent device-axis configuration is not implemented. Default TCode movement axes center at 50 and V/A auxiliary axes at zero; arbitrary custom profiles are not supported.
+
+This ports the script-value transform only. Upstream gap/end-of-script state, synchronization transitions, motion blending, bypass, limits and auto-home still require the full original state pipeline. Current endpoint-holding preview behavior is unchanged and must not be described as complete output equivalence.
