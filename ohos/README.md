@@ -1,10 +1,12 @@
-# MultiFunPlayer for OHOS — 0.2 synchronization preview
+# MultiFunPlayer for OHOS — 0.3 native video preview
 
 Native ArkTS/ArkUI port in progress. Original Windows application is unchanged.
 Upstream baseline: `36c08fbb99ac9398a63ff1cca1bbf68cd2228a94`.
 
 ## Included
 
+- Native AVPlayer local video with stable XComponent surface, play/pause, seek, volume and 0.25–4× rate controls.
+- Script synchronization follows confirmed native media time, including video lengths different from scripts.
 - Stage app declares phone, tablet and 2-in-1 PC support.
 - Compact portrait tabs, phone-landscape two-column layout, wide-window dashboard.
 - Native document picker, read-only local UTF-8 `.funscript` / JSON import (2 MiB UI limit).
@@ -21,7 +23,7 @@ This is an early interface and core milestone, not full feature or visual parity
 
 There is **no physical output transport** in this version: no network, USB, serial or Bluetooth commands. Axis bars are preview values, not proof of emitted commands. Stop/interruptions close the simulator gate. Physical-device safety and hardware watchdog behavior remain future work.
 
-Not implemented: video playback, remote media-player control, TCP/UDP/WebSocket output, axis limits/soft-start, C# plugins, Windows named pipes, USB drivers, config migration. Descriptive chapters/bookmarks are parsed; metadata fields such as `inverted`, `range` and `version` do not alter output. The parser is intentionally stricter than upstream: invalid/out-of-range points are rejected instead of clamped/skipped. The graph samples the chosen interpolator at display resolution; core evaluation uses all validated keyframes. Exact upstream PCHIP/makima kernels and unusual boundary padding are retained. Golden fixtures use an independent exact-rational Python reference transcription of pinned C# source, not execution of C#; see tests/fixtures/interpolation-README.md.
+Not implemented: remote media-player control, TCP/UDP/WebSocket output, axis limits/soft-start, C# plugins, Windows named pipes, USB drivers, config migration. Descriptive chapters/bookmarks are parsed; metadata fields such as `inverted`, `range` and `version` do not alter output. The parser is intentionally stricter than upstream: invalid/out-of-range points are rejected instead of clamped/skipped. The graph samples the chosen interpolator at display resolution; core evaluation uses all validated keyframes. Exact upstream PCHIP/makima kernels and unusual boundary padding are retained. Golden fixtures use an independent exact-rational Python reference transcription of pinned C# source, not execution of C#; see tests/fixtures/interpolation-README.md.
 
 The file picker may show all document types; selecting a file does not bypass JSON and size validation. Imports never upload files. Cancel/failure leaves playback paused. An empty script can be previewed but cannot play. Reading and JSON parsing happen on the UI flow; larger-file worker parsing is future work.
 
@@ -55,3 +57,11 @@ See [PORT_PLAN_ZH.md](PORT_PLAN_ZH.md) for architecture, phased implementation a
 Script time equals media-clock position minus global offset minus axis offset, matching upstream. Positive offsets delay the script. In this simulator, media-clock duration remains the original script duration; endpoint values hold when shifted outside the script. Offset or interpolation changes pause playback and never open the output gate; rate changes affect only subsequent elapsed time. Per-axis offsets reset on a new script; global offset, speed and curve mode stay as user settings.
 
 Metadata accepts bounded `HH:mm:ss` strings with up to seven fractional digits, up to 24 hours; 1,000 combined markers, names at most 256 characters. It is sorted for navigation and never changes script duration. The parser is a strict subset of .NET TimeSpan, not all .NET date/time syntax. Filename inference applies only to top-level single-axis actions without embedded axes; embedded axis IDs win. Unknown or disabled aliases retain L0. If the picker returns an opaque URI rather than a meaningful filename, no reliable alias can be inferred.
+
+## Native video scope
+
+Uses the platform AVPlayer rather than bundling FFmpeg. MP4 (H.264/AAC) is the first recommended device-validation case; the picker also allows MKV, MPEG-TS and M4V, but container/codec support and hardware decoding depend on the device. Unsupported sources fail closed. No format or hardware-acceleration guarantee is made.
+
+Seeking pauses output and uses actual `currentTime` after `seekDone`, not the requested timestamp. Playback must be explicitly resumed after seeking, buffering or audio interruption. After completion, Rewind returns to zero; press Play once ready. Backgrounding or surface destruction releases the source; reopen the file to continue. Layout branches share one video surface, but real-device rotation, multi-window, interruptions and picker behavior still require testing. Video playback does not advance from a synthetic timer; stale observations close the simulation gate.
+
+The app keeps the selected read-only file descriptor alive until native player release completes. It requests no broad storage/media permission, copies no video and uploads nothing. No device, emulator or audible/rendered playback has yet been validated.

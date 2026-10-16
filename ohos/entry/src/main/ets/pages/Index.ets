@@ -8,8 +8,17 @@ import type { InterpolationMode } from '../core/Interpolation';
 import { interpolateAxis } from '../core/Interpolation';
 import { AxisMapping } from '../core/AxisMapping';
 import { activeChapter, markerMediaPosition } from '../core/MarkerNavigation';
+import { MediaClockSnapshot } from '../core/MediaClock';
+import { NativeVideoAdapter } from '../media/NativeVideoAdapter';
 
 const DEMO: string = '{"actions":[{"at":0,"pos":50},{"at":1000,"pos":15},{"at":2000,"pos":85},{"at":3000,"pos":25},{"at":4000,"pos":75},{"at":5000,"pos":50}],"axes":[{"id":"R0","actions":[{"at":0,"pos":20},{"at":2500,"pos":80},{"at":5000,"pos":20}]}],"metadata":{"chapters":[{"name":"Rise","startTime":"00:00:00","endTime":"00:00:02.500"},{"name":"Return","startTime":"00:00:02.500","endTime":"00:00:05"}],"bookmarks":[{"name":"First low point","time":"00:00:01"},{"name":"Second low point","time":"00:00:03"}]}}';
+
+class VideoSurfaceController extends XComponentController {
+  private changed: (id: string, available: boolean) => void;
+  constructor(changed: (id: string, available: boolean) => void) { super(); this.changed = changed; }
+  onSurfaceCreated(surfaceId: string): void { this.changed(surfaceId, true); }
+  onSurfaceDestroyed(surfaceId: string): void { this.changed(surfaceId, false); }
+}
 
 @Entry
 @Component
@@ -33,31 +42,51 @@ struct Index {
   @State axisOffsetMs: number = 0;
   @State chapterLabel: string = 'No active chapter';
   @State connected: boolean = true;
+  @State videoMode: boolean = false;
+  @State videoReady: boolean = false;
+  @State videoState: string = 'idle';
+  @State videoName: string = 'No video selected';
+  @State volume: number = 0.6;
+  @State openingVideo: boolean = false;
   private engine: PlaybackEngine = new PlaybackEngine();
   @State document: FunscriptDocument = FunscriptParser.parse(DEMO);
+  private video: NativeVideoAdapter = new NativeVideoAdapter((snapshot: MediaClockSnapshot) => this.videoSnapshot(snapshot));
+  private videoSurface: VideoSurfaceController = new VideoSurfaceController((id: string, available: boolean) => this.surfaceChanged(id, available));
+  private surfaceId: string = '';
+  private pendingVideoUri: string = '';
+  private openVideoRequest: number = 0;
+  private viewActive: boolean = false;
   private timer: number = -1;
   private lastTick: number = 0;
   private canvas: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
 
   aboutToAppear(): void {
+    this.viewActive = true;
     this.engine.load(this.document);
     this.engine.setConnected(true);
     this.sync();
     this.lastTick = systemDateTime.getUptime(systemDateTime.TimeType.ACTIVE);
     this.timer = setInterval(() => {
       const now = systemDateTime.getUptime(systemDateTime.TimeType.ACTIVE);
-      this.engine.tick(Math.max(0, now - this.lastTick));
+      if (!this.videoMode) { this.engine.tick(Math.max(0, now - this.lastTick)); }
       this.lastTick = now;
       this.sync();
     }, 40);
   }
   aboutToDisappear(): void {
+    this.viewActive = false; this.openVideoRequest++; this.pendingVideoUri = '';
+    this.video.dispose();
     if (this.timer >= 0) { clearInterval(this.timer); this.timer = -1; }
     this.engine.stop();
   }
   foregroundChanged(): void {
     this.engine.setForeground(this.foreground);
-    if (!this.foreground) { this.status = 'Paused for safety · press Play to resume'; }
+    if (!this.foreground) {
+      if (!this.openingVideo) { this.openVideoRequest++; this.pendingVideoUri = ''; }
+      if (this.videoMode) { this.video.release(); this.videoReady = false; this.status = 'Video released in background · reopen the file to continue'; }
+      else { this.status = 'Paused for safety · press Play to resume'; }
+    }
+    if (this.foreground) { this.openPendingVideo(); }
     this.sync();
   }
   sync(): void {
@@ -78,7 +107,14 @@ struct Index {
     this.drawTrace();
   }
   playPause(): void {
-    if (this.importing) { return; }
+    if (this.importing || this.openingVideo) { return; }
+    if (this.videoMode) {
+      if (this.playing) { this.video.pause(); }
+      else if (this.durationMs > 0 && this.positionMs >= this.durationMs) {
+        this.video.seek(0); this.status = 'Rewinding · press Play when ready';
+      } else { this.video.play(); }
+      return;
+    }
     if (this.playing) { this.engine.pause(); }
     else {
       if (this.positionMs >= this.durationMs) { this.engine.seek(0); }
@@ -88,14 +124,14 @@ struct Index {
     this.sync();
   }
   stop(): void {
-    this.engine.stop();
+    if (this.videoMode) { this.pauseTransport(); this.video.seek(0); } else { this.engine.stop(); }
     this.status = 'Stopped · simulation output disabled';
     this.sync();
   }
   async importScript(): Promise<void> {
     if (this.importing) { return; }
     this.importing = true;
-    this.engine.pause();
+    this.pauseTransport();
     this.sync();
     try {
       const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
@@ -124,6 +160,7 @@ struct Index {
       const parsed = AxisMapping.parseScript(contents, leaf);
       this.document = parsed;
       this.engine.load(parsed);
+      if (this.videoMode) { this.videoSnapshot(this.video.snapshot()); }
       this.selectedAxis = 0;
       this.fileName = leaf.length > 0 ? leaf : 'Imported script';
       this.status = 'Imported locally · press Play to simulate';
@@ -131,6 +168,71 @@ struct Index {
     } catch (error) {
       this.status = 'Import failed: ' + (error as Error).message;
     } finally { this.importing = false; }
+  }
+  pauseTransport(): void {
+    this.engine.pause();
+    if (this.videoMode) { this.video.pause(); }
+  }
+  seekTransport(position: number): void {
+    if (this.importing || this.openingVideo) { return; }
+    if (this.videoMode) { this.engine.pause(); this.video.seek(position); }
+    else { this.engine.seek(position); }
+    this.sync();
+  }
+  videoSnapshot(snapshot: MediaClockSnapshot): void {
+    if (!this.viewActive || !this.videoMode) { return; }
+    const wasReady = this.videoReady;
+    this.videoReady = snapshot.ready && snapshot.valid && !snapshot.seeking;
+    this.videoState = snapshot.state;
+    if (snapshot.valid) { this.engine.acceptMediaClock(snapshot.positionMs, snapshot.durationMs, snapshot.safetyGateOpen); }
+    else { this.engine.pause(); }
+    if (snapshot.rate >= 0.125 && snapshot.rate <= 4) { this.engine.setSpeed(snapshot.rate); }
+    if (this.videoReady && !wasReady) { this.video.setVolume(this.volume); }
+    if (snapshot.failure.length > 0) { this.status = snapshot.failure; }
+    else if (this.videoReady && !wasReady) { this.status = 'Video ready · press Play'; }
+    this.sync();
+  }
+  surfaceChanged(id: string, available: boolean): void {
+    if (available) {
+      if (id.length === 0 || id === this.surfaceId) { return; }
+      if (this.surfaceId.length > 0) { this.pendingVideoUri = ''; this.pauseTransport(); this.video.release(); }
+      this.surfaceId = id;
+      if (this.pendingVideoUri.length > 0 && this.foreground) {
+        const uri = this.pendingVideoUri; this.pendingVideoUri = ''; this.video.open(uri, id);
+      }
+    } else if (id === this.surfaceId) {
+      this.surfaceId = ''; this.pendingVideoUri = ''; this.engine.pause(); this.video.release();
+      this.status = 'Video surface closed · reopen the file to continue';
+    }
+  }
+  openPendingVideo(): void {
+    if (this.viewActive && this.videoMode && this.foreground && this.surfaceId.length > 0 && this.pendingVideoUri.length > 0) {
+      const uri = this.pendingVideoUri; this.pendingVideoUri = ''; this.video.open(uri, this.surfaceId);
+    }
+  }
+  async openVideo(): Promise<void> {
+    if (this.openingVideo || this.importing) { return; }
+    this.pauseTransport(); this.openingVideo = true;
+    const request = ++this.openVideoRequest;
+    try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const options = new picker.DocumentSelectOptions();
+      options.maxSelectNumber = 1;
+      options.fileSuffixFilters = ['Videos|.mp4,.mkv,.ts,.m4v'];
+      const uris = await new picker.DocumentViewPicker(context).select(options);
+      if (!this.viewActive || request !== this.openVideoRequest || uris.length === 0) { return; }
+      this.engine.useExternalClock(true); this.videoMode = true; this.videoReady = false;
+      this.videoName = 'Local video'; this.status = 'Preparing native video · playback starts only when you press Play';
+      this.pendingVideoUri = uris[0]; this.openPendingVideo();
+      this.sync();
+    } catch (error) { this.status = 'Video selection failed: ' + (error as Error).message; }
+    finally { this.openingVideo = false; }
+  }
+  closeVideo(): void {
+    this.openVideoRequest++; this.pendingVideoUri = ''; this.videoMode = false; this.videoReady = false;
+    this.video.release(); this.surfaceId = ''; this.engine.useExternalClock(false);
+    this.lastTick = systemDateTime.getUptime(systemDateTime.TimeType.ACTIVE);
+    this.status = 'Simulator selected · press Play'; this.sync();
   }
   drawTrace(): void {
     const w = this.canvas.width;
@@ -184,7 +286,7 @@ struct Index {
         .onReady(() => this.drawTrace())
       Slider({ value: this.positionMs, min: 0, max: Math.max(1, this.durationMs), step: 1 })
         .selectedColor('#56D9CC').trackColor('#334357').blockColor('#E3F6F4')
-        .onChange((value: number) => { this.engine.seek(value); this.sync(); })
+        .onChange((value: number) => this.seekTransport(value))
       Row() {
         Text((this.positionMs / 1000).toFixed(2) + ' s').fontColor('#EDF3FA')
         Blank()
@@ -209,13 +311,23 @@ struct Index {
   @Builder
   sourcePanel() {
     Column({ space: 12 }) {
-      this.heading('Media source', 'SIMULATED')
-      Text('Internal script clock').fontColor('#EDF3FA').width('100%')
-      Text('Local script playback. Video and network-player adapters are planned next.').fontSize(13).fontColor('#A9B8CB').width('100%')
-      Button(this.importing ? 'Opening…' : 'Import .funscript / JSON').width('100%').height(48).enabled(!this.importing)
+      this.heading('Media source', this.videoMode ? 'NATIVE VIDEO' : 'SIMULATED')
+      Text(this.videoMode ? this.videoName : 'Internal script clock').fontColor('#EDF3FA').width('100%')
+      Text(this.videoMode ? 'Native AVPlayer · scripts follow confirmed video time.' : 'Simulator clock. Open a local video to use its actual playback clock.').fontSize(13).fontColor('#A9B8CB').width('100%')
+      Button(this.openingVideo ? 'Opening video…' : 'Open local video').width('100%').height(48).enabled(!this.openingVideo && !this.importing)
+        .backgroundColor('#216C68').onClick(() => this.openVideo())
+      if (this.videoMode) {
+        Button('Return to simulator').width('100%').height(48).enabled(!this.openingVideo && !this.importing)
+          .backgroundColor('#263445').onClick(() => this.closeVideo())
+        Text('Volume: ' + Math.round(this.volume * 100) + '%').fontColor('#A9B8CB').width('100%')
+        Slider({ value: this.volume, min: 0, max: 1, step: 0.01 }).enabled(this.videoReady)
+          .onChange((value: number) => { this.volume = value; this.video.setVolume(value); })
+      }
+      Button(this.importing ? 'Opening…' : 'Import .funscript / JSON').width('100%').height(48).enabled(!this.importing && !this.openingVideo)
         .backgroundColor('#30475F').onClick(() => this.importScript())
       Button('Load synthetic demo').width('100%').height(48).enabled(!this.importing).backgroundColor('#263445').onClick(() => {
-        this.document = FunscriptParser.parse(DEMO); this.engine.load(this.document);
+        this.pauseTransport(); this.document = FunscriptParser.parse(DEMO); this.engine.load(this.document);
+        if (this.videoMode) { this.videoSnapshot(this.video.snapshot()); }
         this.selectedAxis = 0; this.fileName = 'Synthetic demo · 5 seconds'; this.status = 'Demo loaded · no physical device'; this.sync();
       })
     }.padding(18).backgroundColor('#1A2432').borderRadius(12).width('100%')
@@ -227,7 +339,7 @@ struct Index {
       Row() {
         Text('Simulator').fontColor('#EDF3FA').layoutWeight(1)
         Toggle({ type: ToggleType.Switch, isOn: this.connected }).selectedColor('#216C68').onChange((value: boolean) => {
-          this.connected = value; this.engine.setConnected(value);
+          this.connected = value; if (!value) { this.pauseTransport(); } this.engine.setConnected(value);
           this.status = value ? 'Simulator connected · press Play' : 'Simulator disconnected · stopped'; this.sync();
         })
       }.width('100%')
@@ -237,6 +349,7 @@ struct Index {
   }
   changeOffset(axisOnly: boolean, delta: number): void {
     if (this.importing || this.axisNames.length === 0) { return; }
+    this.pauseTransport();
     if (axisOnly) { this.engine.setAxisOffset(this.axisNames[this.selectedAxis], Math.max(-60000, Math.min(60000, this.axisOffsetMs + delta))); }
     else { this.engine.setGlobalOffset(Math.max(-60000, Math.min(60000, this.globalOffsetMs + delta))); }
     this.status = 'Offset changed · playback paused. Positive offset delays the script.';
@@ -270,10 +383,10 @@ struct Index {
   }
   seekMarker(scriptTime: number, axis: string): void {
     if (scriptTime < 0) { this.status = 'No further marker in that direction'; return; }
-    this.engine.pause();
+    this.pauseTransport();
     const target = markerMediaPosition(scriptTime, this.globalOffsetMs, this.engine.getAxisOffset(axis), this.durationMs);
     if (target === undefined) { this.status = 'Marker lies outside the current preview clock'; this.sync(); return; }
-    this.engine.seek(target);
+    this.seekTransport(target);
     this.status = 'Marker selected · playback paused';
     this.sync();
   }
@@ -287,14 +400,14 @@ struct Index {
           .value(this.interpolationMode.toUpperCase()).height(48).enabled(!this.importing)
           .onSelect((index: number) => {
             const modes: InterpolationMode[] = ['linear', 'pchip', 'makima', 'step'];
-            this.engine.setInterpolationMode(modes[index]); this.status = 'Curve changed · press Play to resume'; this.sync();
+            this.pauseTransport(); this.engine.setInterpolationMode(modes[index]); this.status = 'Curve changed · press Play to resume'; this.sync();
           })
       }.width('100%')
       Row({ space: 10 }) {
         Text('Playback speed').fontColor('#A9B8CB').layoutWeight(1)
         Select([{ value: '0.25×' }, { value: '0.5×' }, { value: '1×' }, { value: '1.5×' }, { value: '2×' }, { value: '4×' }])
           .value(this.playbackSpeed.toString() + '×').height(48).enabled(!this.importing)
-          .onSelect((index: number) => { const speeds: number[] = [0.25, 0.5, 1, 1.5, 2, 4]; this.engine.setSpeed(speeds[index]); this.sync(); })
+          .onSelect((index: number) => { const speeds: number[] = [0.25, 0.5, 1, 1.5, 2, 4]; if (this.videoMode) { this.video.setRate(speeds[index]); } else { this.engine.setSpeed(speeds[index]); } this.sync(); })
       }.width('100%')
       Text('Global offset: ' + this.globalOffsetMs + ' ms').fontColor('#A9B8CB').width('100%')
       Row({ space: 8 }) {
@@ -337,8 +450,8 @@ struct Index {
   @Builder
   transport() {
     Row({ space: 12 }) {
-      Button(this.playing ? 'Pause' : 'Play').height(52).layoutWeight(1).backgroundColor('#216C68').fontColor('#F1FFFC')
-        .enabled(this.connected && this.foreground && !this.importing).onClick(() => this.playPause())
+      Button(this.playing ? 'Pause' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? 'Rewind' : 'Play')).height(52).layoutWeight(1).backgroundColor('#216C68').fontColor('#F1FFFC')
+        .enabled(this.connected && this.foreground && !this.importing && !this.openingVideo && (!this.videoMode || this.videoReady)).onClick(() => this.playPause())
       Button('Stop output').height(52).layoutWeight(1).backgroundColor('#833D46').onClick(() => this.stop())
     }.width('100%')
   }
@@ -351,6 +464,11 @@ struct Index {
         }.alignItems(HorizontalAlign.Start).layoutWeight(1)
         Text(this.playing ? 'PLAYING' : 'IDLE').fontSize(11).fontColor('#56D9CC')
       }.width('100%')
+      if (this.videoMode) {
+        XComponent({ id: 'mfp-native-video', type: 'surface', controller: this.videoSurface })
+          .width('100%').height(this.heightVp < 500 ? 100 : 180).backgroundColor('#000000')
+          .onLoad(() => this.surfaceChanged(this.videoSurface.getXComponentSurfaceId(), true))
+      }
       if (this.widthVp >= 840) {
         Row({ space: 16 }) {
           Scroll() { Column({ space: 16 }) { this.timeline(); this.axes(); this.markerPanel(); }.width('100%') }.layoutWeight(2).align(Alignment.Top)

@@ -42,6 +42,8 @@ export class PlaybackEngine {
   private globalOffsetMs: number = 0;
   private interpolationMode: InterpolationMode = 'linear';
   private axisOffsets: AxisOffset[] = [];
+  private externalClock: boolean = false;
+  private mediaDurationMs: number = 0;
 
   load(document: FunscriptDocument): void {
     this.stop();
@@ -51,7 +53,7 @@ export class PlaybackEngine {
     this.document = FunscriptParser.cloneDocument(document);
   }
   play(): boolean {
-    if (!this.foreground || !this.connected || this.document.durationMs <= 0) { return false; }
+    if (this.externalClock || !this.foreground || !this.connected || this.document.durationMs <= 0) { return false; }
     if (this.positionMs >= this.document.durationMs) { return false; }
     this.state = 'playing';
     return true;
@@ -59,6 +61,7 @@ export class PlaybackEngine {
   pause(): void { if (this.state === 'playing') { this.state = 'paused'; } }
   seek(timeMs: number): void {
     if (!Number.isFinite(timeMs)) { throw new Error('Seek time must be finite.'); }
+    if (this.externalClock) { throw new Error('Seek the native player and wait for its confirmed time.'); }
     this.positionMs = Math.min(this.document.durationMs, Math.max(0, timeMs));
     if (this.positionMs >= this.document.durationMs && this.state === 'playing') { this.state = 'ended'; }
     if (this.positionMs < this.document.durationMs && this.state === 'ended') { this.state = 'paused'; }
@@ -114,9 +117,23 @@ export class PlaybackEngine {
   /** Monotonic elapsed time; speed does not alter timestamps stored in the script. */
   tick(elapsedMs: number): void {
     if (!Number.isFinite(elapsedMs) || elapsedMs < 0) { throw new Error('Elapsed time must be finite and nonnegative.'); }
-    if (this.state !== 'playing' || !this.foreground || !this.connected) { return; }
+    if (this.externalClock || this.state !== 'playing' || !this.foreground || !this.connected) { return; }
     this.positionMs = Math.min(this.document.durationMs, this.positionMs + elapsedMs * this.speed);
     if (this.positionMs >= this.document.durationMs) { this.state = 'ended'; }
+  }
+  useExternalClock(enabled: boolean): void {
+    this.stop(); this.externalClock = enabled; this.mediaDurationMs = 0;
+  }
+  /** Native confirmed observations only; never call this with requested seek targets. */
+  acceptMediaClock(positionMs: number, durationMs: number, gateAllowed: boolean): boolean {
+    if (!this.externalClock) { throw new Error('External clock mode is not selected.'); }
+    this.state = 'paused';
+    if (!Number.isFinite(positionMs) || !Number.isFinite(durationMs) || durationMs <= 0 ||
+      positionMs < 0 || positionMs > durationMs) { return false; }
+    this.positionMs = positionMs; this.mediaDurationMs = durationMs;
+    if (positionMs >= durationMs) { this.state = 'ended'; }
+    else if (gateAllowed && this.foreground && this.connected) { this.state = 'playing'; }
+    return true;
   }
   /** UI inspection values, not commands; available while the output gate is closed. */
   previewSamples(): AxisSample[] {
@@ -138,7 +155,7 @@ export class PlaybackEngine {
         }
       }
     }
-    return new PlaybackSnapshot(this.state, this.positionMs, this.document.durationMs,
+    return new PlaybackSnapshot(this.state, this.positionMs, this.externalClock ? this.mediaDurationMs : this.document.durationMs,
       gate, outputs, this.speed, this.globalOffsetMs, this.interpolationMode);
   }
 }

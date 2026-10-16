@@ -25,3 +25,15 @@ Independent code review found no blocker for simulation scope. Follow-up fixes d
 - No physical transport, signing or video playback added in this milestone.
 
 M2 independent review: no safety blocker; adjacent-chapter boundary labels now use half-open intervals, and unreachable shifted markers are reported instead of silently clamped. Three targeted regression tests pass. HAP source map lists only the M2 core/UI modules (no unfinished video adapter).
+
+## M3 — 0.3.0 native video milestone
+
+- **124 Node tests passed, 0 failed**. Includes media-clock/engine invariants and seven tests exercising the actual type-stripped adapter with mocked native APIs. These mocks do not establish device playback correctness.
+- Official SDK **clean build passed**, with actual ArkTS compilation, resource compilation, HAP packaging and package checks: 33 tasks (32 executed, 1 up-to-date).
+- HAP: **289730 bytes**; SHA256 `3f840b2a1f349c4065479492a48c4719e75a1202e3684d311b604c46b172626a`.
+- Native source selection, AVPlayer lifecycle, stable XComponent, actual-time synchronization, seek confirmation, volume and rate controls compile. Runtime AVPlayer capability guard handles unavailable devices; compiler still warns about device-dependent multimedia APIs. Missing signingConfig is expected.
+- Independent review found two P2 issues, both fixed: retain/retry failed player/FD cleanup ownership; completed playback presents explicit Rewind then Play. No P1 issue found in that review.
+- Cleanup rejection, exactly-once successful release/close, stale source callbacks, source-generation rejection, missing capability, stale media time, buffering gates and completion/rewind are covered by pure/mocked tests.
+- First pre-final build process exited 255 after ArkTS compilation; low-memory retry and final clean build succeeded. HAP ZIP timestamps may change hashes across rebuilds; this hash identifies the delivered clean-build artifact.
+- **Not tested:** on-device video/audio playback, actual picker access, rotation/multi-window, seek accuracy, codec compatibility, hardware decoding, battery/performance, signing or installation. See DEVICE_TEST_PLAN.md.
+- No physical device outputs or network permissions were added. Original Windows sources remain unchanged.
