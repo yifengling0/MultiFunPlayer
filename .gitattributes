@@ -1,0 +1,7 @@
+# The OHOS test harness strips ES module imports with a `\n`-terminated regex and the
+# interpolation golden fixture pins SHA256 of upstream C# sources, so both need LF bytes
+# in the working tree regardless of a cloner's core.autocrlf.
+/ohos/** text eol=lf
+/Source/MultiFunPlayer/Common/Utils/MathUtils.cs text eol=lf
+/Source/MultiFunPlayer/Common/KeyframeCollection.cs text eol=lf
+/Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs text eol=lf
