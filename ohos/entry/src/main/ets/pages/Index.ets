@@ -61,6 +61,7 @@ struct Index {
     this.drawTrace();
   }
   playPause(): void {
+    if (this.importing) { return; }
     if (this.playing) { this.engine.pause(); }
     else {
       if (this.positionMs >= this.durationMs) { this.engine.seek(0); }
@@ -217,7 +218,7 @@ struct Index {
   transport() {
     Row({ space: 12 }) {
       Button(this.playing ? 'Pause' : 'Play').height(52).layoutWeight(1).backgroundColor('#216C68').fontColor('#F1FFFC')
-        .enabled(this.connected && this.foreground).onClick(() => this.playPause())
+        .enabled(this.connected && this.foreground && !this.importing).onClick(() => this.playPause())
       Button('Stop output').height(52).layoutWeight(1).backgroundColor('#833D46').onClick(() => this.stop())
     }.width('100%')
   }

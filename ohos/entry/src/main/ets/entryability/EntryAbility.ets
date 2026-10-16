@@ -5,7 +5,10 @@ export default class EntryAbility extends UIAbility {
   onWindowStageCreate(windowStage: window.WindowStage): void {
     AppStorage.setOrCreate('mfpForeground', true);
     try {
-      windowStage.loadContent('pages/Index');
+      windowStage.loadContent('pages/Index').catch(() => {
+        AppStorage.setOrCreate('mfpForeground', false);
+        console.error('MultiFunPlayer failed to load its main page');
+      });
     } catch (error) {
       AppStorage.setOrCreate('mfpForeground', false);
       console.error('MultiFunPlayer failed to create its main window');
