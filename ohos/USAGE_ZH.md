@@ -1,22 +1,24 @@
 # MultiFunPlayer OHOS 版 · 使用说明
 
 面向：拿到这份代码后要在本机编译、装到设备上跑起来、并知道每个控件干什么。
-本文所有命令与界面结论都在 **HUAWEI MatePad Mini（MLR-AL10，HarmonyOS 7.0.0.109，API 26）** 上实测过。
+本文保留了 0.5.1 的本地实测记录（HUAWEI MatePad Mini，MLR-AL10，HarmonyOS 7.0.0.109 / API26）。**0.6.0 的视频布局与自动目录扫描是本轮新改动，尚待真机复测；旧版记录不能代替新版验证。**
+
+0.6.0：把视频与同名脚本放到系统 `Download/com.multifunplayer.ohos`，应用自动建立列表；不再提供逐个导入视频、脚本或选择目录的主界面入口。同名脚本 ZIP 仍可自动匹配。见 [新版测试清单](DEVICE_TEST_PLAN.md) 与 [完整功能差距](FEATURE_PARITY_MATRIX.zh-CN.md)。
 
 ---
 
 ## 0. 一分钟版
 
 ```sh
-# 1) 编译（在 ohos 目录下）
+# 1) 编译（在仓库根目录下）
 bash ohos/tools/build.sh            # 需要 HARMONY_TOOLS_HOME；没有命令行工具就看第 2 节
 
 # 2) 装到设备并启动
-hdc install -r ./entry/build/default/outputs/default/entry-default-signed.hap
+hdc install -r ./ohos/entry/build/default/outputs/default/entry-default-signed.hap
 hdc shell aa start -a EntryAbility -b com.multifunplayer.ohos
 ```
 
-应用启动后默认加载 **Synthetic demo（5 秒内置演示）**，直接点右上角绿色 ▶ 就能看到曲线推进、轴数值跳动、Heatmap 上色。
+应用会自动准备系统分配的 Download/包名目录并扫描。选择列表中的视频即可打开并自动匹配脚本；只有视频时明确显示无脚本，不沿用上一条资源的脚本。列表刷新按钮用于复制文件后的重新扫描。空目录时不会自动播放旧演示或上一个资源。
 
 ---
 
@@ -73,7 +75,7 @@ export JAVA_HOME=/path/to/jdk-21
 bash ohos/tools/build.sh
 ```
 
-该脚本依次做三件事：跑 207 个核心测试 → `hvigorw assembleHap`（debug）→ `tools/check_hap.py` 校验包体。
+该脚本依次做三件事：跑当前全部核心测试 → `hvigorw assembleHap`（debug）→ `tools/check_hap.py` 校验包体。
 
 ### 3.2 只有 DevEco Studio（本机走这条）
 
@@ -159,34 +161,28 @@ hdc -t <SN> shell uitest uiInput click <x> <y>                         # 按 bou
 
 ---
 
-## 6. 界面怎么用
+## 6. 界面怎么用（0.6.0）
 
-标题栏显示 `MultiFunPlayer | 0.5.1 OHOS`。整体是**左「素材/输出」+ 右「播放/同步」**两栏；窗口宽度 ≥840vp 且高度 ≥600vp 时用紧凑尺寸（34vp 控件），否则用触屏尺寸（48vp）。布局按**可用宽高**分支，不是按设备名判断，所以分屏、自由窗口、旋转都会改变排布。
+视频使用保持原比例的完整显示模式：不拉伸，也不为了填满而裁剪。画面周围出现黑边是正常的。
 
-### 6.1 左栏
+### 6.1 资源列表
 
-| 区块 | 作用 |
-| --- | --- |
-| `Internal` / `Local video` 两个标签 | 视频源。`Internal` = 内置合成演示（当前 Connected）；`Local video` = 本机视频（Disconnected） |
-| `Synthetic demo · 5 seconds` | 当前加载的素材和长度 |
-| `Open local video` | 用系统文档选择器挑一个视频，走原生 AVPlayer 播放 |
-| `Import .funscript / JSON` | 挑单个 `.funscript` 文件导入（只读、UTF-8、上限 2 MiB） |
-| `⌕` | 展开资源面板：授权整个目录、按配置好的脚本库顺序找配套脚本、视频与脚本成对打开 |
-| `⚙` | 素材设置 |
-| `Simulator` + `Connected` | 输出通道。**只有模拟器**，`+` 添加物理输出是禁用状态 |
-| `No physical commands` | 明示：不会发出任何真实硬件指令 |
+- 默认目录是系统分配给应用的 `Download/com.multifunplayer.ohos`，不是整个公共 Download 的任意读写权限。
+- 系统 DOWNLOAD 接口负责创建/返回目录；应用验证返回 URI 和读取结果后扫描。不再让用户选择目录或逐个导入视频/脚本。
+- 视频、同名 `.funscript` / JSON 或同名脚本 ZIP 放在相同目录中；原有 ZIP 优先匹配规则保留。
+- 点击刷新会停止并关闭当前视频、清除旧脚本和配对，再重新扫描；完成后重新选择视频。读取失败会显示错误，不能把权限失败当成空列表。
+- 无配套脚本的视频可单独播放并清除旧脚本。存在配套脚本但损坏时保持错误/暂停，不能当作成功配对。
+- ZIP 支持的是原有有界脚本 ZIP，不是大型视频压缩包的通用解压导入。
 
-### 6.2 右栏顶部工具条
+### 6.2 视频与设置
 
-| 图标 | 含义 | 状态 |
-| --- | --- | --- |
-| `▣` | 载入脚本（等同 Import） | 可用 |
-| `⌕` | 脚本仓库与资源面板 | 可用 |
-| `↻` | 刷新已选资源目录 | 需先选过目录 |
-| `AB` | AB 循环 | **未移植，置灰** |
-| `▶` / `Ⅱ` | 播放 / 暂停；视频播完后变 `↶` 表示回到 0 再按一次 | 需 Simulator 已连接且应用在前台 |
-| `■` | 停止输出 | 可用 |
-| `⌄` / `⌃` | 展开/收起下方 **Synchronization** 面板 | 可用 |
+- 同屏模式：竖屏视频在上、设置在下；宽屏/横屏按可用窗口重排，视频和设置一起可见。
+- 视频全屏：视频占据当前应用窗口，参数面板隐藏；明确的退出操作或返回键恢复同屏。
+- 全屏/同屏切换与尺寸变化复用同一个 XComponent，不通过重新打开文件切换布局。
+- 方向采用 `auto_rotation_restricted`，尊重系统旋转锁；窗口缩放与分屏也按实际尺寸重排。不强制将用户的竖屏锁改成横屏。
+- “全屏”指当前应用窗口的视频专注布局，不等于强制 PC 窗口最大化或隐藏所有系统栏。
+- 播放、暂停、seek、速度和时间同步继续以 AVPlayer 实际反馈为准。
+- 输出仍只有模拟预览，物理设备指令尚未实现，不能把轴数值变化理解为已发指令。
 
 ### 6.3 Synchronization 面板
 
@@ -249,7 +245,7 @@ A：Git Bash 路径改写，命令前加 `export MSYS_NO_PATHCONV=1`。
 A：profile 的 `bundle-name` 不是 `com.multifunplayer.ohos`，或设备 UDID 不在 `device-ids` 里。重做一次自动签名。
 
 **Q：按 ▶ 没反应。**
-A：Simulator 未连接、应用不在前台、或正在导入/打开视频/扫描库（这三个状态会禁用传输按钮）。
+A：Simulator 未连接、应用不在前台、或正在打开视频/扫描资源（此时传输操作暂时禁用）。
 
 **Q：设备内存吃紧导致编译被杀。**
 A：保留 `--optimization-strategy memory --no-parallel --max-old-space-size 512` 和 `JAVA_TOOL_OPTIONS=-Xmx256m`。

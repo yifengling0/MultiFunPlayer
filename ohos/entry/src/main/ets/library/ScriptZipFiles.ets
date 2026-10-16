@@ -22,7 +22,7 @@ export class ScriptZipFiles {
       const stat = await fileIo.stat(file.fd);
       ScriptZip.checkCurrent(isCurrent);
       if (!stat.isFile() || !Number.isInteger(stat.size) || stat.size < 22 || stat.size > ScriptZip.MAX_ARCHIVE_BYTES) {
-        throw new Error('Choose a regular ZIP archive no larger than 32 MiB.');
+        throw new Error('The script ZIP must be a regular archive no larger than 32 MiB.');
       }
       bytes = new Uint8Array(stat.size);
       let offset = 0;
@@ -32,19 +32,19 @@ export class ScriptZipFiles {
         const count = await fileIo.read(file.fd, chunk);
         ScriptZip.checkCurrent(isCurrent);
         if (!Number.isInteger(count) || count <= 0 || count > chunk.byteLength) {
-          throw new Error('ZIP read ended unexpectedly. Select the archive again.');
+          throw new Error('ZIP read ended unexpectedly. Refresh the library and retry.');
         }
         bytes.set(new Uint8Array(chunk, 0, count), offset);
         offset += count;
       }
       const extraCount = await fileIo.read(file.fd, new ArrayBuffer(1));
       ScriptZip.checkCurrent(isCurrent);
-      if (extraCount !== 0) { throw new Error('The ZIP archive changed while being read. Select it again.'); }
+      if (extraCount !== 0) { throw new Error('The ZIP archive changed while being read. Refresh the library and retry.'); }
     } catch (error) {
       ScriptZip.checkCurrent(isCurrent);
       const problem = error as BusinessError;
       if (problem.code === 201 || problem.code === 13900001 || problem.code === 13900012) {
-        throw new Error('Cannot read ZIP: permission denied or access expired. Select the folder/files again.');
+        throw new Error('Cannot read ZIP: permission denied or access expired. Refresh the library and retry.');
       }
       throw new Error(`Cannot read ZIP: ${problem.message || String(error)}`);
     } finally {

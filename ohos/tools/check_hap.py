@@ -14,6 +14,8 @@ with zipfile.ZipFile(p) as z:
     metadata = json.loads(z.read('module.json'))
     assert metadata['app']['bundleName'] == 'com.multifunplayer.ohos'
     assert set(metadata['module']['deviceTypes']) == {'phone', 'tablet', '2in1'}
+    ability = next(item for item in metadata['module']['abilities'] if item['name'] == 'EntryAbility')
+    assert ability['orientation'] == 'auto_rotation_restricted', 'Rotation must respect the system lock'
 print('Unsigned HAP packaging verified:', p.name, p.stat().st_size, 'bytes')
 print('SHA256:', hashlib.sha256(p.read_bytes()).hexdigest())
 print('No signing, installation, device UI, or physical output test performed.')

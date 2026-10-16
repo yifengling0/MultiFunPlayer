@@ -8,6 +8,22 @@ const DOMAIN: number = 0x4D46;
 // exact whole-string match; phrase keys may also substitute inside a longer runtime
 // message, which is how the concatenated status/library texts stay translatable.
 const ENTRIES: string[][] = [
+  ['Refresh stops playback. Choose a video again after scanning.', '刷新会停止播放。扫描后请重新选择视频。'],
+  ['Refresh stops playback.', '刷新会停止播放。'],
+  ['Application Download folder', '应用 Download 目录'],
+  ['Fullscreen in window', '窗口内全屏'],
+  ['Exit fullscreen', '退出全屏'],
+  ['Play video', '播放视频'],
+  ['No matching script', '未匹配脚本'],
+  ['Video only · no matching script · press Play', '仅视频 · 未匹配脚本 · 点击播放'],
+  ['Preparing Download media folder…', '正在准备 Download 媒体目录…'],
+  ['Scanning Download media folder…', '正在扫描 Download 媒体目录…'],
+  ['Refresh Download media folder', '刷新 Download 媒体目录'],
+  ['Place videos and matching scripts or ZIP files in this folder. Scanning never copies videos.', '请把视频和同名脚本或 ZIP 文件放入此目录。扫描不会复制视频。'],
+  ['No media found. Put videos and matching scripts or ZIP files in this folder, then refresh.', '未找到媒体。请把视频和同名脚本或 ZIP 文件放入此目录，再点击刷新。'],
+  ['Cannot scan Download media folder: ', '无法扫描 Download 媒体目录：'],
+  ['Check the files and refresh.', '请检查文件后刷新。'],
+  ['No readable matching script. Check the files or choose mapping.', '匹配的脚本无法读取。请检查文件或选择映射。'],
   ['Internal', '内部'],
   ['Local video', '本地视频'],
   ['Simulator', '模拟器'],

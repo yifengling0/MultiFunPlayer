@@ -68,7 +68,7 @@ export class LibraryFiles {
   private static failure(label: string, error: BusinessError): string {
     const detail = error.message || String(error);
     if (error.code === 201 || error.code === 13900001 || error.code === 13900012) {
-      return `${label}: permission denied or access expired. Select the folder/files again. (${error.code})`;
+      return `${label}: permission denied or access expired. Refresh the library and retry. (${error.code})`;
     }
     return `${label}: ${detail}`;
   }
@@ -94,7 +94,7 @@ export class LibraryFiles {
     while (path.length > 1 && path.endsWith('/')) { path = path.slice(0, path.length - 1); }
     if (!path.startsWith('/') || /[\u0000-\u001f\u007f-\u009f]/.test(path) || path.indexOf('\\') >= 0 ||
       path.split('/').some((part: string): boolean => part === '.' || part === '..')) {
-      throw new Error('The selected folder does not expose a usable local path. Select individual files instead.');
+      throw new Error('The library directory does not expose a usable local path. Refresh the library and retry.');
     }
     return path;
   }
@@ -129,7 +129,7 @@ export class LibraryFiles {
         const stat = await fileIo.lstat(directory.path);
         LibraryFiles.checkCurrent(isCurrent);
         if (stat.isSymbolicLink() || !stat.isDirectory()) {
-          if (directory.depth === 0) { throw new Error('Select a real directory, not a symbolic link.'); }
+          if (directory.depth === 0) { throw new Error('The library location is not a real directory or is a symbolic link.'); }
           result.skipped++;
           LibraryFiles.warn(result, 'A changed folder or symbolic link was skipped.');
           continue;
@@ -260,7 +260,7 @@ export class LibraryFiles {
       const stat = await fileIo.stat(file.fd);
       LibraryFiles.checkCurrent(isCurrent);
       if (!stat.isFile() || !Number.isInteger(stat.size) || stat.size < 1 || stat.size > LibraryFiles.MAX_SCRIPT_BYTES) {
-        throw new Error('Choose a nonempty regular UTF-8 script no larger than 2 MiB.');
+        throw new Error('The script must be a nonempty regular UTF-8 file no larger than 2 MiB.');
       }
       const buffer = new ArrayBuffer(stat.size);
       let offset: number = 0;
@@ -270,7 +270,7 @@ export class LibraryFiles {
         const count = await fileIo.read(file.fd, chunk);
         LibraryFiles.checkCurrent(isCurrent);
         if (!Number.isInteger(count) || count <= 0 || count > chunk.byteLength) {
-          throw new Error('Script read ended unexpectedly. Select the file again.');
+          throw new Error('Script read ended unexpectedly. Refresh the library and retry.');
         }
         new Uint8Array(buffer).set(new Uint8Array(chunk, 0, count), offset);
         offset += count;
@@ -279,7 +279,7 @@ export class LibraryFiles {
       const extra = new ArrayBuffer(1);
       const extraCount = await fileIo.read(file.fd, extra);
       LibraryFiles.checkCurrent(isCurrent);
-      if (extraCount !== 0) { throw new Error('The script changed while being read. Select it again.'); }
+      if (extraCount !== 0) { throw new Error('The script changed while being read. Refresh the library and retry.'); }
       contents = util.TextDecoder.create('utf-8', { fatal: true }).decodeToString(new Uint8Array(buffer));
     } catch (error) {
       LibraryFiles.checkCurrent(isCurrent);

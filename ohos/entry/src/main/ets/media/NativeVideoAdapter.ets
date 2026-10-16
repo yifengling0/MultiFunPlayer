@@ -200,6 +200,10 @@ export class NativeVideoAdapter {
           this.preparing = true; player.surfaceId = this.surface; await player.prepare(); return;
         }
         if (state === 'prepared') {
+          // FIT (the default) stretches. API20 SCALED_ASPECT is contain/letterbox,
+          // unlike FIT_CROP, and may only be assigned from prepared onward.
+          // Configure native rendering before advertising readiness to the UI.
+          player.videoScaleType = media.VideoScaleType.VIDEO_SCALE_TYPE_SCALED_ASPECT;
           this.clock.prepared(generation, player.duration, player.currentTime, this.now());
         } else {
           this.clock.stateChanged(generation, state);

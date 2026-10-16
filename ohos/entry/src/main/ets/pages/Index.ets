@@ -1,6 +1,5 @@
 import { common } from '@kit.AbilityKit';
-import { fileIo, picker } from '@kit.CoreFileKit';
-import { util } from '@kit.ArkTS';
+import { KeyCode } from '@kit.InputKit';
 import { systemDateTime } from '@kit.BasicServicesKit';
 import { FunscriptParser, FunscriptDocument } from '../core/Funscript';
 import { PlaybackEngine } from '../core/PlaybackEngine';
@@ -15,6 +14,8 @@ import { ScriptZipFiles } from '../library/ScriptZipFiles';
 import { ScriptZipCandidate } from '../core/ScriptZip';
 import { Heatmap, HeatmapBucket } from '../core/Heatmap';
 import { NativeVideoAdapter } from '../media/NativeVideoAdapter';
+import { VideoWorkspaceLayout, videoWorkspaceLayout } from '../core/VideoLayout';
+import { DownloadLibrary } from '../library/DownloadLibrary';
 import { t } from '../l10n/Texts';
 
 const DEMO: string = '{"actions":[{"at":0,"pos":50},{"at":1000,"pos":15},{"at":2000,"pos":85},{"at":3000,"pos":25},{"at":4000,"pos":75},{"at":5000,"pos":50}],"axes":[{"id":"R0","actions":[{"at":0,"pos":20},{"at":2500,"pos":80},{"at":5000,"pos":20}]}],"metadata":{"chapters":[{"name":"Rise","startTime":"00:00:00","endTime":"00:00:02.500"},{"name":"Return","startTime":"00:00:02.500","endTime":"00:00:05"}],"bookmarks":[{"name":"First low point","time":"00:00:01"},{"name":"Second low point","time":"00:00:03"}]}}';
@@ -59,7 +60,7 @@ struct Index {
   @State axisValues: number[] = [50, 20];
   @State selectedAxis: number = 0;
   @State selectedTab: number = 0;
-  @State fileName: string = 'Synthetic demo · 5 seconds';
+  @State fileName: string = 'No video selected';
   @State status: string = 'Simulation only · no device commands';
   @State importing: boolean = false;
   @State interpolationMode: InterpolationMode = 'pchip';
@@ -71,13 +72,15 @@ struct Index {
   @State chapterLabel: string = 'No active chapter';
   @State connected: boolean = true;
   @State videoMode: boolean = false;
+  @State videoFullscreen: boolean = false;
   @State videoReady: boolean = false;
+  @State videoOnly: boolean = false;
   @State videoState: string = 'idle';
   @State videoName: string = 'No video selected';
   @State volume: number = 0.6;
   @State openingVideo: boolean = false;
   @State showPortInfo: boolean = false;
-  @State showResources: boolean = false;
+  @State showResources: boolean = true;
   @State showSourceSettings: boolean = false;
   @State showOutputSettings: boolean = false;
   @State showMediaSettings: boolean = false;
@@ -95,7 +98,9 @@ struct Index {
   private heatCombined: boolean = false;
   @State libraryItems: ResourceLibraryItem[] = [];
   @State libraryBusy: boolean = false;
-  @State libraryMessage: string = 'Select a folder or video + script files. Files stay in their original location.';
+  @State libraryMessage: string = 'Preparing Download media folder…';
+  @State libraryFolder: string = 'Application Download folder';
+  @State libraryLoaded: boolean = false;
   @State libraryLimit: number = 20;
   @State manualItemId: string = '';
   @State manualVideoUri: string = '';
@@ -120,7 +125,8 @@ struct Index {
 
   aboutToAppear(): void {
     this.viewActive = true;
-    this.engine.load(this.document);
+    if (this.document.axes.length > 0) { this.engine.load(this.document); }
+    else { this.engine.clearScripts(); }
     this.engine.setInterpolationMode('pchip');
     this.engine.setConnected(true);
     this.sync();
@@ -131,6 +137,7 @@ struct Index {
       this.lastTick = now;
       this.sync();
     }, 40);
+    this.scanDownloads();
   }
   aboutToDisappear(): void {
     this.cancelLibrary(); this.viewActive = false; this.openVideoRequest++; this.pendingVideoUri = '';
@@ -196,47 +203,6 @@ struct Index {
     this.status = 'Stopped · simulation output disabled';
     this.sync();
   }
-  async importScript(): Promise<void> {
-    if (this.importing || this.libraryBusy) { return; }
-    this.importing = true;
-    this.pauseTransport();
-    this.sync();
-    try {
-      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-      const options = new picker.DocumentSelectOptions();
-      options.maxSelectNumber = 1;
-      const uris = await new picker.DocumentViewPicker(context).select(options);
-      if (uris.length === 0) { this.status = 'Import cancelled · playback remains paused'; return; }
-      const file = await fileIo.open(uris[0], fileIo.OpenMode.READ_ONLY);
-      let contents: string = '';
-      try {
-        const stat = await fileIo.stat(file.fd);
-        if (stat.size < 1 || stat.size > 2 * 1024 * 1024) { throw new Error('Choose a nonempty script below 2 MiB'); }
-        const buffer = new ArrayBuffer(stat.size);
-        let offset: number = 0;
-        while (offset < stat.size) {
-          const chunk = new ArrayBuffer(stat.size - offset);
-          const count = await fileIo.read(file.fd, chunk);
-          if (count <= 0) { throw new Error('Script read ended unexpectedly'); }
-          new Uint8Array(buffer).set(new Uint8Array(chunk, 0, count), offset);
-          offset += count;
-        }
-        contents = util.TextDecoder.create('utf-8', { fatal: true }).decodeToString(new Uint8Array(buffer));
-      } finally { await fileIo.close(file); }
-      let leaf = uris[0].slice(uris[0].lastIndexOf('/') + 1).split('?')[0];
-      try { leaf = decodeURIComponent(leaf); } catch (error) { leaf = 'Imported script'; }
-      const parsed = AxisMapping.parseScript(contents, leaf);
-      this.document = parsed;
-      this.engine.load(parsed);
-      if (this.videoMode) { this.videoSnapshot(this.video.snapshot()); }
-      this.selectedAxis = 0;
-      this.fileName = leaf.length > 0 ? leaf : 'Imported script';
-      this.status = 'Imported locally · press Play to simulate';
-      this.sync();
-    } catch (error) {
-      this.status = 'Import failed: ' + (error as Error).message;
-    } finally { this.importing = false; }
-  }
   cancelLibrary(): void {
     this.libraryRequest++; this.libraryBusy = false; this.libraryPicking = false;
     this.libraryMessage = 'Cancelled · partial results remain available';
@@ -244,89 +210,55 @@ struct Index {
   updateLibrary(files: LibraryFile[]): void {
     const entries = files.map((file: LibraryFile) => new ResourceFileEntry(file.uri, file.name, file.relativePath));
     this.mediaCatalog = entries;
-    this.libraryItems = ResourceLibrary.build(entries).items;
+    this.libraryItems = ResourceLibrary.build(entries).items.filter((item: ResourceLibraryItem) => item.videos.length > 0);
   }
   libraryProgress(progress: LibraryScanProgress, request: number): void {
     if (request !== this.libraryRequest || !this.viewActive) { return; }
     this.updateLibrary(progress.files);
     this.libraryMessage = 'Scanned ' + progress.visited + ' entries · ' + progress.skipped + ' skipped';
   }
-  async chooseLibrary(folder: boolean): Promise<void> {
-    if (this.libraryBusy || this.openingVideo || this.importing) { return; }
-    this.pauseTransport(); this.libraryBusy = true; this.libraryPicking = true;
+  async scanDownloads(): Promise<void> {
+    if (!this.viewActive || !this.foreground || this.libraryBusy || this.openingVideo || this.importing) { return; }
+    this.pauseTransport(); this.libraryBusy = true; this.libraryPicking = false;
+    this.libraryLimit = 20; this.manualItemId = ''; this.libraryLoaded = false;
+    this.updateLibrary([]); this.libraryRoot = '';
+    this.libraryMessage = 'Preparing Download media folder…';
     const request = ++this.libraryRequest;
+    const current = (): boolean => request === this.libraryRequest && this.viewActive && this.foreground;
+    // Refresh invalidates the old source, not just its catalog. This also closes an
+    // already-open descriptor if its pathname was deleted or permissions changed.
+    this.openVideoRequest++; this.pendingVideoUri = ''; this.videoMode = false;
+    this.videoReady = false; this.videoFullscreen = false; this.videoOnly = false;
+    this.videoName = 'No video selected'; this.videoState = 'idle';
+    this.engine.clearScripts(); this.document = new FunscriptDocument([]);
+    this.engine.useExternalClock(false); this.selectedAxis = 0; this.fileName = 'No matching script';
+    this.status = 'Refresh stops playback. Choose a video again after scanning.'; this.sync();
     try {
-      if (folder && !canIUse('SystemCapability.FileManagement.UserFileService.FolderSelection')) {
-        throw new Error('Folder selection is unavailable. Use Select files instead.');
-      }
-      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-      const options = new picker.DocumentSelectOptions();
-      options.maxSelectNumber = folder ? 1 : 500;
-      if (folder) { options.selectMode = picker.DocumentSelectMode.FOLDER; }
-      const uris = await new picker.DocumentViewPicker(context).select(options);
-      if (request !== this.libraryRequest || !this.viewActive || uris.length === 0) { return; }
-      this.libraryPicking = false; this.libraryLimit = 20; this.manualItemId = '';
-      this.libraryItems = []; this.libraryMessage = 'Scanning selected resources…';
-      this.libraryRoot = folder ? uris[0] : '';
-      const current = (): boolean => request === this.libraryRequest && this.viewActive;
-      const progress = (value: LibraryScanProgress): void => this.libraryProgress(value, request);
-      const result = folder ? await LibraryFiles.scanDirectory(uris[0], current, progress) :
-        await LibraryFiles.fromSelectedUris(uris, current, progress);
+      await this.video.release();
       if (!current()) { return; }
-      this.updateLibrary(result.files);
-      this.libraryMessage = this.libraryItems.length + ' groups · ' + result.skipped + ' skipped' +
-        (result.truncated ? ' · scan limit reached' : '') + (result.warnings.length > 0 ? ' · ' + result.warnings[0] : '');
-    } catch (error) {
-      if (request === this.libraryRequest) { this.libraryMessage = 'Cannot read selection: ' + (error as Error).message + ' Reselect or use Select files.'; }
-    } finally {
-      if (request === this.libraryRequest) { this.libraryBusy = false; this.libraryPicking = false; }
-    }
-  }
-  async refreshLibrary(): Promise<void> {
-    if (this.libraryBusy || this.libraryRoot.length === 0 || this.openingVideo || this.importing) { return; }
-    this.pauseTransport(); this.libraryBusy = true; this.manualItemId = '';
-    this.libraryItems = []; this.libraryMessage = 'Refreshing selected folder…';
-    const request = ++this.libraryRequest;
-    const current = (): boolean => request === this.libraryRequest && this.viewActive;
-    try {
-      const result = await LibraryFiles.scanDirectory(this.libraryRoot, current,
+      const cleanupFailure = this.video.snapshot().failure;
+      if (cleanupFailure.length > 0) { throw new Error(cleanupFailure); }
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const directory = await DownloadLibrary.prepare(context, current);
+      if (!current()) { return; }
+      this.libraryRoot = directory.uri; this.libraryFolder = directory.displayPath;
+      this.updateLibrary([]); this.libraryMessage = 'Scanning Download media folder…';
+      const result = await LibraryFiles.scanDirectory(directory.uri, current,
         (progress: LibraryScanProgress) => this.libraryProgress(progress, request));
       if (!current()) { return; }
-      this.updateLibrary(result.files);
-      this.libraryMessage = this.libraryItems.length + ' groups refreshed' + (result.truncated ? ' · scan limit reached' : '') +
-        (result.warnings.length > 0 ? ' · ' + result.warnings[0] : '');
+      this.updateLibrary(result.files); this.libraryLoaded = true;
+      this.libraryMessage = this.libraryItems.length === 0 ? 'No media found. Put videos and matching scripts or ZIP files in this folder, then refresh.' :
+        this.libraryItems.length + ' groups · ' + result.skipped + ' skipped';
+      if (result.truncated) { this.libraryMessage += ' · scan limit reached'; }
+      if (result.warnings.length > 0) { this.libraryMessage += ' · ' + result.warnings[0]; }
     } catch (error) {
-      if (current()) { this.libraryMessage = 'Folder access expired or unavailable. Select the folder again. ' + (error as Error).message; }
-    } finally { if (current()) { this.libraryBusy = false; } }
+      if (current()) { this.libraryMessage = 'Cannot scan Download media folder: ' + (error as Error).message; }
+    } finally { if (request === this.libraryRequest) { this.libraryBusy = false; } }
   }
-  async addScriptLibrary(): Promise<void> {
-    if (this.libraryBusy || this.importing || this.openingVideo) { return; }
-    if (this.scriptLibraries.length >= 8) { this.libraryMessage = 'At most eight script libraries. Remove one first.'; return; }
-    this.pauseTransport(); this.libraryBusy = true; this.libraryPicking = true;
-    const request = ++this.libraryRequest;
-    const current = (): boolean => request === this.libraryRequest && this.viewActive;
-    try {
-      if (!canIUse('SystemCapability.FileManagement.UserFileService.FolderSelection')) {
-        throw new Error('Folder selection unavailable. Select individual video/script files instead.');
-      }
-      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-      const options = new picker.DocumentSelectOptions();
-      options.maxSelectNumber = 1; options.selectMode = picker.DocumentSelectMode.FOLDER;
-      const uris = await new picker.DocumentViewPicker(context).select(options);
-      if (!current() || uris.length === 0) { return; }
-      this.libraryPicking = false;
-      if (this.scriptLibraries.some((source: ScriptLibrarySource) => source.uri === uris[0])) {
-        this.libraryMessage = 'This script library is already listed.'; return;
-      }
-      const result = await LibraryFiles.scanDirectory(uris[0], current, (progress: LibraryScanProgress) => {
-        if (current()) { this.libraryMessage = 'Indexing script library: ' + progress.visited + ' entries'; }
-      });
-      if (!current()) { return; }
-      const files = result.files.map((file: LibraryFile) => new ResourceFileEntry(file.uri, file.name, file.relativePath));
-      this.scriptLibraries = this.scriptLibraries.concat([new ScriptLibrarySource(uris[0], LibraryFiles.nameOf(uris[0]), files)]);
-      this.libraryMessage = 'Script library added after media-directory search' + (result.truncated ? ' · index incomplete' : '');
-    } catch (error) { if (current()) { this.libraryMessage = 'Library access failed: ' + (error as Error).message; } }
-    finally { if (current()) { this.libraryBusy = false; this.libraryPicking = false; } }
+  async refreshLibrary(): Promise<void> { await this.scanDownloads(); }
+  showLibrary(): void {
+    this.showResources = !this.showResources;
+    if (this.showResources && !this.libraryLoaded) { this.scanDownloads(); }
   }
   async refreshScriptLibrary(index: number): Promise<void> {
     if (this.libraryBusy || this.importing || this.openingVideo || index < 0 || index >= this.scriptLibraries.length) { return; }
@@ -377,23 +309,27 @@ struct Index {
     if (this.libraryBusy || this.openingVideo || this.importing) { return; }
     const video = manual ? item.videos.find((value: ResourceFileEntry) => value.uri === this.manualVideoUri) : item.video;
     if (video === undefined) { this.libraryMessage = 'Choose one video explicitly.'; return; }
-    const scripts = manual ? item.scripts.filter((value: ResourceScriptMatch) => this.manualScriptUris.indexOf(value.file.uri) >= 0) : item.scripts;
-    let plan: ResourceDiscoveryCandidate[] = [];
+    // A valid selection owns the next source immediately. Any matching/read error
+    // must leave no previous native source or script that can accidentally resume.
+    this.pendingVideoUri = ''; this.pauseTransport(); this.videoReady = false;
+    this.openingVideo = true; this.importing = true; this.pairOpening = true;
+    this.videoMode = true; this.videoOnly = false; this.videoName = video.name;
+    const request = ++this.openVideoRequest;
+    const current = (): boolean => request === this.openVideoRequest && this.viewActive && this.foreground;
     try {
+      await this.video.release();
+      if (!current()) { return; }
+      const cleanupFailure = this.video.snapshot().failure;
+      if (cleanupFailure.length > 0) { throw new Error(cleanupFailure); }
+      const scripts = manual ? item.scripts.filter((value: ResourceScriptMatch) => this.manualScriptUris.indexOf(value.file.uri) >= 0) : item.scripts;
+      let plan: ResourceDiscoveryCandidate[] = [];
       if (manual && !originalSearch) {
         plan = scripts.map((match: ResourceScriptMatch) => new ResourceDiscoveryCandidate(match.file, 'script', 'manual', 'media', -1));
       } else {
         const catalogs = this.scriptLibraries.map((source: ScriptLibrarySource) => new ResourceLibraryCatalog(source.uri, source.files, source.recursive));
         plan = ResourceLibrary.planSearch(video, this.mediaCatalog, catalogs);
       }
-    } catch (error) { this.libraryMessage = 'Search could not start: ' + (error as Error).message; return; }
-    if (plan.length === 0) { this.libraryMessage = 'No script candidates. Add a script library or choose files.'; return; }
-    if (plan.length > 64) { this.libraryMessage = 'More than 64 candidates. Use Choose mapping or narrow the libraries.'; return; }
-    this.pauseTransport(); this.openingVideo = true; this.importing = true; this.pairOpening = true;
-    const request = ++this.openVideoRequest;
-    const current = (): boolean => request === this.openVideoRequest && this.viewActive && this.foreground;
-    try {
-      await this.video.release();
+      if (plan.length > 64) { throw new Error('More than 64 candidates. Use Choose mapping or narrow the libraries.'); }
       const candidates: ResourceScriptCandidate[] = [];
       let rejected: number = 0;
       let textBudget: number = 0;
@@ -421,17 +357,33 @@ struct Index {
           if (actionBudget > FunscriptParser.MAX_ACTIONS) { throw new Error('Candidate action budget exceeded. Narrow the selection.'); }
         }
       }
-      const selection = ResourceLibrary.selectDocuments(video.name, candidates);
-      const parsed = selection.document;
-      if (parsed === undefined) { throw new Error('No readable matching script. Reselect access or choose mapping.'); }
-      if (!current()) { return; }
-      this.document = parsed; this.engine.load(parsed); this.engine.useExternalClock(true);
-      this.selectedAxis = 0; this.fileName = selection.selectedFiles.map((value: ResourceFileEntry) => value.name).join(' + ');
+      if (plan.length === 0) {
+        // Absence is different from unreadable/invalid matching scripts. Never reuse
+        // a previous video's scripts, and never relax the external script parser.
+        this.engine.clearScripts(); this.document = new FunscriptDocument([]);
+        this.fileName = 'No matching script'; this.videoOnly = true;
+      } else {
+        const selection = ResourceLibrary.selectDocuments(video.name, candidates);
+        const parsed = selection.document;
+        if (parsed === undefined) { throw new Error('No readable matching script. Check the files or choose mapping.'); }
+        if (!current()) { return; }
+        this.document = parsed; this.engine.load(parsed);
+        this.fileName = selection.selectedFiles.map((value: ResourceFileEntry) => value.name).join(' + ');
+        this.videoOnly = false;
+      }
+      this.engine.useExternalClock(true); this.selectedAxis = 0;
       this.videoMode = true; this.videoReady = false; this.videoName = video.name;
-      this.pendingVideoUri = video.uri; this.status = 'Pair loaded · press Play' + (rejected > 0 ? ' · ' + rejected + ' unreadable/invalid scripts skipped' : '');
+      this.pendingVideoUri = video.uri; this.status = this.videoOnly ? 'Video only · no matching script · press Play' :
+        'Pair loaded · press Play' + (rejected > 0 ? ' · ' + rejected + ' unreadable/invalid scripts skipped' : '');
       this.openPendingVideo(); this.sync();
     } catch (error) {
-      if (current()) { this.status = 'Pair could not open: ' + (error as Error).message + ' Reselect files if access expired.'; }
+      if (current()) {
+        this.pendingVideoUri = ''; this.videoReady = false; this.videoState = 'error';
+        this.engine.clearScripts(); this.document = new FunscriptDocument([]);
+        this.engine.useExternalClock(true); this.selectedAxis = 0; this.fileName = 'No matching script';
+        this.sync();
+        this.status = 'Pair could not open: ' + (error as Error).message + ' Check the files and refresh.';
+      }
     } finally { if (request === this.openVideoRequest) { this.openingVideo = false; this.importing = false; this.pairOpening = false; } }
   }
 
@@ -455,7 +407,7 @@ struct Index {
     if (snapshot.rate >= 0.125 && snapshot.rate <= 4) { this.engine.setSpeed(snapshot.rate); }
     if (this.videoReady && !wasReady) { this.video.setVolume(this.volume); }
     if (snapshot.failure.length > 0) { this.status = snapshot.failure; }
-    else if (this.videoReady && !wasReady) { this.status = 'Video ready · press Play'; }
+    else if (this.videoReady && !wasReady) { this.status = this.videoOnly ? 'Video only · no matching script · press Play' : 'Video ready · press Play'; }
     this.sync();
   }
   surfaceChanged(id: string, available: boolean): void {
@@ -467,8 +419,11 @@ struct Index {
         const uri = this.pendingVideoUri; this.pendingVideoUri = ''; this.video.open(uri, id);
       }
     } else if (id === this.surfaceId) {
-      this.surfaceId = ''; this.pendingVideoUri = ''; this.engine.pause(); this.video.release();
-      this.status = 'Video surface closed · reopen the file to continue';
+      this.surfaceId = '';
+      if (this.viewActive && this.videoMode) {
+        this.pendingVideoUri = ''; this.engine.pause(); this.video.release();
+        this.status = 'Video surface closed · reopen the file to continue';
+      }
     }
   }
   openPendingVideo(): void {
@@ -476,29 +431,30 @@ struct Index {
       const uri = this.pendingVideoUri; this.pendingVideoUri = ''; this.video.open(uri, this.surfaceId);
     }
   }
-  async openVideo(): Promise<void> {
-    if (this.openingVideo || this.importing || this.libraryBusy) { return; }
-    this.pauseTransport(); this.openingVideo = true;
-    const request = ++this.openVideoRequest;
-    try {
-      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
-      const options = new picker.DocumentSelectOptions();
-      options.maxSelectNumber = 1;
-      options.fileSuffixFilters = ['Videos|.mp4,.mkv,.ts,.m4v'];
-      const uris = await new picker.DocumentViewPicker(context).select(options);
-      if (!this.viewActive || request !== this.openVideoRequest || uris.length === 0) { return; }
-      this.engine.useExternalClock(true); this.videoMode = true; this.videoReady = false;
-      this.videoName = 'Local video'; this.status = 'Preparing native video · playback starts only when you press Play';
-      this.pendingVideoUri = uris[0]; this.openPendingVideo();
-      this.sync();
-    } catch (error) { this.status = 'Video selection failed: ' + (error as Error).message; }
-    finally { this.openingVideo = false; }
-  }
   closeVideo(): void {
-    this.openVideoRequest++; this.pendingVideoUri = ''; this.videoMode = false; this.videoReady = false;
-    this.video.release(); this.surfaceId = ''; this.engine.useExternalClock(false);
+    this.openVideoRequest++; this.pendingVideoUri = ''; this.videoMode = false; this.videoReady = false; this.videoFullscreen = false; this.videoOnly = false;
+    this.video.release(); this.engine.useExternalClock(false);
     this.lastTick = systemDateTime.getUptime(systemDateTime.TimeType.ACTIVE);
     this.status = 'Simulator selected · press Play'; this.sync();
+  }
+  workspaceLayout(): VideoWorkspaceLayout {
+    return videoWorkspaceLayout(this.widthVp, this.heightVp, this.videoMode, this.videoFullscreen);
+  }
+  resizeWorkspace(width: number, height: number): void {
+    // Geometry only. Do not seek, release, re-open a source or reload its script.
+    if (Number.isFinite(width) && width > 0) { this.widthVp = width; }
+    if (Number.isFinite(height) && height > 0) { this.heightVp = height; }
+  }
+  setVideoFullscreen(value: boolean): void {
+    this.videoFullscreen = this.videoMode && value;
+  }
+  onBackPress(): boolean {
+    if (!this.videoFullscreen) { return false; }
+    this.setVideoFullscreen(false); return true;
+  }
+  exitFullscreenWithKey(keyCode: number): boolean {
+    if (keyCode !== KeyCode.KEYCODE_ESCAPE || !this.videoFullscreen) { return false; }
+    this.setVideoFullscreen(false); return true;
   }
   drawTrace(): void {
     const w = this.canvas.width; const h = this.canvas.height;
@@ -547,14 +503,13 @@ struct Index {
   @Builder
   mediaToolbar() {
     Row({ space: 2 }) {
-      Button('▣').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText(t('Load script')).onClick(() => this.importScript()).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
-      Button('⌕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText(t('Script repositories and resources')).onClick(() => { this.showResources = !this.showResources; })
-      Button('↻').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText(t('Refresh selected resource directory')).enabled(this.libraryRoot.length > 0 && !this.libraryBusy).onClick(() => this.refreshLibrary())
+      Button('⌕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText(t('Script repositories and resources')).onClick(() => this.showLibrary())
+      Button('↻').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(22).accessibilityText(t('Refresh Download media folder')).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.refreshLibrary())
       Button('AB').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText(t('AB loop is not ported yet'))
       Blank()
       Button(this.playing ? 'Ⅱ' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? '↶' : '▶')).flatButton()
         .width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#008A19').fontSize(22).accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
-        .enabled(this.connected && this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (!this.videoMode || this.videoReady)).onClick(() => this.playPause())
+        .enabled(this.connected && this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.videoMode ? this.videoReady : this.durationMs > 0)).onClick(() => this.playPause())
       Button('■').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontSize(20).accessibilityText(t('Stop output')).onClick(() => this.stop())
       Button(this.showMediaSettings ? '⌃' : '⌄').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Media timing settings')).onClick(() => { this.showMediaSettings = !this.showMediaSettings; })
     }.width('100%').backgroundColor('#F5F5F5').borderRadius(3)
@@ -656,15 +611,12 @@ struct Index {
   libraryPanel() {
     Column({ space: 10 }) {
       this.heading('Local resources', 'AUTHORIZED FILES')
-      Text(t('Session library · original ZIP-first script search. No video copies. Choose Downloads through the system picker if it offers access.')).fontSize(12).fontColor('#546E7A').width('100%')
-      Row({ space: 8 }) {
-        Button(t('Select folder')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.chooseLibrary(true))
-        Button(t('Select files')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).layoutWeight(1).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.chooseLibrary(false))
-      }
+      Text(t(this.libraryFolder)).fontSize(13).fontColor('#37474F').width('100%').copyOption(CopyOptions.InApp)
+      Text(t('Place videos and matching scripts or ZIP files in this folder. Scanning never copies videos. Refresh stops playback.')).fontSize(12).fontColor('#546E7A').width('100%')
       if (this.libraryBusy) {
-        Button(t('Cancel scan')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').onClick(() => this.cancelLibrary())
-      } else if (this.libraryRoot.length > 0) {
-        Button(t('Refresh selected folder')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.importing && !this.openingVideo).onClick(() => this.refreshLibrary())
+        Button(t('Cancel scan')).flatButton().height(48).width('100%').onClick(() => this.cancelLibrary())
+      } else {
+        Button(t('Refresh Download media folder')).flatButton().height(48).width('100%').enabled(!this.importing && !this.openingVideo).onClick(() => this.refreshLibrary())
       }
       Text(t(this.libraryMessage)).fontSize(12).fontColor('#546E7A').width('100%')
       ForEach(this.libraryItems.slice(0, this.libraryLimit), (item: ResourceLibraryItem) => {
@@ -673,7 +625,7 @@ struct Index {
           Text(t(item.status) + ' · ' + item.videos.length + t(' video / ') + item.scripts.length + t(' scripts / ') + item.archives.length + t(' ZIP')).fontSize(12).fontColor('#546E7A').width('100%')
           if (item.reasons.length > 0) { Text(item.reasons.join('; ')).fontSize(12).fontColor('#795548').width('100%') }
           if (item.videos.length === 1) {
-            Button(t('Open video + scripts')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item))
+            Button(t('Play video')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item))
           }
           if (item.videos.length > 0) {
             Button(t('Choose mapping')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.beginMapping(item))
@@ -704,28 +656,26 @@ struct Index {
         Column({ space: 2 }) {
           Text(t('Internal')).fontSize(13).fontWeight(FontWeight.Bold)
           Text(!this.videoMode ? t('Connected') : t('Inactive')).fontSize(10).fontColor(!this.videoMode ? '#008000' : '#757575')
-        }.width(100).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).justifyContent(FlexAlign.Center).backgroundColor(!this.videoMode ? '#E1E6E8' : '#F5F5F5')
+        }.width(88).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).justifyContent(FlexAlign.Center).backgroundColor(!this.videoMode ? '#E1E6E8' : '#F5F5F5')
           .onClick(() => { if (!this.importing && !this.openingVideo && !this.libraryBusy) { this.closeVideo(); } })
         Column({ space: 2 }) {
           Text(t('Local video')).fontSize(13).fontWeight(FontWeight.Bold)
           Text(t(this.videoMode ? this.videoState : 'Disconnected')).fontSize(10).fontColor(this.videoReady ? '#008000' : '#D32F2F')
-        }.width(112).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).justifyContent(FlexAlign.Center).backgroundColor(this.videoMode ? '#E1E6E8' : '#F5F5F5')
-          .onClick(() => this.openVideo())
+        }.width(100).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).justifyContent(FlexAlign.Center).backgroundColor(this.videoMode ? '#E1E6E8' : '#F5F5F5')
+          .onClick(() => { this.showResources = true; if (!this.libraryLoaded) { this.scanDownloads(); } })
         Blank()
-        Button('⌕').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Resources and script libraries')).onClick(() => { this.showResources = !this.showResources; })
+        Button('⌕').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Resources and script libraries')).onClick(() => this.showLibrary())
         Button(this.showSourceSettings ? '⌃' : '⚙').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
       }.width('100%')
       Divider().color('#B0BEC5')
       Row() {
-        Button(this.videoMode ? '■' : '▣').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(this.videoMode ? t('Close local video') : t('Import script')).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
-          .onClick(() => { if (this.videoMode) { this.closeVideo(); } else { this.importScript(); } })
+        Button(this.videoMode ? '■' : '⌕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(this.videoMode ? t('Close local video') : t('Resources and script libraries')).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
+          .onClick(() => { if (this.videoMode) { this.closeVideo(); } else { this.showResources = true; if (!this.libraryLoaded) { this.scanDownloads(); } } })
         Text(t(this.videoMode ? this.videoName : this.fileName)).fontSize(12).fontColor('#546E7A').layoutWeight(1).maxLines(1)
         Button(this.showSourceSettings ? '⌃' : '⌄').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Expand source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
       }
       if (this.showSourceSettings) {
         Text(t('Local video is an OHOS addition. External-player adapters and the full Internal playlist are not ported yet.')).fontSize(12).fontColor('#795548').padding(10)
-        Button(t('Open local video')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.importing && !this.openingVideo && !this.libraryBusy).onClick(() => this.openVideo())
-        Button(t('Import .funscript / JSON')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.importing && !this.openingVideo && !this.libraryBusy).onClick(() => this.importScript())
         if (this.videoMode) {
           Row() {
             Text(t('Volume')).fontSize(12).width(64)
@@ -743,7 +693,7 @@ struct Index {
         Column({ space: 2 }) {
           Text(t('Simulator')).fontSize(13).fontWeight(FontWeight.Bold)
           Text(this.connected ? t('Connected') : t('Disconnected')).fontSize(10).fontColor(this.connected ? '#008000' : '#D32F2F')
-        }.width(112).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).justifyContent(FlexAlign.Center).backgroundColor('#E1E6E8')
+        }.width(100).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).justifyContent(FlexAlign.Center).backgroundColor('#E1E6E8')
         Blank()
         Button('+').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(false).accessibilityText(t('Physical output adapters are not implemented'))
         Button('⚙').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).accessibilityText(t('Output settings')).onClick(() => { this.showOutputSettings = !this.showOutputSettings; })
@@ -870,76 +820,96 @@ struct Index {
   transport() {
     Row({ space: 12 }) {
       Button(this.playing ? t('Pause') : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? t('Rewind') : t('Play'))).flatButton().height(52).layoutWeight(1).backgroundColor('#607D8B').fontColor('#FFFFFF')
-        .enabled(this.connected && this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (!this.videoMode || this.videoReady)).onClick(() => this.playPause())
+        .enabled(this.connected && this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.videoMode ? this.videoReady : this.durationMs > 0)).onClick(() => this.playPause())
       Button(t('Stop output')).flatButton().height(52).layoutWeight(1).backgroundColor('#833D46').onClick(() => this.stop())
     }.width('100%')
-  }
-  @Builder
-  configuredLibraries() {
-    Column({ space: 8 }) {
-      this.heading('Script libraries', 'SEARCH ORDER')
-      Text(t('Media location first, then these libraries. Each location searches ZIP before loose scripts. Session-only access.')).fontSize(12).fontColor('#546E7A')
-      Button(t('+ Add authorized script folder')).flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.addScriptLibrary())
-      ForEach(this.scriptLibraries, (source: ScriptLibrarySource, index: number) => {
-        Column({ space: 4 }) {
-          Text((index + 1) + '. ' + source.name).fontSize(13).fontColor('#37474F').width('100%')
-          Row({ space: 4 }) {
-            Button('↑').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(index > 0 && !this.libraryBusy).onClick(() => this.editScriptLibrary(index, 'up'))
-            Button('↓').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(index + 1 < this.scriptLibraries.length && !this.libraryBusy).onClick(() => this.editScriptLibrary(index, 'down'))
-            Button('↻').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(!this.libraryBusy).onClick(() => this.refreshScriptLibrary(index))
-            Button('×').flatButton().height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).enabled(!this.libraryBusy).onClick(() => this.editScriptLibrary(index, 'remove'))
-            Blank()
-            Text(t('Recursive')).fontSize(12)
-            Toggle({ type: ToggleType.Switch, isOn: source.recursive }).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onChange(() => this.editScriptLibrary(index, 'recursive'))
-          }.width('100%')
-        }.padding(8).backgroundColor('#ECEFF1').width('100%')
-      }, (source: ScriptLibrarySource) => source.uri)
-    }.padding(10).backgroundColor('#F5F5F5').borderRadius(3).width('100%')
   }
   @Builder
   sourceColumn() {
     Column({ space: 20 }) {
       this.sourcePanel()
-      if (this.showResources) { this.libraryPanel(); this.configuredLibraries() }
+      if (this.showResources) { this.libraryPanel() }
       this.outputPanel()
     }.width('100%')
   }
-  build() {
+  @Builder
+  videoStage() {
     Column({ space: 0 }) {
-      Row({ space: 8 }) {
-        Text('▶').fontSize(20).fontColor('#FFFFFF')
-        Text('MultiFunPlayer').fontSize(14).fontColor('#FFFFFF').fontWeight(FontWeight.Medium)
-        Text('│ 0.5.1 OHOS').fontSize(12).fontColor('#CFD8DC')
-        Blank()
-        Button('⌕').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#FFFFFF').backgroundColor('#455A64').accessibilityText(t('Resources and script libraries')).onClick(() => { this.showResources = !this.showResources; })
-        Button('?').flatButton().width(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).height(this.widthVp >= 840 && this.heightVp >= 600 ? 34 : 48).fontColor('#FFFFFF').backgroundColor('#455A64').accessibilityText(t('Port status and limitations')).onClick(() => { this.showPortInfo = !this.showPortInfo; })
-      }.padding({ left: 10, right: 4 }).width('100%').backgroundColor('#455A64')
+      // Keep this exact node mounted. The SDK's default SurfaceRect follows these
+      // actual XComponent bounds; do not pin it with setXComponentSurfaceSize.
+      XComponent({ id: 'mfp-native-video', type: 'surface', controller: this.videoSurface })
+        .width('100%').layoutWeight(1).backgroundColor('#000000')
+        .onLoad(() => this.surfaceChanged(this.videoSurface.getXComponentSurfaceId(), true))
+      Column({ space: 0 }) {
+        Row({ space: 4 }) {
+          Button(this.playing ? 'Ⅱ' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? '↶' : '▶'))
+            .flatButton().width(48).height(Math.min(48, this.workspaceLayout().controlsHeight)).fontSize(22).backgroundColor('#263238').fontColor('#FFFFFF')
+            .accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
+            .enabled(this.connected && this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && this.videoReady)
+            .onClick(() => this.playPause())
+          Text(this.videoName).fontSize(12).fontColor('#FFFFFF').layoutWeight(1).maxLines(1)
+          Button(this.videoFullscreen ? t('Exit fullscreen') : t('Fullscreen in window')).flatButton().height(Math.min(48, this.workspaceLayout().controlsHeight)).padding({ left: 10, right: 10 })
+            .backgroundColor('#37474F').fontColor('#FFFFFF').onClick(() => this.setVideoFullscreen(!this.videoFullscreen))
+        }.width('100%').height(Math.min(48, this.workspaceLayout().controlsHeight))
+        Row({ space: 8 }) {
+          Slider({ value: this.positionMs, min: 0, max: Math.max(1, this.durationMs), step: 1 })
+            .layoutWeight(1).height(32).selectedColor('#B0BEC5').trackColor('#546E7A').blockColor('#ECEFF1')
+            .enabled(this.videoReady && !this.importing && !this.openingVideo && !this.libraryBusy)
+            .onChange((value: number) => this.seekTransport(value))
+          Text((this.positionMs / 1000).toFixed(1) + ' / ' + (this.durationMs / 1000).toFixed(1) + ' s')
+            .fontSize(11).fontColor('#CFD8DC').maxLines(1)
+        }.padding({ left: 8, right: 10 }).width('100%').height(36)
+          .visibility(this.workspaceLayout().controlsHeight >= 84 ? Visibility.Visible : Visibility.None)
+      }.width('100%').height(this.workspaceLayout().controlsHeight).backgroundColor('#263238').clip(true)
+    }.width(Math.max(1, this.workspaceLayout().video.width)).height(Math.max(1, this.workspaceLayout().video.height))
+      .position({ x: this.workspaceLayout().video.x, y: this.workspaceLayout().video.y })
+      .visibility(this.videoMode ? Visibility.Visible : Visibility.Hidden).backgroundColor('#000000').clip(true)
+  }
+  @Builder
+  workspaceSettings() {
+    Column({ space: 0 }) {
       if (this.showPortInfo) {
         Text(t('Source-led main layout in progress. Grey tools are unavailable. No physical output. ZIP32 local search is bounded; device playback and visual parity are not yet validated.')).fontSize(12).fontColor('#795548').padding(10)
       }
-      if (this.videoMode) {
-        XComponent({ id: 'mfp-native-video', type: 'surface', controller: this.videoSurface })
-          .width('100%').height(this.heightVp < 500 ? 100 : 180).backgroundColor('#000000')
-          .onLoad(() => this.surfaceChanged(this.videoSurface.getXComponentSurfaceId(), true))
-      }
-      if (this.widthVp >= 1200 || (this.widthVp > this.heightVp && this.widthVp >= 600)) {
+      if (!this.videoMode && (this.widthVp >= 1200 || (this.widthVp > this.heightVp && this.widthVp >= 720))) {
         Row({ space: 20 }) {
           Scroll() { this.sourceColumn() }.layoutWeight(1).constraintSize({ maxWidth: 600 }).align(Alignment.Top)
           Scroll() { this.scriptArea() }.layoutWeight(1).constraintSize({ maxWidth: 600 }).align(Alignment.Top)
         }.padding(10).width('100%').constraintSize({ maxWidth: 1220 }).layoutWeight(1).alignItems(VerticalAlign.Top)
       } else {
         Scroll() {
-          Column({ space: 20 }) {
+          Column({ space: 12 }) {
+            if (this.videoMode) { this.scriptArea() }
             this.sourcePanel()
-            if (this.showResources) { this.libraryPanel(); this.configuredLibraries() }
-            this.scriptArea()
+            if (this.showResources) { this.libraryPanel() }
+            if (!this.videoMode) { this.scriptArea() }
             this.outputPanel()
           }.padding(10).width('100%').constraintSize({ maxWidth: 600 })
         }.width('100%').layoutWeight(1).align(Alignment.Top)
       }
       Text(t(this.status)).fontSize(11).fontColor('#546E7A').width('100%').padding({ left: 10, right: 10, top: 4, bottom: 4 }).maxLines(2)
-      if (this.widthVp < 840 || this.heightVp < 500) { this.transport() }
-    }.width('100%').height('100%').backgroundColor('#FAFAFA')
-      .onAreaChange((_old: Area, area: Area) => { this.widthVp = Number(area.width); this.heightVp = Number(area.height); })
+      if (!this.videoMode && (this.widthVp < 840 || this.heightVp < 500)) { this.transport() }
+    }.width(this.workspaceLayout().settings.width).height(Math.max(1, this.workspaceLayout().settings.height))
+      .position({ x: this.workspaceLayout().settings.x, y: this.workspaceLayout().settings.y })
+      .visibility(this.videoFullscreen ? Visibility.Hidden : Visibility.Visible).clip(true)
+  }
+  build() {
+    Stack({ alignContent: Alignment.TopStart }) {
+      this.workspaceSettings()
+      // A layout switch only moves/resizes this same surface; no if/else around it.
+      this.videoStage()
+      Row({ space: 8 }) {
+        Text('▶').fontSize(20).fontColor('#FFFFFF')
+        Text('MultiFunPlayer').fontSize(14).fontColor('#FFFFFF').fontWeight(FontWeight.Medium).layoutWeight(1).maxLines(1)
+        if (this.widthVp >= 420) { Text('0.6.0 OHOS').fontSize(12).fontColor('#CFD8DC') }
+        Button('⌕').flatButton().width(48).height(48).fontColor('#FFFFFF').backgroundColor('#455A64').accessibilityText(t('Resources and script libraries')).onClick(() => this.showLibrary())
+        Button('?').flatButton().width(48).height(48).fontColor('#FFFFFF').backgroundColor('#455A64').accessibilityText(t('Port status and limitations')).onClick(() => { this.showPortInfo = !this.showPortInfo; })
+      }.padding({ left: 10, right: 4 }).width('100%').height(48).backgroundColor('#455A64')
+        .visibility(this.videoFullscreen ? Visibility.Hidden : Visibility.Visible)
+    }.width('100%').height('100%').backgroundColor('#FAFAFA').focusable(true)
+      .onAreaChange((_old: Area, area: Area) => this.resizeWorkspace(Number(area.width), Number(area.height)))
+      .onKeyEvent((event: KeyEvent) => {
+        if (event.type === KeyType.Down && this.exitFullscreenWithKey(event.keyCode)) { event.stopPropagation(); }
+      })
   }
 }

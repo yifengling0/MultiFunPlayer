@@ -18,6 +18,7 @@ function setup() {
     async close(file) { calls.push(`close:${file.fd}`); if (state.closeFailures-- > 0) throw Error('close rejected'); }
   };
   const media = {
+    VideoScaleType: { VIDEO_SCALE_TYPE_FIT: 0, VIDEO_SCALE_TYPE_FIT_CROP: 1, VIDEO_SCALE_TYPE_SCALED_ASPECT: 2 },
     SeekMode: { SEEK_CLOSEST: 2 }, BufferingInfoType: { BUFFERING_START: 1, BUFFERING_END: 2 },
     async createAVPlayer() {
       const handlers = new Map();
@@ -123,4 +124,41 @@ test('nonregular video is rejected before creating player and closes descriptor'
   assert.equal(players.length, 0);
   assert.equal(adapter.snapshot().state, 'error');
   assert.deepEqual(calls, ['open:special', 'close:1']);
+});
+
+
+test('prepared configures native contain/letterbox before publishing readiness', async () => {
+  const { adapter, players, calls } = setup();
+  await adapter.open('wide-video', 'stable-surface');
+  const player = players[0];
+  let scaling;
+  Object.defineProperty(player, 'videoScaleType', {
+    get: () => scaling,
+    set: value => {
+      assert.equal(player.state, 'prepared', 'native scale is only set in a supported state');
+      assert.equal(adapter.snapshot().ready, false, 'scale precedes ready snapshot');
+      scaling = value;
+    }
+  });
+  await player.emit('stateChange', 'initialized');
+  assert.equal(player.surfaceId, 'stable-surface');
+  assert.equal(scaling, 2, 'SCALED_ASPECT, never default FIT/stretch or FIT_CROP');
+  assert.equal(adapter.snapshot().ready, true);
+  assert.deepEqual(calls, ['open:wide-video']);
+  await adapter.play();
+  await adapter.setSurface('stable-surface');
+  assert.equal(players.length, 1);
+  assert.equal(adapter.snapshot().playing, true);
+  assert.deepEqual(calls, ['open:wide-video']);
+});
+
+test('native contain-mode rejection fails closed without advertising a stretched ready video', async () => {
+  const { adapter, players, calls } = setup();
+  await adapter.open('video', 'surface');
+  Object.defineProperty(players[0], 'videoScaleType', { set() { throw Error('scale unsupported'); } });
+  await players[0].emit('stateChange', 'initialized');
+  assert.equal(adapter.snapshot().ready, false);
+  assert.equal(adapter.snapshot().state, 'error');
+  assert.match(adapter.snapshot().failure, /scale unsupported/);
+  assert.deepEqual(calls, ['open:video', 'release:1', 'close:1']);
 });

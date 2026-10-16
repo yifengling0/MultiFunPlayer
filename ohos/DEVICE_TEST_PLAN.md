@@ -1,49 +1,47 @@
-# 0.3 native video acceptance checklist
+# 0.6.0 本地真机验收清单
 
-Status: **not executed on a device or emulator**. An unsigned HAP requires an appropriate developer signing/install workflow. Test with non-sensitive local fixtures; no real hardware output is implemented.
+本轮新改动尚未完成真机验收。SDK 编译、Node 模型/控制器测试不能替代实际视频、文件权限和触摸操作验证。未签名 HAP 需本地使用自己的开发签名安装。
 
-## Basic playback
+## 记录环境
 
-- Start with a short H.264/AAC MP4 and a synthetic funscript. Open either order. File selection must not autoplay.
-- Play/pause, volume 0 and 1, rates 0.25/0.5/1/1.5/2/4. Verify audible/rendered playback and the actual accepted rate.
-- Seek repeatedly while playing and paused. Output preview may move only to confirmed native time; output stays paused until Play. Seek near end; after completion Rewind must return to zero and require Play.
-- Use video shorter and longer than the script. The timeline follows video duration; script endpoint behavior holds its first/last value. Test positive/negative global and per-axis offsets.
-- Empty/unreadable files, misleading extensions, unsupported codecs, cancelled picker, and source replacement must leave output closed and show an understandable result.
+记录 Git commit、应用版本、安装包 SHA-256、phone/tablet/2in1、型号、系统/API、窗口尺寸、视频封装/编码/宽高与旋转元数据。不要上传私人视频或签名凭据；可用无敏感内容的测试片段。
 
-## Lifecycle and layouts
+## A. 自动媒体列表
 
-- Phone portrait/landscape, tablet, and HarmonyOS PC wide/narrow windows. Timeline and transport controls remain reachable; verify actual surfaces and text wrapping.
-- Rotate and resize while playing. A preserved surface should continue correctly; destroyed/replaced surfaces must release and require reopening without stale callbacks restarting playback.
-- Background, lock/unlock, route/audio interruption, and split-screen/window switching. Background release must stop playback/output; reopening requires explicit Play.
-- Trigger buffering with a supported local document provider where feasible. No automatic output recovery or backlog emission.
-- Open the picker, background during selection, cancel, repeat rapidly, and replace source while seek/prepare is pending.
-- Toggle simulator connection off during playback and reconnect: paused output, no automatic resume.
+1. 首次打开，验证系统创建或返回 `Download/com.multifunplayer.ohos`。无需选择目录或逐个导入视频；旧导入按钮不应出现。
+2. 空目录应有可理解的空列表说明。系统拒绝/不可读应显示错误，不能显示成“没有视频”。不申请公共 Download 全盘权限。
+3. 将 `film.mp4`、`film.funscript`、`film.pitch.funscript` 放入目录，点刷新，一次选中视频即可配对，无自动播放。
+4. 换成同名脚本 ZIP 与散文件并存，确认原 ZIP 优先、多轴优先/缺轴阻断规则保留；不能把 ZIP 当任意视频压缩包解压器。
+5. 两个同名不同扩展视频时，确认明确选择目标；相同文件名但不同父目录不能串配。
+6. 测试只有视频没有脚本：可播放视频，旧脚本与轴数据已清空；不能显示上一条脚本仍已匹配。
+7. 配套脚本/ZIP损坏：显示错误并暂停，不静默改成无脚本播放或沿用旧脚本。
+8. 手动刷新会停止并关闭当前源、清除旧脚本和配对，之后必须重新选视频；测试移走文件再刷新时不能按Play恢复旧FD/缓存脚本。取消/过期扫描、快速选不同条目、前后台切换时旧回调不能覆盖最新资源或自动恢复播放。
+9. 目录1000项/4层、候选/文本/动作数限制、符号链接/非普通文件仍有明确限制；用户目录应保持静止快照以便复现。
+10. 退出重开，重新用系统接口取得目录并扫描。不能依赖上次进程里缓存的URI冒充永久可用路径；报告实际系统行为。
 
-## Resource and timing checks
+## B. 原比例与全屏
 
-- Trace native callbacks against displayed media time around seeks/rate changes; a 750 ms observation watchdog must close the simulation gate without integrating a guessed clock.
-- Monitor file descriptors and native-player instances through repeated opens/background transitions and errors. Inject release/close failures if a platform test harness permits; retry cleanup before opening a new source.
-- Measure CPU, memory, dropped frames, and battery for intended resolutions. Native AVPlayer is not a guarantee of hardware decode on every device.
+1. 分别测试16:9、4:3、竖版9:16、有旋转元数据的片段。圆形不能变椭圆，人物不能被压扁；空余黑边允许，不裁切画面。
+2. 播放中切换同屏/视频全屏至少10次，记录时间线是否连续、是否重播、黑屏、音频中断或脚本跳变。
+3. 全屏提供明确退出；系统返回键退出全屏而不是直接关应用。外接键盘的退出行为按实现检查。
+4. 竖屏视频在上、设置在下；横屏/宽窗口视频与设置同屏；窄窗口仍能滚动到所有可用参数。
+5. 旋转/分屏/自由窗口尺寸变化时保持同一Surface；若系统真的销毁Surface，则按原生命周期关闭资源，不保留假播放状态。
+6. 方向遵循系统旋转锁（auto_rotation_restricted）；锁定方向时不强制横屏。视频全屏占当前应用窗口，不等于PC窗口自动最大化或所有系统栏隐藏。
+7. 大字体、安全区、触摸热区、长文件名、最小窗口验证；视频与设置区域不互相遮挡，退出按钮可见可点。
 
-Record device model, OS/API, video container/codecs/resolution, orientation/window size, result and reproduction steps. Passing Node mocks or an SDK package build does not satisfy these runtime checks.
+## C. 媒体同步与回归
 
-## 0.4 resource-library checks (not executed on device)
+- MP4/H.264/AAC先作基准；MKV及其它编码按设备实际支持记录，不能仅凭扩展名断言可播放。
+- 播放/暂停、音量0/1、0.25/0.5/1/1.5/2/4倍速，检查平台实际接受值。
+- 连续seek、片尾回到0、短/长于脚本的视频：以AVPlayer实际currentTime/duration同步，不把请求seek值当确认值。
+- 全局/轴偏移、缩放、反转、插值、章节/书签、热力图设置回归。修改要求暂停时，不自动恢复输出门。
+- 后台、锁屏、音频路由中断、缓冲、连接模拟器开关仍应关闭输出门，重开不自动播。
+- 反复打开/关闭后记录文件描述符、播放器实例、内存与CPU；不得用纯测试声称硬解/功耗已验收。
 
-- Put synthetic `film.mp4`, `film.funscript`, `film.pitch.funscript` in a directory with `.nomedia`, `.DS_Store` and unrelated documents. Select the folder; one video group should appear and unsupported entries should be counted, not abort indexing.
-- Select just video and scripts through the multi-file picker. Verify equal filenames from different parents do not pair, no parent is scanned, and videos are not copied.
-- Open the pair; no autoplay. Confirm base L0 plus pitch R2. Add competing aliases and an embedded multi-axis script, then check source-rule fixtures and the selected filenames.
-- Two same-stem videos must require explicit video selection. Manual candidate selection still uses original script priority.
-- Cancel during scan, select a newer source, background during script reading, and reopen another pair. Stale work must never replace the latest source or resume playback.
-- Refresh after moving/removing files or revoking access. Clearly request reselection; do not silently widen access.
-- Verify 1,000-entry/depth-4 truncation and 64-candidate/text/action budgets produce clear messages. Try a symbolic-link entry and nonregular file; neither should be followed/opened for playback.
-- API20 devices may lack phone folder selection: multi-file selection must remain usable. API26 phone/tablet/2in1 single-folder support still needs device confirmation.
-- Close/restart the application: session library is not restored and no persistent grant is claimed.
+## D. 功能边界
 
-## 0.5 library and compact UI checks
+本版本仍无真实物理输出。原版功能的已实现/部分/缺失/待验证逐项见 `FEATURE_PARITY_MATRIX.zh-CN.md`。禁用按钮不算已实现；不因视频播放正常而把整个移植验收为完成。
 
-1. Select a small authorized directory containing film.mp4, film.zip and film.funscript. Confirm ZIP candidate priority and no automatic playback after opening. Repeat with a multi-axis ZIP entry and missing axes.
-2. Add two authorized script-library folders; move their order, toggle recursion and refresh. Confirm that missing media-local axes follow the original search order. Revoke access and confirm the clear reselection error.
-3. Try a corrupt ZIP, unsafe entry name, encrypted/ZIP64 archive and oversized archive. Confirm failure without extracting files, loading partial results or opening video.
-4. Rotate a phone and resize a tablet/PC window while paused and playing. Confirm the native surface remains stable, compact source/output and script columns rearrange, and all enabled controls perform their displayed action.
-5. Compare heatmap range/combine/invert settings and selected-axis heat against the pinned Windows source/application. Record native screenshots at matched dimensions; do not count build success as visual acceptance.
-6. Verify background/cancellation during ZIP read, folder refresh and video open. Old callbacks must not replace a newer selection or resume output.
+## 回传
+
+每项写：步骤、预期、实际、是否可重复、错误原文、截图/日志文件名。至少回传版本/commit、设备/系统、自动目录结果和原比例/全屏测试结果；不要只说“可以/不行”。

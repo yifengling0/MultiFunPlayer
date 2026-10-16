@@ -1,11 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { stripTypeScriptTypes } from 'node:module';
+import { stripTypeScriptTypes, registerHooks } from 'node:module';
+
+registerHooks({ resolve(specifier, context, nextResolve) {
+  if (specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier)) return nextResolve(specifier + '.ts', context);
+  return nextResolve(specifier, context);
+} });
+const { FunscriptDocument, FunscriptParser: ActualFunscriptParser } = await import('../entry/src/main/ets/core/Funscript.ts');
+const { PlaybackEngine: ActualPlaybackEngine } = await import('../entry/src/main/ets/core/PlaybackEngine.ts');
 
 // Exercise the actual page's state and asynchronous methods, excluding ArkUI
-// builders/rendering. Native APIs and content selection are isolated mocks;
-// this does not establish real picker grants or device lifecycle behavior.
+// builders/rendering. Native APIs and Download provisioning are isolated mocks;
+// this does not establish real system grants or device lifecycle behavior.
 const source = readFileSync(new URL('../entry/src/main/ets/pages/Index.ets', import.meta.url), 'utf8');
 const start = source.indexOf('struct Index {');
 const end = source.indexOf('  drawTrace(): void', start);
@@ -37,24 +44,30 @@ function item(stem, scriptCount = 1) {
 
 function setup() {
   const calls = [];
-  const picks = [];
+  const preparations = [];
   const scans = [];
   const reads = [];
   const initialDocument = { axes: [], metadata: {}, source: 'initial' };
   const state = { scriptText: '{}', candidateActions: 0 };
   const dependencies = {
     DEMO: '{}',
+    FunscriptDocument,
     FunscriptParser: { parse: () => initialDocument, MAX_ACTIONS: 100000 },
     PlaybackEngine: class {
       pause() { calls.push(['pause']); }
       load(document) { calls.push(['load', document]); }
+      clearScripts() { calls.push(['clearScripts']); }
       stop() {}
+      setInterpolationMode() {}
+      setConnected() {}
       useExternalClock(value) { calls.push(['externalClock', value]); }
       setForeground(value) { calls.push(['foreground', value]); }
     },
     NativeVideoAdapter: class {
+      snapshot() { return { failure: state.cleanupFailure || '' }; }
       async release() { calls.push(['release']); }
       pause() {}
+      play() { calls.push(['nativePlay']); }
       open(uri, surface) { calls.push(['video', uri, surface]); }
       dispose() {}
     },
@@ -69,11 +82,22 @@ function setup() {
     ResourceDiscoveryCandidate: class { constructor(file, kind) { Object.assign(this, {file, kind}); } },
     ScriptLibrarySource: class {},
     ScriptZipFiles: { async readScripts(uri) { calls.push(['zip', uri]); if (state.zipError) throw Error(state.zipError); return state.zipEntries || []; } },
+    DownloadLibrary: {
+      async prepare() {
+        calls.push(['prepare']);
+        const pending = preparations.shift();
+        // Deliberately allow stale completion to exercise the page's own guard.
+        const root = pending ? await pending.promise : 'file://docs/Download/com.multifunplayer.ohos';
+        if (state.prepareError) throw Error(state.prepareError);
+        return { uri: root, path: root, displayPath: 'Download/com.multifunplayer.ohos' };
+      }
+    },
     ResourceLibrary: {
       planSearch(video, files, libraries) { calls.push(['plan', files, libraries]); if (state.plan) return state.plan; return Array.from({length: video.scriptCount}, (_,index) => ({kind: 'script', file: {uri: video.uri.replace('.mp4', '') + '.' + index + '.funscript', name: video.uri.replace('.mp4', '') + '.' + index + '.funscript'}})); },
-      build: entries => ({ items: entries }),
+      build: entries => ({ items: entries.map(entry => ({ ...entry, videos: /\.(mp4|mkv|m4v|ts)$/i.test(entry.name) ? [entry] : [] })) }),
       parseCandidate(_contents, file) {
         calls.push(['parse', file.uri]);
+        if (state.parseError) throw Error(state.parseError);
         return { file, document: { axes: [{ actions: new Array(state.candidateActions) }], metadata: {}, source: file.uri } };
       },
       selectDocuments(_name, candidates) {
@@ -82,8 +106,8 @@ function setup() {
       }
     },
     LibraryFiles: {
-      async fromSelectedUris(uris, current, progress) {
-        calls.push(['scan', uris[0]]);
+      async scanDirectory(uri, current, progress) {
+        calls.push(['scan', uri]);
         const pending = scans.shift();
         if (pending) {
           pending.started.resolve();
@@ -92,7 +116,8 @@ function setup() {
         // A stale native callback can still arrive. Tests can intentionally
         // bypass this lower-layer guard to verify Index's own generation checks.
         if (pending?.respectCancellation !== false && !current()) { throw Error('Scan cancelled'); }
-        const files = uris.map(uri => ({ uri, name: uri, relativePath: uri }));
+        if (state.scanError) throw Error(state.scanError);
+        const files = state.scanFiles ?? [{ uri: uri + '/film.mp4', name: 'film.mp4', relativePath: 'film.mp4' }];
         progress({ files, visited: files.length, skipped: 0 });
         return { files, skipped: 0, truncated: false, warnings: [] };
       },
@@ -107,13 +132,10 @@ function setup() {
         return state.scriptText;
       }
     },
-    picker: {
-      DocumentSelectOptions: class {},
-      DocumentViewPicker: class { select() { return picks.shift().promise; } },
-      DocumentSelectMode: { FOLDER: 1 }
-    },
     canIUse: () => true,
     systemDateTime: { getUptime: () => 0, TimeType: { ACTIVE: 0 } },
+    setInterval: () => 1,
+    clearInterval: () => {},
     fileIo: {},
     util: {}
   };
@@ -123,49 +145,292 @@ function setup() {
   page.foreground = true;
   page.sync = () => {};
   page.getUIContext = () => ({ getHostContext: () => ({}) });
-  return { page, calls, picks, scans, reads, state, initialDocument };
+  return { page, calls, preparations, scans, reads, state, initialDocument };
 }
 
-test('stale picker cannot start IO or clear a newer picker busy state', async () => {
-  const { page, calls, picks } = setup();
+test('stale Download preparation cannot start IO or clear a newer scan busy state', async () => {
+  const { page, calls, preparations } = setup();
   const first = deferred();
   const second = deferred();
-  picks.push(first, second);
-  const oldSelection = page.chooseLibrary(false);
+  preparations.push(first, second);
+  const oldSelection = page.scanDownloads();
+  await Promise.resolve();
   page.cancelLibrary();
-  const newerSelection = page.chooseLibrary(false);
-  first.resolve(['old.mp4']);
+  const newerSelection = page.scanDownloads();
+  first.resolve('file://docs/old');
   await oldSelection;
   assert.equal(page.libraryBusy, true);
-  assert.equal(page.libraryPicking, true);
+  assert.equal(page.libraryLoaded, false);
   assert.equal(calls.some(([kind]) => kind === 'scan'), false);
-  second.resolve(['new.mp4']);
+  second.resolve('file://docs/new');
   await newerSelection;
-  assert.equal(page.libraryItems[0].uri, 'new.mp4');
+  assert.equal(page.libraryItems[0].uri, 'file://docs/new/film.mp4');
   assert.equal(page.libraryBusy, false);
-  assert.equal(page.libraryPicking, false);
+  assert.equal(page.libraryLoaded, true);
 });
 
-test('cancelled scan cannot publish stale progress or completion over newer selection', async () => {
-  const { page, picks, scans } = setup();
+test('cancelled scan cannot publish stale progress or completion over a newer Download scan', async () => {
+  const { page, preparations, scans } = setup();
   const first = deferred();
   const second = deferred();
   const scan = operation({ respectCancellation: false });
-  picks.push(first, second);
+  preparations.push(first, second);
   scans.push(scan);
-  const oldSelection = page.chooseLibrary(false);
-  first.resolve(['old.mp4']);
+  const oldSelection = page.scanDownloads();
+  first.resolve('file://docs/old');
   await scan.started.promise;
   page.cancelLibrary();
-  const newerSelection = page.chooseLibrary(false);
-  second.resolve(['new.mp4']);
+  const newerSelection = page.scanDownloads();
+  second.resolve('file://docs/new');
   await newerSelection;
   const newerMessage = page.libraryMessage;
   scan.completion.resolve();
   await oldSelection;
-  assert.equal(page.libraryItems[0].uri, 'new.mp4');
+  assert.equal(page.libraryItems[0].uri, 'file://docs/new/film.mp4');
   assert.equal(page.libraryMessage, newerMessage);
   assert.equal(page.libraryBusy, false);
+});
+
+test('failed Download preparation is explicit and a manual refresh retries instead of treating failure as empty', async () => {
+  const { page, state, calls } = setup();
+  state.prepareError = 'permission denied (13900012)';
+  await page.scanDownloads();
+  assert.equal(page.libraryLoaded, false);
+  assert.equal(page.libraryBusy, false);
+  assert.match(page.libraryMessage, /Cannot scan.*permission denied.*13900012/);
+  assert.equal(calls.some(([kind]) => kind === 'scan'), false);
+  state.prepareError = undefined;
+  await page.refreshLibrary();
+  assert.equal(page.libraryLoaded, true);
+  assert.equal(calls.filter(([kind]) => kind === 'prepare').length, 2);
+  assert.equal(calls.filter(([kind]) => kind === 'scan').length, 1);
+});
+
+test('directory scan failure stays distinct from a successfully empty directory', async () => {
+  const { page, state, calls } = setup();
+  state.scanError = 'Cannot read folder: permission denied';
+  await page.scanDownloads();
+  assert.equal(page.libraryLoaded, false);
+  assert.match(page.libraryMessage, /Cannot scan.*permission denied/);
+  state.scanError = undefined;
+  state.scanFiles = [];
+  await page.refreshLibrary();
+  assert.equal(page.libraryLoaded, true);
+  assert.deepEqual(page.libraryItems, []);
+  assert.match(page.libraryMessage, /No media found/);
+  assert.doesNotMatch(page.libraryMessage, /Cannot scan/);
+  await page.refreshLibrary();
+  assert.equal(calls.filter(([kind]) => kind === 'prepare').length, 3);
+});
+
+test('repeated refresh clicks do not overlap Download preparation', async () => {
+  const { page, preparations, calls } = setup();
+  const pending = deferred();
+  preparations.push(pending);
+  const running = page.scanDownloads();
+  await page.refreshLibrary();
+  await page.scanDownloads();
+  assert.equal(calls.filter(([kind]) => kind === 'prepare').length, 1);
+  pending.resolve('file://docs/ready');
+  await running;
+  assert.equal(page.libraryLoaded, true);
+  assert.equal(calls.filter(([kind]) => kind === 'scan').length, 1);
+});
+
+test('backgrounding cancels pending Download preparation and suppresses stale IO and success', async () => {
+  const { page, preparations, calls } = setup();
+  const pending = deferred();
+  preparations.push(pending);
+  const running = page.scanDownloads();
+  await Promise.resolve();
+  page.foreground = false;
+  page.foregroundChanged();
+  const cancelledMessage = page.libraryMessage;
+  pending.resolve('file://docs/stale');
+  await running;
+  assert.equal(page.libraryBusy, false);
+  assert.equal(page.libraryLoaded, false);
+  assert.equal(page.libraryMessage, cancelledMessage);
+  assert.equal(calls.some(([kind]) => kind === 'scan'), false);
+});
+
+test('page startup scans automatically and page disposal cancels the pending preparation', async () => {
+  const { page, preparations, calls } = setup();
+  const pending = deferred();
+  preparations.push(pending);
+  page.aboutToAppear();
+  await Promise.resolve();
+  assert.equal(calls.filter(([kind]) => kind === 'prepare').length, 1);
+  page.aboutToDisappear();
+  pending.resolve('file://docs/stale');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(calls.some(([kind]) => kind === 'scan'), false);
+  assert.equal(page.libraryBusy, false);
+  assert.equal(page.viewActive, false);
+});
+
+test('the same page can reappear with a cleared document using the real strict engine', async () => {
+  const { page, state, calls } = setup();
+  page.engine = new ActualPlaybackEngine();
+  page.document = new FunscriptDocument([]);
+  state.scanFiles = [];
+  assert.doesNotThrow(() => page.aboutToAppear());
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(page.libraryLoaded, true);
+  page.aboutToDisappear();
+  assert.doesNotThrow(() => page.aboutToAppear());
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(page.libraryLoaded, true);
+  assert.deepEqual(page.document.axes, []);
+  assert.deepEqual(page.engine.previewSamples(), []);
+  assert.equal(calls.filter(([kind]) => kind === 'prepare').length, 2);
+  page.aboutToDisappear();
+});
+
+test('closing and reopening an already loaded empty list does not trigger a preparation loop', async () => {
+  const { page, state, calls } = setup();
+  state.scanFiles = [];
+  await page.scanDownloads();
+  page.showLibrary();
+  page.showLibrary();
+  page.showLibrary();
+  assert.equal(page.libraryLoaded, true);
+  assert.equal(calls.filter(([kind]) => kind === 'prepare').length, 1);
+});
+
+test('an access failure on refresh discards the obsolete catalog and root', async () => {
+  const { page, state } = setup();
+  await page.scanDownloads();
+  assert.equal(page.libraryItems.length, 1);
+  state.prepareError = 'permission denied';
+  await page.refreshLibrary();
+  assert.equal(page.libraryLoaded, false);
+  assert.deepEqual(page.libraryItems, []);
+  assert.deepEqual(page.mediaCatalog, []);
+  assert.equal(page.libraryRoot, '');
+  assert.match(page.libraryMessage, /permission denied/);
+});
+
+test('the visible library contains videos while retaining all script and ZIP candidates for matching', async () => {
+  const { page, state } = setup();
+  state.scanFiles = ['film.mp4', 'film.funscript', 'film.zip', 'unpaired.funscript']
+    .map(name => ({ uri: 'file://docs/root/' + name, name, relativePath: name }));
+  await page.scanDownloads();
+  assert.deepEqual(page.libraryItems.map(entry => entry.name), ['film.mp4']);
+  assert.deepEqual(page.mediaCatalog.map(entry => entry.name), ['film.mp4', 'film.funscript', 'film.zip', 'unpaired.funscript']);
+});
+
+test('refresh success, failure or cancellation closes old media and clears real engine scripts before rescan', async () => {
+  for (const outcome of ['success', 'failure', 'cancel']) {
+    const { page, state, preparations, calls } = setup();
+    page.engine = new ActualPlaybackEngine();
+    const prior = ActualFunscriptParser.parse('{"actions":[{"at":0,"pos":0},{"at":1000,"pos":100}]}');
+    page.document = prior;
+    page.engine.load(prior);
+    page.engine.setConnected(true);
+    page.engine.play();
+    page.videoMode = true;
+    page.videoReady = true;
+    page.videoFullscreen = true;
+    page.pendingVideoUri = 'old.mp4';
+    const pending = deferred();
+    preparations.push(pending);
+    const refreshing = page.refreshLibrary();
+    assert.deepEqual(page.document.axes, [], outcome);
+    assert.deepEqual(page.engine.previewSamples(), [], outcome);
+    assert.equal(page.videoMode, false, outcome);
+    assert.equal(page.videoReady, false, outcome);
+    assert.equal(page.videoFullscreen, false, outcome);
+    assert.equal(page.pendingVideoUri, '', outcome);
+    await Promise.resolve();
+    if (outcome === 'failure') state.prepareError = 'permission denied';
+    if (outcome === 'cancel') page.cancelLibrary();
+    pending.resolve('file://docs/new');
+    await refreshing;
+    page.playPause();
+    assert.deepEqual(page.engine.snapshot().outputs, [], outcome);
+    assert.equal(page.engine.snapshot().safetyGateOpen, false, outcome);
+    assert.equal(calls.filter(([kind]) => kind === 'release').length, 1, outcome);
+    assert.equal(calls.some(([kind]) => kind === 'video' || kind === 'nativePlay'), false, outcome);
+  }
+});
+
+test('duplicate refresh while old native release is pending cannot release or prepare twice', async () => {
+  const { page, calls } = setup();
+  const release = deferred();
+  page.video.release = async () => {
+    calls.push(['release']);
+    await release.promise;
+  };
+  const refreshing = page.refreshLibrary();
+  await page.refreshLibrary();
+  assert.equal(calls.filter(([kind]) => kind === 'release').length, 1);
+  assert.equal(calls.some(([kind]) => kind === 'prepare'), false);
+  release.resolve();
+  await refreshing;
+  assert.equal(calls.filter(([kind]) => kind === 'prepare').length, 1);
+  assert.equal(page.libraryLoaded, true);
+});
+
+test('video without matching scripts opens against the real engine with no old simulated axes or autoplay', async () => {
+  const { page, state, calls } = setup();
+  page.engine = new ActualPlaybackEngine();
+  const prior = ActualFunscriptParser.parse('{"actions":[{"at":0,"pos":0},{"at":1000,"pos":100}]}');
+  page.document = prior;
+  page.engine.load(prior);
+  page.engine.setConnected(true);
+  assert.equal(page.engine.play(), true);
+  state.plan = [];
+  page.surfaceId = 'surface';
+  await page.openLibraryItem(item('video-only', 0));
+  assert.equal(page.videoOnly, true);
+  assert.equal(page.videoMode, true);
+  assert.equal(page.videoReady, false);
+  assert.deepEqual(page.document.axes, []);
+  assert.deepEqual(page.engine.previewSamples(), []);
+  assert.equal(page.engine.snapshot().safetyGateOpen, false);
+  assert.deepEqual(calls.filter(([kind]) => kind === 'video'), [['video', 'video-only.mp4', 'surface']]);
+  assert.equal(calls.some(([kind]) => kind === 'select' || kind === 'read'), false);
+  assert.match(page.status, /Video only/);
+});
+
+test('invalid matching scripts fail closed with the real engine rather than becoming a video-only success', async () => {
+  const { page, state, calls } = setup();
+  page.engine = new ActualPlaybackEngine();
+  const prior = ActualFunscriptParser.parse('{"actions":[{"at":0,"pos":0},{"at":1000,"pos":100}]}');
+  page.document = prior;
+  page.engine.load(prior);
+  page.engine.setConnected(true);
+  page.engine.play();
+  page.surfaceId = 'surface';
+  state.parseError = 'Invalid script JSON';
+  await page.openLibraryItem(item('invalid'));
+  assert.equal(page.videoOnly, false);
+  assert.deepEqual(page.document.axes, []);
+  assert.deepEqual(page.engine.previewSamples(), []);
+  assert.equal(page.engine.snapshot().safetyGateOpen, false);
+  assert.equal(page.pendingVideoUri, '');
+  assert.equal(page.videoReady, false);
+  assert.equal(page.videoState, 'error');
+  assert.equal(calls.some(([kind]) => kind === 'video'), false);
+  assert.match(page.status, /No readable matching script/);
+});
+
+test('cancellation during native source release prevents even the first script read', async () => {
+  const { page, calls } = setup();
+  const release = deferred();
+  let releaseCalls = 0;
+  page.video.release = async () => {
+    if (++releaseCalls === 1) await release.promise;
+  };
+  const opening = page.openLibraryItem(item('stale'));
+  page.foreground = false;
+  page.foregroundChanged();
+  release.resolve();
+  await opening;
+  assert.equal(calls.some(([kind]) => kind === 'read' || kind === 'plan' || kind === 'video'), false);
+  assert.equal(page.openingVideo, false);
+  assert.equal(page.importing, false);
 });
 
 test('background cancels pending pair and stale read cannot replace a newer pair', async () => {
@@ -197,12 +462,16 @@ test('background cancels pending pair and stale read cannot replace a newer pair
   assert.equal(page.openingVideo, false);
 });
 
-test('candidate-count bound rejects before native release or script reads', async () => {
+test('candidate-count bound releases the old source, clears scripts and rejects before script reads', async () => {
   const { page, calls, initialDocument } = setup();
   await page.openLibraryItem(item('oversize', 65));
-  assert.match(page.libraryMessage, /64 candidates/);
-  assert.equal(page.document, initialDocument);
-  assert.equal(calls.some(([kind]) => kind === 'release' || kind === 'read'), false);
+  assert.match(page.status, /64 candidates/);
+  assert.notEqual(page.document, initialDocument);
+  assert.deepEqual(page.document.axes, []);
+  assert.equal(calls.filter(([kind]) => kind === 'release').length, 1);
+  assert.equal(calls.filter(([kind]) => kind === 'clearScripts').length, 1);
+  assert.equal(calls.some(([kind]) => kind === 'read' || kind === 'video'), false);
+  assert.equal(page.videoReady, false);
   assert.equal(page.importing, false);
 });
 
@@ -213,20 +482,22 @@ test('text budget stops before parsing an over-budget candidate or selecting par
   assert.equal(calls.filter(([kind]) => kind === 'read').length, 3);
   assert.equal(calls.filter(([kind]) => kind === 'parse').length, 2);
   assert.equal(calls.some(([kind]) => kind === 'select' || kind === 'video'), false);
-  assert.equal(page.document, initialDocument);
+  assert.notEqual(page.document, initialDocument);
+  assert.deepEqual(page.document.axes, []);
   assert.match(page.status, /Candidate (?:text|action) budget exceeded/);
   assert.equal(page.importing, false);
   assert.equal(page.openingVideo, false);
 });
 
-test('aggregate action budget stops reading and preserves the existing document', async () => {
+test('aggregate action budget stops reading and clears the previous script source', async () => {
   const { page, calls, state, initialDocument } = setup();
   state.candidateActions = 60000;
   await page.openLibraryItem(item('actions', 4));
   assert.equal(calls.filter(([kind]) => kind === 'read').length, 2);
   assert.equal(calls.filter(([kind]) => kind === 'parse').length, 2);
   assert.equal(calls.some(([kind]) => kind === 'select' || kind === 'video'), false);
-  assert.equal(page.document, initialDocument);
+  assert.notEqual(page.document, initialDocument);
+  assert.deepEqual(page.document.axes, []);
   assert.match(page.status, /Candidate (?:text|action) budget exceeded/);
   assert.equal(page.importing, false);
   assert.equal(page.openingVideo, false);
@@ -252,8 +523,45 @@ test('malformed ZIP stops paired opening rather than falling back to a loose scr
   state.plan = [{kind: 'zip', file: {uri: 'bad.zip'}}, {kind: 'script', file: {uri: 'film.funscript'}}];
   state.zipError = 'CRC mismatch';
   await page.openLibraryItem(item('film'));
-  assert.equal(page.document, initialDocument);
+  assert.notEqual(page.document, initialDocument);
+  assert.deepEqual(page.document.axes, []);
   assert.match(page.status, /CRC mismatch/);
   assert.equal(calls.some(([kind]) => kind === 'read' || kind === 'video'), false);
   assert.equal(page.importing, false);
+});
+
+
+test('refresh surfaces native cleanup failure, blocks scanning and permits an explicit retry', async () => {
+  const { page, calls, state } = setup();
+  state.cleanupFailure = 'Video cleanup failed: release rejected. Close the video again to retry.';
+  page.videoMode = true; page.videoReady = true; page.pendingVideoUri = 'old.mp4';
+  await page.refreshLibrary();
+  assert.equal(page.videoMode, false);
+  assert.equal(page.videoReady, false);
+  assert.equal(page.pendingVideoUri, '');
+  assert.deepEqual(page.document.axes, []);
+  assert.equal(page.libraryLoaded, false);
+  assert.equal(page.libraryBusy, false);
+  assert.match(page.libraryMessage, /Video cleanup failed: release rejected/);
+  assert.equal(calls.some(([kind]) => kind === 'prepare' || kind === 'scan' || kind === 'video'), false);
+  state.cleanupFailure = '';
+  await page.refreshLibrary();
+  assert.equal(page.libraryLoaded, true);
+  assert.equal(calls.filter(([kind]) => kind === 'prepare').length, 1);
+  assert.equal(calls.filter(([kind]) => kind === 'release').length, 2);
+});
+
+test('selecting a video with unresolved native cleanup cannot read scripts or open a replacement', async () => {
+  const { page, calls, state } = setup();
+  state.cleanupFailure = 'Video cleanup failed: descriptor close rejected.';
+  page.pendingVideoUri = 'stale.mp4'; page.videoReady = true;
+  await page.openLibraryItem(item('next'));
+  assert.match(page.status, /Video cleanup failed: descriptor close rejected/);
+  assert.equal(page.pendingVideoUri, '');
+  assert.equal(page.videoReady, false);
+  assert.equal(page.videoState, 'error');
+  assert.equal(page.openingVideo, false);
+  assert.equal(page.importing, false);
+  assert.deepEqual(page.document.axes, []);
+  assert.equal(calls.some(([kind]) => kind === 'plan' || kind === 'read' || kind === 'zip' || kind === 'video'), false);
 });

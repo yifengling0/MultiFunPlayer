@@ -53,11 +53,19 @@ export class PlaybackEngine {
   private externalClock: boolean = false;
   private mediaDurationMs: number = 0;
 
-  load(document: FunscriptDocument): void {
+  /** Clear prior script state for a video-only source without relaxing the file parser.
+   * Keep user-level timing/curve preferences and the selected clock mode; only a
+   * later confirmed native observation may restore media position and playback.
+   */
+  clearScripts(): void {
     this.stop();
     this.document = new FunscriptDocument([]);
     this.axisOffsets = [];
     this.axisScriptSettings = [];
+    this.mediaDurationMs = 0;
+  }
+  load(document: FunscriptDocument): void {
+    this.clearScripts();
     // Revalidate typed data too; callers can construct or mutate documents directly.
     this.document = FunscriptParser.cloneDocument(document);
   }

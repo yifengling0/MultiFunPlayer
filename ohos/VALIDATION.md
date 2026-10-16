@@ -67,3 +67,14 @@ M2 independent review: no safety blocker; adjacent-chapter boundary labels now u
 - HAP 624353 bytes, SHA256 `2652760ade2b196858f07980cbf996d7d60696ca6373df26851359c2554ccc84`.
 - Source authority: ScriptViewModel.cs UpdateScript and AxisSettings; ScriptView.xaml scale slider; DeviceSettings default neutral values. Only script transforms are ported, not the complete mixed-output state pipeline.
 - No signing, device runtime, screenshot acceptance or physical commands. The 0.5.0 clean build remains the prior clean baseline; this patch was incrementally rebuilt with changed ArkTS compiled.
+
+## M7 — 0.6.0 aspect-correct video and automatic Download library
+
+- Base: `587209fa917f4c1508b1d31b3b111930a02cb23b`; preserved the user's LF normalization and Chinese dictionary updates.
+- Final **244/244 Node tests passed**, no remaining review blockers; independent controller/core/parser/catalog checks and 480 layout-boundary combinations passed. Native filesystem/player calls in these tests are mocked, not physical device evidence.
+- Final official SDK clean build succeeded in **13.844 seconds**, 33 tasks (32 executed, 1 up-to-date), including ArkTS/resource compilation, unsigned HAP packaging, CRC, version, device and orientation checks.
+- Unsigned HAP: **660028 bytes**; SHA-256 `a027179206013541aee9487fae0226158ee9218c67352f3c9c604741857a0e5e`; version 0.6.0 / code7; phone/tablet/2in1; `auto_rotation_restricted`.
+- Explicit native SCALED_ASPECT after prepared replaces default stretched FIT. Fullscreen is within the existing application window; stable single XComponent and actual AVPlayer clock are retained.
+- System DOWNLOAD directory preparation replaces all manual video/script/folder import UI. Existing ZIP-before-loose script matching is preserved; no broad storage permission or physical output transport was added.
+- Review fixes: clear script state through a controlled engine method instead of parsing an empty document; no stale source on bad pairing; manual refresh releases old video/axes before scanning; cleanup failure is visible; no old-source recovery from stale callbacks; controls remain reachable in low-height landscape.
+- Still **not verified on device**: actual aspect-ratio rendering, fullscreen/rotation/keyboard behavior, automatic public Download access, codec/audio/video behavior and signing/install. See DEVICE_TEST_PLAN.md. The 90-item parity matrix remains open; this does not establish full upstream parity.
