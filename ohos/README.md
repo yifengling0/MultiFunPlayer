@@ -1,4 +1,4 @@
-# MultiFunPlayer for OHOS — 0.4 resource library preview
+# MultiFunPlayer for OHOS — 0.5 source-led layout and repository preview
 
 Native ArkTS/ArkUI port in progress. Original Windows application is unchanged.
 Upstream baseline: `36c08fbb99ac9398a63ff1cca1bbf68cd2228a94`.
@@ -6,27 +6,27 @@ Upstream baseline: `36c08fbb99ac9398a63ff1cca1bbf68cd2228a94`.
 ## Included
 
 - User-selected folder scan or multi-file selection, video/script resource list, explicit mapping and one-click paired opening. No video copying or broad Downloads access.
-- Source-led loose-file matching priority; ZIP archives and configured cross-directory repositories remain unported. See [matching scope and differences](LIBRARY_MATCHING.md).
+- Source-led ZIP-before-loose matching and ordered authorized script libraries, with recursion controls and bounded in-memory ZIP32 reading. See [matching scope and differences](LIBRARY_MATCHING.md).
 
 - Native AVPlayer local video with stable XComponent surface, play/pause, seek, volume and 0.25–4× rate controls.
 - Script synchronization follows confirmed native media time, including video lengths different from scripts.
 - Stage app declares phone, tablet and 2-in-1 PC support.
-- Compact portrait tabs, phone-landscape two-column layout, wide-window dashboard.
+- Source-led compact vertical source/script/axis/output stack; horizontal source/output-left and script/axis-right layout; touch-sized phone controls.
 - Native document picker, read-only local UTF-8 `.funscript` / JSON import (2 MiB UI limit).
 - Single/multi-axis keyframes, bounded validation, linear/PCHIP/makima/step interpolation, timeline and axis monitor.
 - Synthetic demonstration with chapters/bookmarks; playback/pause/seek/stop and simulator disconnect.
-- Actual synchronized-curve preview, 0.25–4× UI speed, global/per-axis 50 ms offset controls.
+- Original heatmap velocity/range computation, 0.25–4× UI speed, global/per-axis 50 ms offset controls.
 - Chapter/bookmark previous/next navigation and native filename-to-axis aliases (TCode 0.3 defaults).
 - Foreground lifecycle safety gate, no automatic resume after background/disconnect.
-- 48 vp or larger principal buttons, persistent transport controls, monotonic elapsed clock.
+- 48 vp phone principal buttons, compact desktop controls, persistent phone transport and monotonic elapsed clock.
 
-This is a functional interface/core prototype, not full feature or visual parity with the desktop application. The original layout/control inventory and required phone adaptations are recorded in [UI parity audit](UI_PARITY_AUDIT.md); that visual port has not yet been implemented. PC means HarmonyOS PC. Window layout is driven by available width/height, including split-screen and resizing, rather than a device-name check.
+This is a functional interface/core prototype, not full feature or visual parity with the desktop application. The original layout/control inventory and required phone adaptations are recorded in [UI parity audit](UI_PARITY_AUDIT.md); the first main-window structural pass is implemented, but many original controls and exact visual parity remain outstanding. Disabled original axis tools are visibly unavailable, not pretend controls. PC means HarmonyOS PC. Window layout is driven by available width/height, including split-screen and resizing, rather than a device-name check.
 
 ## Safety and limitations
 
 There is **no physical output transport** in this version: no network, USB, serial or Bluetooth commands. Axis bars are preview values, not proof of emitted commands. Stop/interruptions close the simulator gate. Physical-device safety and hardware watchdog behavior remain future work.
 
-Not implemented: remote media-player control, TCP/UDP/WebSocket output, axis limits/soft-start, C# plugins, Windows named pipes, USB drivers, config migration. Descriptive chapters/bookmarks are parsed; metadata fields such as `inverted`, `range` and `version` do not alter output. The parser is intentionally stricter than upstream: invalid/out-of-range points are rejected instead of clamped/skipped. The graph samples the chosen interpolator at display resolution; core evaluation uses all validated keyframes. Exact upstream PCHIP/makima kernels and unusual boundary padding are retained. Golden fixtures use an independent exact-rational Python reference transcription of pinned C# source, not execution of C#; see tests/fixtures/interpolation-README.md.
+Not implemented: remote media-player control, TCP/UDP/WebSocket output, axis limits/soft-start, C# plugins, Windows named pipes, USB drivers, config migration. Descriptive chapters/bookmarks are parsed; metadata fields such as `inverted`, `range` and `version` do not alter output. The parser is intentionally stricter than upstream: invalid/out-of-range points are rejected instead of clamped/skipped. The heatmap transcribes upstream segment velocity accumulation and selected-axis range, independently of the interpolator; core evaluation uses all validated keyframes. Exact upstream PCHIP/makima kernels and unusual boundary padding are retained. Golden fixtures use an independent exact-rational Python reference transcription of pinned C# source, not execution of C#; see tests/fixtures/interpolation-README.md.
 
 The file picker may show all document types; selecting a file does not bypass JSON and size validation. Imports never upload files. Cancel/failure leaves playback paused. An empty script can be previewed but cannot play. Reading and JSON parsing happen on the UI flow; larger-file worker parsing is future work.
 

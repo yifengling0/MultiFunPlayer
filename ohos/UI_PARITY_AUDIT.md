@@ -382,3 +382,13 @@ Proposed component boundaries to reduce divergence:
 11. RepositoryManager, PathModifierManager, PluginStatus, Information and feedback dialogs
 
 Each component should consume shared state and actions, with desktop/tablet/phone presentations layered over it. That allows touch rearrangement while preserving source-defined behavior and avoids duplicate playback/connection state across layouts.
+
+## 0.5 implemented structural pass (2026-10-16)
+
+Source-led main-window structure now follows the pinned screenshot/XAML: blue-grey header, light compact surfaces, vertical source → script/heatmap → axis tools/values → output ordering; horizontal layout places source/output on the left and script/axes on the right. Phone controls remain touch-sized and portrait/landscape rearrange these same functions. The native video surface remains stable outside conditional layout branches.
+
+Implemented interactions: internal/local-video source switching, actual simulator connection and transport, heatmap click/slider seeking, axis selection, range/combined/inverted heatmap display options, source/axis/output disclosure panels, resource selection, authorized script-library ordering/refresh/recursion, chapter/bookmark navigation. Heatmap velocity accumulation, 5-degree cutoff, selected-axis range, palette and bucket normalization are transcribed from KeyframesHeatmap.xaml.cs and covered by pure tests.
+
+Original nine axis-tool slots are represented in source order. Script and interpolation open actual existing controls; inversion, bypass, linking, motion, smart limit, speed limit and auto-home remain disabled. Their original menus and behavior are not yet implemented. Four axis status dots are neutral/unavailable, not invented live status. External-player source tabs, physical-output tabs/configuration, complete Internal playlist, shortcuts, native menus, original chapter-strip visuals and hover behavior also remain outstanding. Existing interpolation/offset settings are not a complete port of each original axis popup.
+
+This is a source-led structural implementation, not visual acceptance. No OHOS device/emulator screenshot or Windows runtime interaction was captured. Layout compilation cannot establish pixel equality, clipping, focus/keyboard behavior, touch ergonomics, font/icon metrics or multi-window lifecycle behavior. These require real runtime comparison, in addition to continuing the unported controls above.

@@ -26,7 +26,7 @@ function operation(options = {}) {
 }
 
 function item(stem, scriptCount = 1) {
-  const video = { uri: stem + '.mp4', name: stem + '.mp4' };
+  const video = { uri: stem + '.mp4', name: stem + '.mp4', scriptCount };
   return {
     status: 'paired', video, videos: [video],
     scripts: Array.from({ length: scriptCount }, (_, index) => ({
@@ -64,7 +64,13 @@ function setup() {
     ResourceFileEntry: class {
       constructor(uri, name, relativePath) { Object.assign(this, { uri, name, relativePath }); }
     },
+    LoadedScriptInput: class { constructor(file, contents) { Object.assign(this, {file, contents}); } },
+    ResourceLibraryCatalog: class { constructor(rootIdentity, files, recursive) { Object.assign(this, {rootIdentity, files, recursive}); } },
+    ResourceDiscoveryCandidate: class { constructor(file, kind) { Object.assign(this, {file, kind}); } },
+    ScriptLibrarySource: class {},
+    ScriptZipFiles: { async readScripts(uri) { calls.push(['zip', uri]); if (state.zipError) throw Error(state.zipError); return state.zipEntries || []; } },
     ResourceLibrary: {
+      planSearch(video, files, libraries) { calls.push(['plan', files, libraries]); if (state.plan) return state.plan; return Array.from({length: video.scriptCount}, (_,index) => ({kind: 'script', file: {uri: video.uri.replace('.mp4', '') + '.' + index + '.funscript', name: video.uri.replace('.mp4', '') + '.' + index + '.funscript'}})); },
       build: entries => ({ items: entries }),
       parseCandidate(_contents, file) {
         calls.push(['parse', file.uri]);
@@ -208,7 +214,7 @@ test('text budget stops before parsing an over-budget candidate or selecting par
   assert.equal(calls.filter(([kind]) => kind === 'parse').length, 2);
   assert.equal(calls.some(([kind]) => kind === 'select' || kind === 'video'), false);
   assert.equal(page.document, initialDocument);
-  assert.match(page.status, /Candidate budget exceeded/);
+  assert.match(page.status, /Candidate (?:text|action) budget exceeded/);
   assert.equal(page.importing, false);
   assert.equal(page.openingVideo, false);
 });
@@ -221,7 +227,33 @@ test('aggregate action budget stops reading and preserves the existing document'
   assert.equal(calls.filter(([kind]) => kind === 'parse').length, 2);
   assert.equal(calls.some(([kind]) => kind === 'select' || kind === 'video'), false);
   assert.equal(page.document, initialDocument);
-  assert.match(page.status, /Candidate budget exceeded/);
+  assert.match(page.status, /Candidate (?:text|action) budget exceeded/);
   assert.equal(page.importing, false);
   assert.equal(page.openingVideo, false);
+});
+
+
+test('ZIP entries precede loose candidates and configured catalogs retain user order', async () => {
+  const { page, calls, state } = setup();
+  page.surfaceId = 'surface';
+  page.mediaCatalog = [{uri: 'media'}];
+  page.scriptLibraries = [{uri: 'second', files: [], recursive: true}, {uri: 'first', files: [], recursive: false}];
+  state.plan = [{kind: 'zip', file: {uri: 'film.zip'}}, {kind: 'script', file: {uri: 'film.funscript', name: 'film.funscript'}}];
+  state.zipEntries = [{name: 'film.funscript', sourceUri: 'film.zip#0', contents: '{}'}];
+  await page.openLibraryItem(item('film'));
+  assert.deepEqual(calls.filter(([kind]) => kind === 'parse').map(([, uri]) => uri), ['film.zip#0', 'film.funscript']);
+  const plan = calls.find(([kind]) => kind === 'plan');
+  assert.deepEqual(plan[2].map(x => [x.rootIdentity, x.recursive]), [['second', true], ['first', false]]);
+  assert.equal(calls.filter(([kind]) => kind === 'video').length, 1);
+});
+
+test('malformed ZIP stops paired opening rather than falling back to a loose script', async () => {
+  const { page, calls, state, initialDocument } = setup();
+  state.plan = [{kind: 'zip', file: {uri: 'bad.zip'}}, {kind: 'script', file: {uri: 'film.funscript'}}];
+  state.zipError = 'CRC mismatch';
+  await page.openLibraryItem(item('film'));
+  assert.equal(page.document, initialDocument);
+  assert.match(page.status, /CRC mismatch/);
+  assert.equal(calls.some(([kind]) => kind === 'read' || kind === 'video'), false);
+  assert.equal(page.importing, false);
 });

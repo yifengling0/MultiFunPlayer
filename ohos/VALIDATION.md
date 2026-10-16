@@ -49,3 +49,13 @@ M2 independent review: no safety blocker; adjacent-chapter boundary labels now u
 - Source-led matching covers loose files, multi-axis priority/blocking and ordered axis aliases. **ZIP archives, configured cross-directory/remote repositories and full visual parity are not implemented.** See LIBRARY_MATCHING.md and UI_PARITY_AUDIT.md for exact differences.
 - **Not performed:** real folder/file-picker grants, Download provider access, revoked permissions on a device, video/audio playback, installation/signing, phone/tablet/PC screenshot comparison or Windows C# execution.
 - Public path APIs cannot guarantee race-free traversal against hostile concurrent ancestor replacement. Platform grants remain the access boundary; no broad storage permission or physical output was added.
+
+## M5 — 0.5.0 source-led layout, ZIP and configured libraries
+
+- 201 Node tests pass, including 29 library cases, 18 ZIP/native-adapter mock cases, 8 actual page-controller flow cases and 4 heatmap cases.
+- Clean official SDK build succeeded in 10.386 seconds: 33 tasks, 32 executed, 1 up-to-date. Actual ArkTS compilation, HAP packaging, CRC and metadata checks passed. Prior clean step also succeeded.
+- Unsigned HAP: 611336 bytes. SHA256 `7839dd52fb2090a15b9cd2b5fd3dc86c46be2f86d09a93dfcf88f65ea46d8320`.
+- ZIP/core search tests exercise original priority, configured-library order, recursion, entry order, safety limits, cancellation, CRC/structural rejection, stored/DEFLATE and native cleanup mocks. UI-controller tests confirm ZIP-before-loose candidate forwarding and malformed ZIP failure without partial video opening.
+- Native zlib streaming API signatures (`createZip`, `inflateInit2`, `getZStream`) are marked since API12 in the installed official SDK, below the declared API20 minimum. This is compile/API evidence, not a device execution result.
+- Main-window structural layout and heatmap source transcription implemented; full UI/control parity remains incomplete. See UI_PARITY_AUDIT.md for implemented and disabled controls.
+- No device/native DEFLATE execution, signing, installation, screenshots, rendering/keyboard/touch validation or physical outputs were performed. Tests of native APIs use mocks. Windows application was not executed.

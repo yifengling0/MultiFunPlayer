@@ -38,3 +38,12 @@ Record device model, OS/API, video container/codecs/resolution, orientation/wind
 - Verify 1,000-entry/depth-4 truncation and 64-candidate/text/action budgets produce clear messages. Try a symbolic-link entry and nonregular file; neither should be followed/opened for playback.
 - API20 devices may lack phone folder selection: multi-file selection must remain usable. API26 phone/tablet/2in1 single-folder support still needs device confirmation.
 - Close/restart the application: session library is not restored and no persistent grant is claimed.
+
+## 0.5 library and compact UI checks
+
+1. Select a small authorized directory containing film.mp4, film.zip and film.funscript. Confirm ZIP candidate priority and no automatic playback after opening. Repeat with a multi-axis ZIP entry and missing axes.
+2. Add two authorized script-library folders; move their order, toggle recursion and refresh. Confirm that missing media-local axes follow the original search order. Revoke access and confirm the clear reselection error.
+3. Try a corrupt ZIP, unsafe entry name, encrypted/ZIP64 archive and oversized archive. Confirm failure without extracting files, loading partial results or opening video.
+4. Rotate a phone and resize a tablet/PC window while paused and playing. Confirm the native surface remains stable, compact source/output and script columns rearrange, and all enabled controls perform their displayed action.
+5. Compare heatmap range/combine/invert settings and selected-axis heat against the pinned Windows source/application. Record native screenshots at matched dimensions; do not count build success as visual acceptance.
+6. Verify background/cancellation during ZIP read, folder refresh and video open. Old callbacks must not replace a newer selection or resume output.
