@@ -1,4 +1,5 @@
 import { SerialDiagnosticSnapshot } from '../app/SerialDiagnosticSession';
+import { t } from '../l10n/Texts';
 import { SerialOutputPreferences } from '../settings/SerialOutputPreferences';
 import type { SavedSerialBackend } from '../settings/SerialOutputPreferences';
 import type { SerialPortOption } from '../output/serial/SerialDiscoveryTypes';
@@ -193,9 +194,9 @@ export struct OutputSettingsPanel {
   build() {
     Column({ space: UiStyle.gap(this.compact) }) {
       Text(this.model.kind === 'serial' ? '串口输出 · 手动连接' : '网络输出 · 手动连接').fontSize(UiStyle.heading).fontWeight(FontWeight.Bold)
-      Text((this.model.kind === 'serial' ? 'Serial · ' : 'TCP / UDP / WebSocket · ') + this.connection + (this.armed ? (this.dispatchSuspended ? ' · 待命，无输出' : ' · 发送门开放') : ' · 未启用发送')).fontSize(UiStyle.body(this.compact))
+      Text((this.model.kind === 'serial' ? 'Serial · ' : 'TCP / UDP / WebSocket · ') + t(this.connection) + (this.armed ? (this.dispatchSuspended ? ' · 待命，无输出' : ' · 发送门开放') : ' · 未启用发送')).fontSize(UiStyle.body(this.compact))
       Text('本地完成写入 ' + this.completedLocalWrites + ' 次 / ' + this.locallyAcceptedBytes + ' bytes。不是设备执行确认；UDP 连接仅表示本地绑定。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
-      Text('协议 · ' + (this.model.kind === 'webSocket' ? 'WebSocket' : this.model.kind.toUpperCase()) + '（类型固定；需要其他协议时请添加输出）').fontSize(UiStyle.body(this.compact))
+      Text('协议 · ' + t(this.model.kind === 'webSocket' ? 'WebSocket' : this.model.kind.toUpperCase()) + '（类型固定；需要其他协议时请添加输出）').fontSize(UiStyle.body(this.compact))
       if (this.model.kind === 'serial') {
         Text('串口目前通过本面板连接和编辑范围；串口目标的快捷键/触控动作映射尚未接入，全局停止仍有效。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
         Text('可保存多个串口目标；首版全应用同时只打开一个串口，避免不同后端占用同一硬件。网络目标仍独立。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
@@ -210,7 +211,7 @@ export struct OutputSettingsPanel {
           Text('只读识别：授权后仅读 USB 描述符与 ROM；不初始化串口，不发送轴数据。请先断开全部输出。最多等待 15 秒；取消仍需等待真实清理。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
           Button('授权并只读识别设备').fontSize(UiStyle.body(this.compact)).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').enabled(this.canEditSerial() && this.serialPorts.some(port => port.backend === this.serial.backend && port.portName === this.serial.portName)).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).onClick(() => this.probeSerial())
           if (this.serialProbeState.busy) { Button('取消识别 · 等待清理').fontSize(UiStyle.body(this.compact)).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).onClick(() => this.onCancelSerialProbe()) }
-          Text('识别状态：' + this.serialProbeState.phase + ' · ' + this.serialProbeState.diagnosticCode + (this.serialProbeState.quarantined ? '\n关闭未确认，设备连接和发送保持隔离；请结束应用后重新检查。' : '')).fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%').wordBreak(WordBreak.BREAK_ALL)
+          Text('识别状态：' + t(this.serialProbeState.phase) + ' · ' + this.serialProbeState.diagnosticCode + (this.serialProbeState.quarantined ? '\n关闭未确认，设备连接和发送保持隔离；请结束应用后重新检查。' : '')).fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%').wordBreak(WordBreak.BREAK_ALL)
           Text(this.serialProbeNotice).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
           if (this.serialProbeState.report.length > 0) {
             Text(this.serialProbeState.report).fontSize(UiStyle.helper).width('100%').wordBreak(WordBreak.BREAK_ALL)

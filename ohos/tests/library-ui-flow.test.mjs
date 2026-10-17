@@ -202,6 +202,9 @@ function setup(options = {}) {
       }
     },
     canIUse: () => true,
+    // Index resolves several labels through the translator, including inside
+    // shortcutOutputOptions(), which this harness does execute.
+    t: value => value,
     systemDateTime: { getUptime: () => state.now ?? 0, TimeType: { ACTIVE: 0 } },
     setTimeout: callback => { queueMicrotask(callback); return 1; },
     setInterval: () => 1,

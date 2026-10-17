@@ -1,4 +1,5 @@
 import { UiStyle } from '../presentation/UiStyle';
+import { t } from '../l10n/Texts';
 import { MediaSourceConfiguration } from '../settings/MediaSourceConfiguration';
 import { SettingsChoiceField, SettingsNumberField, SettingsOption, SettingsSectionTitle, SettingsTextField } from './CurvePointEditor';
 
@@ -168,7 +169,7 @@ export struct DeoVrSourcePanel {
           .accessibilityText('取消连接或断开 ' + this.sourceLabel()).fontColor(UiStyle.field).backgroundColor(UiStyle.danger).onClick(this.connectionHandler(true))
       }
       if (this.configuration.selectedSource !== 'internal' || this.connected || this.busy || !this.closeConfirmed) {
-        Text('连接状态：' + this.status).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        Text('连接状态：' + t(this.status)).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
         Text(this.freshness()).fontSize(UiStyle.body(this.compact)).fontColor(this.stale ? UiStyle.warning : UiStyle.success).width('100%')
         if (!this.closeConfirmed && !this.connected && !this.busy) {
           Text('尚未确认底层连接已关闭；重新连接和编辑继续锁定。').fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%')
