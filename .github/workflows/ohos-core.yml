@@ -12,9 +12,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Pure core tests (not an OHOS SDK build)
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.319'
+      - name: Prepare the pinned original C# oracle
+        run: |
+          test -x "$DOTNET_ROOT/dotnet"
+          echo "MFP_DOTNET_ROOT=$DOTNET_ROOT" >> "$GITHUB_ENV"
+          git cat-file -e 36c08fbb99ac9398a63ff1cca1bbf68cd2228a94^{commit}
+          python3 ohos/tools/reference/compile.py
+      - name: Core and actual C# oracle tests (not an OHOS SDK build)
         run: node --test tests/*.test.mjs
         working-directory: ohos
