@@ -1,0 +1,893 @@
+{
+  "assertions": 187,
+  "runtime": ".NET 9.0.21",
+  "platform": "Debian GNU/Linux 13 (trixie)",
+  "jsonAssembly": "Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed",
+  "jsonInformationalVersion": "13.0.3+0a2e291c0d9c0c7675d445703e51750363a549ef",
+  "sourceAdapter": "HereSphere",
+  "contextEvents": [
+    {
+      "Path": "x.mp4",
+      "ReloadScripts": true,
+      "Context": {
+        "SceneUri": "https://example.test/scene/1"
+      }
+    },
+    {
+      "Path": "y.mp4",
+      "ReloadScripts": true,
+      "Context": null
+    },
+    {
+      "Path": "z.mp4",
+      "ReloadScripts": true,
+      "Context": null
+    },
+    {
+      "Path": "w.mp4",
+      "ReloadScripts": true,
+      "Context": {
+        "SceneUri": "ftp://example.test/scene/5"
+      }
+    }
+  ],
+  "littleEndian": true,
+  "readCases": [
+    {
+      "name": "full-field-order",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "one-byte-fragmentation",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D",
+      "chunk": 1,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "two-byte-fragmentation",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D",
+      "chunk": 2,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "coalesced-identical-suppressed",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "changed-path-retains-other-fields",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D550000007B2270617468223A226E6578742E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1",
+        "path:next.mp4"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "path-only-optional-retention",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D130000007B2270617468223A22636C69702E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "missing-path-resets-before-fields",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D110000007B2263757272656E7454696D65223A347D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1",
+        "reset"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "blank-path-resets",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D1C0000007B2270617468223A2220222C2263757272656E7454696D65223A347D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1",
+        "reset"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "wrong-case-path-resets",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D130000007B2250617468223A22636C69702E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1",
+        "reset"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "zero-before-state-no-event",
+      "inputHex": "00000000",
+      "chunk": 2147483647,
+      "events": [],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "negative-length-no-event",
+      "inputHex": "FFFFFFFF",
+      "chunk": 2147483647,
+      "events": [],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "nonpositive-resets-once",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D00000000FFFFFFFF00000000",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1",
+        "reset"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "malformed-allocates-state-then-reset",
+      "inputHex": "010000007B00000000",
+      "chunk": 2147483647,
+      "events": [
+        "reset"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "malformed-preserves-existing-state",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D010000007B550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "null-optional-retention",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D5E0000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A6E756C6C2C226475726174696F6E223A6E756C6C2C2263757272656E7454696D65223A6E756C6C2C22706C61796261636B5370656564223A6E756C6C7D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "invalid-negative-fields-ignored",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D440000007B2270617468223A22636C69702E6D7034222C226475726174696F6E223A2D312C2263757272656E7454696D65223A2D322C22706C61796261636B5370656564223A307D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "nonzero-int-state-paused",
+      "inputHex": "1C0000007B2270617468223A2278222C22706C617965725374617465223A327D1D0000007B2270617468223A2278222C22706C617965725374617465223A2D317D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x",
+        "playing:false",
+        "playing:false"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "numeric-strings-converted",
+      "inputHex": "570000007B2270617468223A2278222C22706C617965725374617465223A2230222C226475726174696F6E223A22342E35222C2263757272656E7454696D65223A2232222C22706C61796261636B5370656564223A22312E35227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x",
+        "playing:true",
+        "duration:4.5",
+        "position:2",
+        "speed:1.5"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "fractional-state-rounding",
+      "inputHex": "1E0000007B2270617468223A2278222C22706C617965725374617465223A302E357D1E0000007B2270617468223A2278222C22706C617965725374617465223A312E357D1E0000007B2270617468223A2278222C22706C617965725374617465223A322E357D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x",
+        "playing:true",
+        "playing:false"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "unconvertible-fields-ignored",
+      "inputHex": "590000007B2270617468223A2278222C22706C617965725374617465223A22626F677573222C226475726174696F6E223A22626F677573222C2263757272656E7454696D65223A7B7D2C22706C61796261636B5370656564223A5B5D7D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "numeric-path-converted",
+      "inputHex": "0B0000007B2270617468223A34327D",
+      "chunk": 2147483647,
+      "events": [
+        "path:42"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "boolean-path-only-conversion",
+      "inputHex": "5A0000007B2270617468223A747275652C22706C617965725374617465223A66616C73652C226475726174696F6E223A747275652C2263757272656E7454696D65223A66616C73652C22706C61796261636B5370656564223A747275657D",
+      "chunk": 2147483647,
+      "events": [
+        "path:True"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "duplicate-key-last-wins",
+      "inputHex": "3E0000007B2270617468223A226669727374222C2270617468223A226C617374222C2263757272656E7454696D65223A312C2263757272656E7454696D65223A327D",
+      "chunk": 2147483647,
+      "events": [
+        "path:last",
+        "position:2"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "unknown-fields-inert",
+      "inputHex": "500000007B2270617468223A2278222C227469746C65223A2269676E6F726564222C227365656B436F6D706C657465223A747275652C22636F6D6D616E644964223A34322C2274696D657374616D70223A39397D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "position-over-duration-accepted",
+      "inputHex": "2A0000007B2270617468223A2278222C226475726174696F6E223A322C2263757272656E7454696D65223A31307D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x",
+        "duration:2",
+        "position:10"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "inbound-time-span-truncation",
+      "inputHex": "3B0000007B2270617468223A2278222C226475726174696F6E223A332E30303030303031352C2263757272656E7454696D65223A302E30303030313233357D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x",
+        "duration:3.0000001",
+        "position:1.23E-05"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "raw-time-changes-equal-quantized-events",
+      "inputHex": "250000007B2270617468223A2278222C2263757272656E7454696D65223A312E30303030303030317D250000007B2270617468223A2278222C2263757272656E7454696D65223A312E30303030303030327D250000007B2270617468223A2278222C2263757272656E7454696D65223A312E30303030303030327D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x",
+        "position:1",
+        "position:1"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "nan-ignored",
+      "inputHex": "410000007B2270617468223A2278222C226475726174696F6E223A4E614E2C2263757272656E7454696D65223A4E614E2C22706C61796261636B5370656564223A4E614E7D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "infinite-speed-accepted",
+      "inputHex": "250000007B2270617468223A2278222C22706C61796261636B5370656564223A496E66696E6974797D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x",
+        "speed:Infinity"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "infinite-duration-terminates",
+      "inputHex": "200000007B2270617468223A2278222C226475726174696F6E223A496E66696E6974797D",
+      "chunk": 2147483647,
+      "events": [
+        "path:x"
+      ],
+      "terminal": "OverflowException"
+    },
+    {
+      "name": "unicode-path",
+      "inputHex": "190000007B2270617468223A22E99BBBE5BDB1F09F98802E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:電影😀.mp4"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "invalid-utf8-replacement",
+      "inputHex": "0C0000007B2270617468223A22FF227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:�"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "truncated-payload",
+      "inputHex": "040000007B",
+      "chunk": 2147483647,
+      "events": [],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "truncated-header",
+      "inputHex": "0100",
+      "chunk": 2147483647,
+      "events": [],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "resource-priority-over-path",
+      "inputHex": "3F0000007B227265736F75726365223A227265736F757263652E6D7034222C2270617468223A226C65676163792E6D7034222C2263757272656E7454696D65223A347D",
+      "chunk": 2147483647,
+      "events": [
+        "path:resource.mp4",
+        "position:4"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "blank-resource-suppresses-legacy",
+      "inputHex": "550000007B2270617468223A22636C69702E6D7034222C22706C617965725374617465223A302C226475726174696F6E223A36302C2263757272656E7454696D65223A322E352C22706C61796261636B5370656564223A317D240000007B227265736F75726365223A2220222C2270617468223A226C65676163792E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:clip.mp4",
+        "playing:true",
+        "duration:60",
+        "position:2.5",
+        "speed:1",
+        "reset"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "null-resource-falls-back",
+      "inputHex": "250000007B227265736F75726365223A6E756C6C2C2270617468223A226C65676163792E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:legacy.mp4"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "object-resource-falls-back",
+      "inputHex": "230000007B227265736F75726365223A7B7D2C2270617468223A226C65676163792E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:legacy.mp4"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "numeric-resource-converts-and-wins",
+      "inputHex": "230000007B227265736F75726365223A34322C2270617468223A226C65676163792E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:42"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "bool-resource-converts-and-wins",
+      "inputHex": "250000007B227265736F75726365223A747275652C2270617468223A226C65676163792E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:True"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "same-resource-changed-legacy-ignored",
+      "inputHex": "230000007B227265736F75726365223A22722E6D7034222C2270617468223A22612E6D7034227D230000007B227265736F75726365223A22722E6D7034222C2270617468223A22622E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:r.mp4"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "resource-to-same-legacy-no-path-event",
+      "inputHex": "140000007B227265736F75726365223A22722E6D7034227D100000007B2270617468223A22722E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:r.mp4"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "empty-resource-initial-reset",
+      "inputHex": "230000007B227265736F75726365223A22222C2270617468223A226C65676163792E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "reset"
+      ],
+      "terminal": "EndOfStreamException"
+    },
+    {
+      "name": "case-sensitive-resource",
+      "inputHex": "280000007B225265736F75726365223A22722E6D7034222C2270617468223A226C65676163792E6D7034227D",
+      "chunk": 2147483647,
+      "events": [
+        "path:legacy.mp4"
+      ],
+      "terminal": "EndOfStreamException"
+    }
+  ],
+  "writeCases": [
+    {
+      "name": "play",
+      "originalRequestedSeconds": null,
+      "length": 106,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": null,\n  \"playbackSpeed\": null,\n  \"playerState\": 0,\n  \"duration\": null\n}",
+      "hex": "6A0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A206E756C6C2C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A20302C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "pause",
+      "originalRequestedSeconds": null,
+      "length": 106,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": null,\n  \"playbackSpeed\": null,\n  \"playerState\": 1,\n  \"duration\": null\n}",
+      "hex": "6A0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A206E756C6C2C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A20312C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "seek-fractional",
+      "originalRequestedSeconds": 1.25,
+      "length": 109,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": 1.25,\n  \"playbackSpeed\": null,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "6D0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A20312E32352C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "seek-negative-direct-control",
+      "originalRequestedSeconds": -1.0,
+      "length": 109,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": -1.0,\n  \"playbackSpeed\": null,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "6D0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A202D312E302C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "path-unicode-escape",
+      "originalRequestedSeconds": null,
+      "length": 134,
+      "json": "{\n  \"path\": \"C:\\\\電影😀\\\\quote\\\".mp4\",\n  \"currentTime\": null,\n  \"playbackSpeed\": null,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "860000007B0A20202270617468223A2022433A5C5CE99BBBE5BDB1F09F98805C5C71756F74655C222E6D7034222C0A20202263757272656E7454696D65223A206E756C6C2C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "speed-integer-double",
+      "originalRequestedSeconds": null,
+      "length": 108,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": null,\n  \"playbackSpeed\": 1.0,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "6C0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A206E756C6C2C0A202022706C61796261636B5370656564223A20312E302C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "speed-fractional",
+      "originalRequestedSeconds": null,
+      "length": 108,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": null,\n  \"playbackSpeed\": 1.5,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "6C0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A206E756C6C2C0A202022706C61796261636B5370656564223A20312E352C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "seek-1e-minus5",
+      "originalRequestedSeconds": 1e-05,
+      "length": 110,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": 1E-05,\n  \"playbackSpeed\": null,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "6E0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A2031452D30352C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "seek-1e-minus4",
+      "originalRequestedSeconds": 0.0001,
+      "length": 111,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": 0.0001,\n  \"playbackSpeed\": null,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "6F0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A20302E303030312C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "seek-one-tick",
+      "originalRequestedSeconds": 1e-07,
+      "length": 110,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": 1E-07,\n  \"playbackSpeed\": null,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "6E0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A2031452D30372C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "seek-time-span-roundtrip",
+      "originalRequestedSeconds": 1.2345678901234568e-05,
+      "length": 113,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": 1.23E-05,\n  \"playbackSpeed\": null,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "710000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A20312E3233452D30352C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "seek-tick-truncation-small",
+      "originalRequestedSeconds": 1.235e-05,
+      "length": 113,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": 1.23E-05,\n  \"playbackSpeed\": null,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "710000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A20312E3233452D30352C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "seek-tick-truncation-three",
+      "originalRequestedSeconds": 3.00000015,
+      "length": 114,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": 3.0000001,\n  \"playbackSpeed\": null,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "720000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A20332E303030303030312C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "seek-tick-truncation-one",
+      "originalRequestedSeconds": 1.00000005,
+      "length": 108,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": 1.0,\n  \"playbackSpeed\": null,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "6C0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A20312E302C0A202022706C61796261636B5370656564223A206E756C6C2C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "speed-negative-zero-direct-control",
+      "originalRequestedSeconds": null,
+      "length": 109,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": null,\n  \"playbackSpeed\": -0.0,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "6D0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A206E756C6C2C0A202022706C61796261636B5370656564223A202D302E302C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "speed-small-direct-control",
+      "originalRequestedSeconds": null,
+      "length": 127,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": null,\n  \"playbackSpeed\": 1.2345678901234568E-05,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "7F0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A206E756C6C2C0A202022706C61796261636B5370656564223A20312E32333435363738393031323334353638452D30352C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    },
+    {
+      "name": "speed-large-direct-control",
+      "originalRequestedSeconds": null,
+      "length": 127,
+      "json": "{\n  \"path\": null,\n  \"currentTime\": null,\n  \"playbackSpeed\": 1.2345678901234567E+20,\n  \"playerState\": null,\n  \"duration\": null\n}",
+      "hex": "7F0000007B0A20202270617468223A206E756C6C2C0A20202263757272656E7454696D65223A206E756C6C2C0A202022706C61796261636B5370656564223A20312E32333435363738393031323334353637452B32302C0A202022706C617965725374617465223A206E756C6C2C0A2020226475726174696F6E223A206E756C6C0A7D"
+    }
+  ],
+  "resourceCases": [
+    {
+      "input": "https://example.test/folder/movie%20one.mp4?token=REDACTED#fragment",
+      "result": {
+        "PathType": 0,
+        "ModifiedPath": null,
+        "OriginalPath": "https://example.test/folder/movie%20one.mp4?token=REDACTED#fragment",
+        "Source": "https://example.test:443/folder",
+        "Name": "movie one.mp4",
+        "Context": null,
+        "IsFile": false,
+        "IsUrl": true,
+        "IsModified": false,
+        "Path": "https://example.test/folder/movie%20one.mp4?token=REDACTED#fragment"
+      }
+    },
+    {
+      "input": "https://EXAMPLE.test/folder/movie%20one.mp4?different=1",
+      "result": {
+        "PathType": 0,
+        "ModifiedPath": null,
+        "OriginalPath": "https://EXAMPLE.test/folder/movie%20one.mp4?different=1",
+        "Source": "https://example.test:443/folder",
+        "Name": "movie one.mp4",
+        "Context": null,
+        "IsFile": false,
+        "IsUrl": true,
+        "IsModified": false,
+        "Path": "https://EXAMPLE.test/folder/movie%20one.mp4?different=1"
+      }
+    },
+    {
+      "input": "http://example.test:80/movie.mp4",
+      "result": {
+        "PathType": 0,
+        "ModifiedPath": null,
+        "OriginalPath": "http://example.test:80/movie.mp4",
+        "Source": "http://example.test",
+        "Name": "movie.mp4",
+        "Context": null,
+        "IsFile": false,
+        "IsUrl": true,
+        "IsModified": false,
+        "Path": "http://example.test:80/movie.mp4"
+      }
+    },
+    {
+      "input": "https://example.test:443/movie.mp4",
+      "result": {
+        "PathType": 0,
+        "ModifiedPath": null,
+        "OriginalPath": "https://example.test:443/movie.mp4",
+        "Source": "https://example.test:443",
+        "Name": "movie.mp4",
+        "Context": null,
+        "IsFile": false,
+        "IsUrl": true,
+        "IsModified": false,
+        "Path": "https://example.test:443/movie.mp4"
+      }
+    },
+    {
+      "input": "https://example.test:8443/folder/movie.mp4",
+      "result": {
+        "PathType": 0,
+        "ModifiedPath": null,
+        "OriginalPath": "https://example.test:8443/folder/movie.mp4",
+        "Source": "https://example.test:8443/folder",
+        "Name": "movie.mp4",
+        "Context": null,
+        "IsFile": false,
+        "IsUrl": true,
+        "IsModified": false,
+        "Path": "https://example.test:8443/folder/movie.mp4"
+      }
+    },
+    {
+      "input": "https://example.test/folder/segment%2Fmovie.mp4?filename=ignored.mp4",
+      "result": {
+        "PathType": 0,
+        "ModifiedPath": null,
+        "OriginalPath": "https://example.test/folder/segment%2Fmovie.mp4?filename=ignored.mp4",
+        "Source": "https://example.test:443/folder/segment",
+        "Name": "movie.mp4",
+        "Context": null,
+        "IsFile": false,
+        "IsUrl": true,
+        "IsModified": false,
+        "Path": "https://example.test/folder/segment%2Fmovie.mp4?filename=ignored.mp4"
+      }
+    },
+    {
+      "input": "https://example.test/folder/segment%5Cmovie.mp4",
+      "result": {
+        "PathType": 0,
+        "ModifiedPath": null,
+        "OriginalPath": "https://example.test/folder/segment%5Cmovie.mp4",
+        "Source": "https://example.test:443/folder",
+        "Name": "segment\\movie.mp4",
+        "Context": null,
+        "IsFile": false,
+        "IsUrl": true,
+        "IsModified": false,
+        "Path": "https://example.test/folder/segment%5Cmovie.mp4"
+      }
+    },
+    {
+      "input": "https://example.test/folder/",
+      "result": null
+    },
+    {
+      "input": "file:///C:/Videos/movie%20one.mp4",
+      "result": {
+        "PathType": 1,
+        "ModifiedPath": null,
+        "OriginalPath": "file:///C:/Videos/movie%20one.mp4",
+        "Source": "",
+        "Name": "C:\\Videos\\movie one.mp4",
+        "Context": null,
+        "IsFile": true,
+        "IsUrl": false,
+        "IsModified": false,
+        "Path": "file:///C:/Videos/movie%20one.mp4"
+      }
+    },
+    {
+      "input": "C:\\Videos\\movie one.mp4",
+      "result": {
+        "PathType": 1,
+        "ModifiedPath": null,
+        "OriginalPath": "C:\\Videos\\movie one.mp4",
+        "Source": "",
+        "Name": "C:\\Videos\\movie one.mp4",
+        "Context": null,
+        "IsFile": true,
+        "IsUrl": false,
+        "IsModified": false,
+        "Path": "C:\\Videos\\movie one.mp4"
+      }
+    },
+    {
+      "input": "C:/Videos/movie one.mp4",
+      "result": {
+        "PathType": 1,
+        "ModifiedPath": null,
+        "OriginalPath": "C:/Videos/movie one.mp4",
+        "Source": "",
+        "Name": "C:\\Videos\\movie one.mp4",
+        "Context": null,
+        "IsFile": true,
+        "IsUrl": false,
+        "IsModified": false,
+        "Path": "C:/Videos/movie one.mp4"
+      }
+    },
+    {
+      "input": "\\\\server.invalid\\share\\movie.mp4",
+      "result": {
+        "PathType": 1,
+        "ModifiedPath": null,
+        "OriginalPath": "\\\\server.invalid\\share\\movie.mp4",
+        "Source": "",
+        "Name": "\\\\server.invalid\\share\\movie.mp4",
+        "Context": null,
+        "IsFile": true,
+        "IsUrl": false,
+        "IsModified": false,
+        "Path": "\\\\server.invalid\\share\\movie.mp4"
+      }
+    },
+    {
+      "input": "/synthetic/nonexistent/movie.mp4",
+      "result": {
+        "PathType": 1,
+        "ModifiedPath": null,
+        "OriginalPath": "/synthetic/nonexistent/movie.mp4",
+        "Source": "/synthetic/nonexistent",
+        "Name": "movie.mp4",
+        "Context": null,
+        "IsFile": true,
+        "IsUrl": false,
+        "IsModified": false,
+        "Path": "/synthetic/nonexistent/movie.mp4"
+      }
+    },
+    {
+      "input": "synthetic-nonexistent/movie.mp4",
+      "result": {
+        "PathType": 1,
+        "ModifiedPath": null,
+        "OriginalPath": "synthetic-nonexistent/movie.mp4",
+        "Source": "synthetic-nonexistent",
+        "Name": "movie.mp4",
+        "Context": null,
+        "IsFile": true,
+        "IsUrl": false,
+        "IsModified": false,
+        "Path": "synthetic-nonexistent/movie.mp4"
+      }
+    },
+    {
+      "input": "movie.mp4?literal-query",
+      "result": {
+        "PathType": 1,
+        "ModifiedPath": null,
+        "OriginalPath": "movie.mp4?literal-query",
+        "Source": "",
+        "Name": "movie.mp4?literal-query",
+        "Context": null,
+        "IsFile": true,
+        "IsUrl": false,
+        "IsModified": false,
+        "Path": "movie.mp4?literal-query"
+      }
+    },
+    {
+      "input": "folder\\movie%20one.mp4",
+      "result": {
+        "PathType": 1,
+        "ModifiedPath": null,
+        "OriginalPath": "folder\\movie%20one.mp4",
+        "Source": "",
+        "Name": "folder\\movie%20one.mp4",
+        "Context": null,
+        "IsFile": true,
+        "IsUrl": false,
+        "IsModified": false,
+        "Path": "folder\\movie%20one.mp4"
+      }
+    },
+    {
+      "input": "https://user:pass@example.test/folder/movie.mp4?secret=example",
+      "result": {
+        "PathType": 0,
+        "ModifiedPath": null,
+        "OriginalPath": "https://user:pass@example.test/folder/movie.mp4?secret=example",
+        "Source": "https://example.test:443/folder",
+        "Name": "movie.mp4",
+        "Context": null,
+        "IsFile": false,
+        "IsUrl": true,
+        "IsModified": false,
+        "Path": "https://user:pass@example.test/folder/movie.mp4?secret=example"
+      }
+    }
+  ],
+  "idle": {
+    "hex": "00000000",
+    "elapsedMs": 1003
+  },
+  "sourceSha256": {
+    "Source/MultiFunPlayer/MediaSource/ViewModels/HereSphereMediaSource.cs": "bf17b4412d45fcafd9e88bc2cbdab137786afb96e8630e0b7e230d82f1ff56f6",
+    "Source/MultiFunPlayer/Common/Extensions.cs": "8c275fe3b490b9b100e697abab88a9644d1f70cfa613d0c80ccd02752577ea02",
+    "Source/MultiFunPlayer/Bootstrapper.cs": "5d4e3812b0d8101906c00d25cb7ff5a8319873eaa1e45b33d1632228b0ccc7db",
+    "Source/MultiFunPlayer/MediaSource/MediaResource/MediaResourceInfo.cs": "443b2feac2b58e66eaa61dc54c3ef01606711b2348635b58fc82e84eab7c12bd",
+    "Source/MultiFunPlayer/MediaSource/MediaResource/MediaResourceInfoBuilder.cs": "bea1a8ef4d25fddf96c554f40a64d2df77fced59029cc29cf7351b0450c464e4",
+    "Source/MultiFunPlayer/MediaSource/MediaResource/Modifier/IMediaPathModifier.cs": "aeb36ff29841a09cadc25e195c629b650666f90607c510f790b154a9509c0c0c"
+  },
+  "newtonsoftDllSha256": "759469a7fd9f6a5e2ff51bb645036b6d18a61d10c81a0d20a7ca23cb46e40fda",
+  "extraction": {
+    "readerWriter": "HereSphereMediaSource.cs:93-253, private->public; TcpClient->MemoryClient; NetworkStream->Stream",
+    "playerState": "HereSphereMediaSource.cs:289-296 plus context record at 299, unchanged",
+    "jsonConversion": "Extensions.cs:28-56, unchanged",
+    "exactRead": "Extensions.cs:243-248, unchanged",
+    "resource": "MediaResourceInfoBuilder.cs, MediaResourceInfo.cs, IMediaPathModifier.cs compiled unchanged; paths use Linux System.IO semantics",
+    "serializer": "Bootstrapper.cs:263-282 primitive-relevant indented formatting/error handler reproduced; nonprimitive converters and logging excluded",
+    "limitations": "Linux .NET9/Json.NET13; no Windows WPF, actual socket lifecycle, source selection, repository execution or real player tested"
+  }
+}

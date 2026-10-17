@@ -48,7 +48,7 @@ test('the managed script and eight range routes remain reachable alongside exact
     assert.ok(options.length > 0 && options.length <= 16, group.value);
     return options.map(option => option.value);
   });
-  assert.equal(new Set(ids).size, 178);
+  assert.equal(new Set(ids).size, 182);
   assert.deepEqual(ids.sort(), shortcutActionCatalog().map(spec => spec.id).sort());
 });
 

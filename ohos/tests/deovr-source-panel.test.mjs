@@ -116,7 +116,7 @@ test('status formatting distinguishes unknown data, stale clock and unconfirmed 
   assert.equal(panel.seconds(0), '0.00 秒'); assert.equal(panel.seconds(2.345), '2.35 秒');
   assert.match(panel.freshness(), /未连接/); runtime(panel, { connected: true }); assert.match(panel.freshness(), /过期/);
   panel.stale = false; assert.match(panel.freshness(), /有效/);
-  assert.deepEqual(panel.sources().map(option => option.value), ['internal', 'deovr']);
+  assert.deepEqual(panel.sources().map(option => option.value), ['internal', 'deovr', 'heresphere']);
 });
 
 test('layout is parent-scrolled touch-friendly content with explicit capabilities and no fake player controls', () => {
@@ -127,4 +127,78 @@ test('layout is parent-scrolled touch-friendly content with explicit capabilitie
   }
   for (const text of ['恢复设置不会自动连接', '收到的媒体路径', '位置：', '时长：', '状态已过期', '跳转仍解除 Arm', '不授予本地文件访问权', 'TCP 发送完成不是播放器确认']) assert.ok(source.includes(text), text);
   assert.doesNotMatch(source, /onArm|onSeek|onPlayPause|new WebSocket|TCPSocket|setInterval|setTimeout/);
+});
+
+test('HereSphere edits target only its independent endpoint while source changes remain inert', () => {
+  const { panel, calls, changes } = mounted('heresphere'); const original = panel.configuration;
+  assert.equal(panel.sourceLabel(), 'HereSphere'); assert.equal(panel.endpointHost(), '127.0.0.1');
+  assert.equal(panel.endpointPort(), 23554); assert.equal(panel.connectionLabel(), '断开 HereSphere');
+  assert.equal(panel.commitHost('sphere.local'), true); assert.equal(panel.commitPort(34567), true);
+  assert.equal(panel.configuration.hereSphere.host, 'sphere.local'); assert.equal(panel.configuration.hereSphere.port, 34567);
+  assert.equal(original.hereSphere.host, '127.0.0.1'); assert.equal(original.hereSphere.port, 23554);
+  assert.notEqual(changes[0].hereSphere, original.hereSphere); assert.notEqual(changes[0].deoVr, original.deoVr);
+  assert.deepEqual(panel.configuration.deoVr, original.deoVr);
+  panel.selectSource('deovr'); assert.equal(panel.sourceLabel(), 'DeoVR'); assert.equal(panel.endpointHost(), '127.0.0.1');
+  assert.equal(panel.commitHost('deo.local'), true); assert.equal(panel.commitPort(45678), true);
+  panel.selectSource('heresphere'); assert.equal(panel.endpointHost(), 'sphere.local'); assert.equal(panel.endpointPort(), 34567);
+  assert.equal(panel.configuration.deoVr.host, 'deo.local'); assert.equal(panel.configuration.deoVr.port, 45678);
+  panel.selectSource('internal'); assert.equal(panel.sourceLabel(), 'Internal'); assert.equal(panel.canConnect(), false);
+  assert.equal(DeoVrSourceEdits.host(panel.configuration, 'ignored.local'), null);
+  assert.equal(DeoVrSourceEdits.port(panel.configuration, 12345), null);
+  assert.deepEqual(calls, []);
+});
+
+test('HereSphere controlled connect and cancellation keep duplicate, edit and runtime guards', () => {
+  const { panel, calls, changes } = mounted('heresphere'); const connectedSources = [];
+  panel.onConnect = () => { calls.push('connect'); connectedSources.push(panel.configuration.selectedSource); };
+  const click = panel.connectionHandler(false); click(); click(); panel.connect();
+  assert.deepEqual(connectedSources, ['heresphere']); assert.equal(panel.connected, false);
+  assert.equal(panel.playing, false); assert.equal(panel.canDisconnect(), true);
+  panel.selectSource('deovr'); assert.equal(panel.configuration.selectedSource, 'heresphere');
+  assert.equal(panel.commitHost('ignored.local'), false); assert.deepEqual(changes, []);
+  runtime(panel, { busy: true }); panel.readOnly = true; const cancel = panel.connectionHandler(true);
+  cancel(); cancel(); panel.disconnect(); assert.deepEqual(calls, ['connect', 'disconnect']);
+  runtime(panel, { busy: false, connected: false, closeConfirmed: false });
+  assert.equal(panel.canConnect(), false); assert.equal(panel.canEdit(), false); assert.equal(panel.connectionLabel(), '重试断开');
+  panel.disconnect(); assert.deepEqual(calls, ['connect', 'disconnect', 'disconnect']);
+});
+
+test('HereSphere cannot connect or mutate through read-only, lifecycle or invalid endpoint state', () => {
+  for (const patch of [{ readOnly: true }, { busy: true }, { connected: true }, { closeConfirmed: false }]) {
+    const { panel, calls, changes } = mounted('heresphere'); Object.assign(panel, patch);
+    panel.selectSource('deovr'); panel.connect(); panel.connectionHandler(false)();
+    assert.equal(panel.commitHost('other.local'), false); assert.equal(panel.commitPort(23456), false);
+    assert.deepEqual(calls, []); assert.deepEqual(changes, []);
+  }
+  const { panel, calls } = mounted('heresphere');
+  for (const host of ['user:pass@host', 'http://host', 'host/path', 'host?token=secret', ' localhost', 'host:23554']) {
+    assert.equal(panel.commitHost(host), false);
+  }
+  for (const port of [0, -1, 65536, .5, NaN, Infinity]) assert.equal(panel.commitPort(port), false);
+  panel.configuration.hereSphere.host = 'http://invalid'; panel.connect(); assert.deepEqual(calls, []);
+  panel.aboutToDisappear(); panel.disconnect(); assert.deepEqual(calls, []);
+});
+
+test('captured endpoint, source and connection callbacks cannot cross a source change or return trip', () => {
+  for (const initial of ['deovr', 'heresphere']) {
+    const { panel, calls, changes } = mounted(initial);
+    const host = panel.hostHandler(), port = panel.portHandler(), select = panel.sourceHandler(), connect = panel.connectionHandler(false);
+    panel.selectSource(initial === 'deovr' ? 'heresphere' : 'deovr'); panel.selectSource(initial);
+    const before = changes.length;
+    assert.equal(host('stale.local'), false); assert.equal(port(12345), false); select('internal'); connect();
+    assert.equal(changes.length, before); assert.deepEqual(calls, []);
+    assert.equal(panel.configuration.selectedSource, initial);
+    panel.connect(); assert.deepEqual(calls, ['connect']);
+  }
+});
+
+test('dynamic source labels retain readable full-text controls and a single parent-owned runtime DTO', () => {
+  assert.match(source, /label: this\.sourceLabel\(\) \+ ' 主机 \/ IP · 不含凭据', value: this\.endpointHost\(\)/);
+  assert.match(source, /label: 'TCP 端口', value: this\.endpointPort\(\)/);
+  assert.match(source, /Button\('连接 ' \+ this\.sourceLabel\(\)\)/);
+  assert.match(source, /accessibilityText\('显式连接 ' \+ this\.sourceLabel\(\)\)/);
+  assert.match(source, /accessibilityText\('取消连接或断开 ' \+ this\.sourceLabel\(\)\)/);
+  assert.equal((source.match(/labelStyle\(\{ maxLines: 10, overflow: TextOverflow\.Clip \}\)/g) ?? []).length, 2);
+  assert.doesNotMatch(source, /new HereSphere|HereSphereSession|DeoVrSession|onHereSphere|\.maxLines\(1\)|TextOverflow\.Ellipsis/);
+  assert.match(source, /onConnect: \(\) => void/); assert.match(source, /onDisconnect: \(\) => void/);
 });

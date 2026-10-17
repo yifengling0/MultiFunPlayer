@@ -135,8 +135,15 @@ export function shortcutActionCatalog(): ShortcutActionSpec[] {
       spec.category = 'source'; result.push(spec);
     }
   }
-  const path = textSpec('Media::Path::Set', '设置远端媒体路径（仅 DeoVR）', 'text', 'Media path');
+  const path = textSpec('Media::Path::Set', '设置远端媒体路径（DeoVR / HereSphere）', 'text', 'Media path');
   path.maximumTextLength = 4096; path.category = 'source'; result.push(path);
+  const hereSphereEndpoint = textSpec('HereSphere::Endpoint::Set', '设置 HereSphere 端点（不连接）', 'text', 'Endpoint · ipOrHost:port');
+  hereSphereEndpoint.maximumTextLength = 280; hereSphereEndpoint.category = 'source'; result.push(hereSphereEndpoint);
+  for (const command of ['Toggle', 'Connect', 'Disconnect']) {
+    const spec = new ShortcutActionSpec('HereSphere::Connection::' + command,
+      'HereSphere 媒体源' + (command === 'Toggle' ? '连接切换' : command === 'Connect' ? '连接' : '断开'));
+    spec.category = 'source'; result.push(spec);
+  }
   return result;
 }
 

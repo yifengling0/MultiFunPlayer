@@ -12,7 +12,7 @@ function axis(){return new AxisConfiguration(new DeviceAxisDefinition('L0'),['L0
 function apply(settings,id,value=0,text='',target=''){return applyAxisShortcutAction(settings,new ShortcutAction(id,value,target,0,text),'L0',['L0','R0']);}
 
 test('all source-backed catalog defaults are valid, detached and accurately typed',()=>{
- const catalog=shortcutActionCatalog();assert.equal(catalog.length,178);assert.equal(new Set(catalog.map(x=>x.id)).size,178);
+ const catalog=shortcutActionCatalog();assert.equal(catalog.length,182);assert.equal(new Set(catalog.map(x=>x.id)).size,182);
  for(const spec of catalog){
   const action=defaultShortcutAction(spec.id);assert.equal(validateShortcutAction(action),true,spec.id);
   assert.equal(action.value,spec.defaultValue);assert.equal(action.secondaryValue,spec.secondaryDefaultValue);assert.equal(action.text,spec.defaultText);

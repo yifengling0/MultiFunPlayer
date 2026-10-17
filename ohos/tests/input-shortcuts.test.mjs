@@ -187,7 +187,7 @@ test('configuration and dispatch snapshots are defensive against caller mutation
 });
 test('no unsupported toggle/axis trigger or arbitrary action enters local catalog',()=>{
  const ids=shortcutActionCatalog().map(a=>a.id);assert.equal(new Set(ids).size,ids.length);assert.ok(ids.length>=20);
- assert.ok(ids.every(id=>['Internal::AutoConnectEnabled::Set','Internal::AutoConnectEnabled::Toggle','OutputTarget::WebSocket::Uri::Set',...['Internal','DeoVR','OutputTarget'].flatMap(name=>['Toggle','Connect','Disconnect'].map(command=>name+'::Connection::'+command))].includes(id)||!/Connect|Arm|File|Import|Launch|Shell|Uri/i.test(id)));
+ assert.ok(ids.every(id=>['Internal::AutoConnectEnabled::Set','Internal::AutoConnectEnabled::Toggle','OutputTarget::WebSocket::Uri::Set',...['Internal','DeoVR','HereSphere','OutputTarget'].flatMap(name=>['Toggle','Connect','Disconnect'].map(command=>name+'::Connection::'+command))].includes(id)||!/Connect|Arm|File|Import|Launch|Shell|Uri/i.test(id)));
  for(const trigger of ['toggleEnable','toggleDisable','toggleFlip','axisDrive','axisOffset','axisThreshold'])assert.equal(validateShortcutConfiguration(config(mapping(trigger))).valid,false);
  for(const id of ['Output::Arm','Output::Connect','Emby::Connection::Connect','DeoVR::AutoConnectEnabled::Set','Media::Path::Open','../../command',''])assert.equal(validateShortcutAction(new ShortcutAction(id)),false);
 });
@@ -224,14 +224,15 @@ test('catalog original names exist in actual source registrations; explicit addi
    continue;
   }
   assert.equal(spec.originalName,spec.id);
-  if(/^(Internal|DeoVR)::Connection::(Toggle|Connect|Disconnect)$/.test(spec.id)){
+  if(/^(Internal|DeoVR|HereSphere)::Connection::(Toggle|Connect|Disconnect)$/.test(spec.id)){
    const source=readFileSync(new URL('../../Source/MultiFunPlayer/UI/Controls/ViewModels/MediaSourceViewModel.cs',import.meta.url),'utf8');
    assert.ok(source.includes('s.RegisterAction($"{source.Name}::Connection::'+spec.id.split('::').at(-1)+'"'),spec.id);
    assert.ok(source.includes('foreach (var source in AvailableSources)'));
   }
-  else if(spec.id==='DeoVR::Endpoint::Set'){
-   const source=readFileSync(new URL('../../Source/MultiFunPlayer/MediaSource/ViewModels/DeoVRMediaSource.cs',import.meta.url),'utf8');
-   assert.ok(source.includes('[DisplayName("DeoVR")]'));
+  else if(spec.id==='DeoVR::Endpoint::Set'||spec.id==='HereSphere::Endpoint::Set'){
+   const name=spec.id.split('::')[0];
+   const source=readFileSync(new URL('../../Source/MultiFunPlayer/MediaSource/ViewModels/'+name+'MediaSource.cs',import.meta.url),'utf8');
+   assert.ok(source.includes('[DisplayName("'+name+'")]'));
    assert.ok(source.includes('s.RegisterAction<string>($"{Name}::Endpoint::Set"'));
    assert.ok(source.includes('NetUtils.TryParseEndpoint(endpointString, out var endpoint)'));
   }
@@ -320,9 +321,10 @@ test('late ticks preserve timer deadline order and configured order only breaks 
 test('0.19 adds exactly six original-template output aliases and preserves every inherited catalog field',()=>{
  const baseline=JSON.parse(readFileSync(new URL('../tools/reference/action-coverage-018-source.json',import.meta.url),'utf8')).candidate018.catalog;
  const catalog=shortcutActionCatalog(),ids=new Set(baseline.map(s=>s.id));
- assert.equal(baseline.length,172);assert.equal(catalog.length,178);assert.equal(new Set(catalog.map(s=>s.id)).size,178);
- for(const old of baseline)assert.deepEqual(JSON.parse(JSON.stringify(catalog.find(s=>s.id===old.id))),old,old.id);
- const added=catalog.filter(s=>!ids.has(s.id));
+ assert.equal(baseline.length,172);assert.equal(catalog.length,182);assert.equal(new Set(catalog.map(s=>s.id)).size,182);
+ for(const old of baseline){const current=JSON.parse(JSON.stringify(catalog.find(s=>s.id===old.id)));if(old.id==='Media::Path::Set'){assert.equal(current.label,'设置远端媒体路径（DeoVR / HereSphere）');current.label=old.label;}assert.deepEqual(current,old,old.id);}
+ const here=catalog.filter(s=>s.id.startsWith('HereSphere::'));assert.equal(here.length,4);
+ const added=catalog.filter(s=>!ids.has(s.id)&&!s.id.startsWith('HereSphere::'));
  const expected=['OutputTarget::TCP::Endpoint::Set','OutputTarget::UDP::Endpoint::Set','OutputTarget::WebSocket::Uri::Set',...['Toggle','Connect','Disconnect'].map(command=>'OutputTarget::Connection::'+command)];
  assert.deepEqual(added.map(s=>s.id).sort(),expected.sort());
  for(const spec of added){assert.match(spec.originalName,/^\{(?:target\.)?Identifier\}::/);assert.equal(spec.category,'output');assert.equal(spec.targetAxis,false);assert.equal(spec.targetOutput,true);assert.equal(spec.managedScript,false);assert.equal(spec.pointsKind,'none');}

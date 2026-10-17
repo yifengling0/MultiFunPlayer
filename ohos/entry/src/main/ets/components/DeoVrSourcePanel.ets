@@ -5,19 +5,23 @@ import { SettingsChoiceField, SettingsNumberField, SettingsOption, SettingsSecti
 /** Pure copies only. An edit is never a connect or playback command. */
 export class DeoVrSourceEdits {
   static source(configuration: MediaSourceConfiguration, value: string): MediaSourceConfiguration | null {
-    if (value !== 'internal' && value !== 'deovr') { return null; }
+    if (value !== 'internal' && value !== 'deovr' && value !== 'heresphere') { return null; }
     const next: MediaSourceConfiguration = MediaSourceConfiguration.clone(configuration);
     next.selectedSource = value;
     return next;
   }
   static host(configuration: MediaSourceConfiguration, value: string): MediaSourceConfiguration | null {
+    if (configuration.selectedSource === 'internal') { return null; }
     const next: MediaSourceConfiguration = MediaSourceConfiguration.clone(configuration);
-    next.deoVr.host = value;
+    if (next.selectedSource === 'heresphere') { next.hereSphere.host = value; }
+    else { next.deoVr.host = value; }
     return MediaSourceConfiguration.validate(next).length === 0 ? next : null;
   }
   static port(configuration: MediaSourceConfiguration, value: number): MediaSourceConfiguration | null {
+    if (configuration.selectedSource === 'internal') { return null; }
     const next: MediaSourceConfiguration = MediaSourceConfiguration.clone(configuration);
-    next.deoVr.port = value;
+    if (next.selectedSource === 'heresphere') { next.hereSphere.port = value; }
+    else { next.deoVr.port = value; }
     return MediaSourceConfiguration.validate(next).length === 0 ? next : null;
   }
 }
@@ -51,7 +55,7 @@ export struct DeoVrSourcePanel {
   private canEdit(): boolean {
     return this.active && !this.readOnly && !this.busy && !this.connected && this.closeConfirmed && this.pendingRequest === '';
   }
-  private canEditEndpoint(): boolean { return this.canEdit() && this.configuration.selectedSource === 'deovr'; }
+  private canEditEndpoint(): boolean { return this.canEdit() && this.configuration.selectedSource !== 'internal'; }
   private canConnect(): boolean {
     return this.canEditEndpoint() && MediaSourceConfiguration.validate(this.configuration).length === 0;
   }
@@ -108,7 +112,18 @@ export struct DeoVrSourcePanel {
     this.onDisconnect();
   }
   private sources(): SettingsOption[] {
-    return [new SettingsOption('internal', 'Internal · 内部时钟 / Download 视频'), new SettingsOption('deovr', 'DeoVR · 远程播放器')];
+    return [new SettingsOption('internal', 'Internal · 内部时钟 / Download 视频'),
+      new SettingsOption('deovr', 'DeoVR · 远程播放器'), new SettingsOption('heresphere', 'HereSphere · 远程播放器')];
+  }
+  private sourceLabel(): string {
+    return this.configuration.selectedSource === 'heresphere' ? 'HereSphere' :
+      this.configuration.selectedSource === 'deovr' ? 'DeoVR' : 'Internal';
+  }
+  private endpointHost(): string {
+    return this.configuration.selectedSource === 'heresphere' ? this.configuration.hereSphere.host : this.configuration.deoVr.host;
+  }
+  private endpointPort(): number {
+    return this.configuration.selectedSource === 'heresphere' ? this.configuration.hereSphere.port : this.configuration.deoVr.port;
   }
   private seconds(value: number | null): string {
     return value !== null && Number.isFinite(value) && value >= 0 ? value.toFixed(2) + ' 秒' : '未知';
@@ -121,7 +136,7 @@ export struct DeoVrSourcePanel {
     if (this.pendingRequest === 'disconnect') { return '正在取消 / 断开…'; }
     if (this.busy || this.pendingRequest === 'connect') { return '取消连接 / 断开'; }
     if (!this.connected && !this.closeConfirmed) { return '重试断开'; }
-    return '断开 DeoVR';
+    return '断开 ' + this.sourceLabel();
   }
   build() {
     // The parent workspace owns scrolling and passes the saved density choice.
@@ -137,22 +152,22 @@ export struct DeoVrSourcePanel {
         Text('Internal 包含内部脚本时钟和已授权 Download 视频。选择来源不会自动播放或启用物理输出。')
           .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       } else {
-        SettingsTextField({ label: 'DeoVR 主机 / IP · 不含凭据', value: this.configuration.deoVr.host,
+        SettingsTextField({ label: this.sourceLabel() + ' 主机 / IP · 不含凭据', value: this.endpointHost(),
           compact: this.compact, editable: this.canEditEndpoint(), onCommit: this.hostHandler() })
-        SettingsNumberField({ label: 'TCP 端口', value: this.configuration.deoVr.port, minimum: 1, maximum: 65535,
+        SettingsNumberField({ label: 'TCP 端口', value: this.endpointPort(), minimum: 1, maximum: 65535,
           integer: true, compact: this.compact, editable: this.canEditEndpoint(), onCommit: this.portHandler() })
         Text('仅保存来源选择和端点。恢复设置不会自动连接、播放或启用输出。连接期间请先断开，再修改来源或端点。')
           .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
-        Button('连接 DeoVR').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
+        Button('连接 ' + this.sourceLabel()).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
           .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').enabled(this.canConnect())
-          .accessibilityText('显式连接 DeoVR').fontColor(UiStyle.field).backgroundColor(UiStyle.accent).onClick(this.connectionHandler(false))
+          .accessibilityText('显式连接 ' + this.sourceLabel()).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).onClick(this.connectionHandler(false))
       }
       if (this.busy || this.connected || !this.closeConfirmed || this.pendingRequest !== '') {
         Button(this.connectionLabel()).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
           .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').enabled(this.canDisconnect())
-          .accessibilityText('取消连接或断开 DeoVR').fontColor(UiStyle.field).backgroundColor(UiStyle.danger).onClick(this.connectionHandler(true))
+          .accessibilityText('取消连接或断开 ' + this.sourceLabel()).fontColor(UiStyle.field).backgroundColor(UiStyle.danger).onClick(this.connectionHandler(true))
       }
-      if (this.configuration.selectedSource === 'deovr' || this.connected || this.busy || !this.closeConfirmed) {
+      if (this.configuration.selectedSource !== 'internal' || this.connected || this.busy || !this.closeConfirmed) {
         Text('连接状态：' + this.status).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
         Text(this.freshness()).fontSize(UiStyle.body(this.compact)).fontColor(this.stale ? UiStyle.warning : UiStyle.success).width('100%')
         if (!this.closeConfirmed && !this.connected && !this.busy) {

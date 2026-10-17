@@ -53,7 +53,7 @@ test('background/stage lifecycle through actual NativeOutputSession cancels and 
  const code=readFileSync(new URL('../entry/src/main/ets/entryability/EntryAbility.ets',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace('export default class','class');
  for(const method of ['onBackground','onWindowStageDestroy','onDestroy']){
   h.Owner.setForeground(true);const operation=h.Diagnostic.run(h.page.diagnosticOwner,h.request(),h.page.output);await settle();
-  const Ability=new Function('UIAbility','NativeOutputSession','DeoVrSession','NativeWindowPresentation','PlaybackSession','AppStorage',stripTypeScriptTypes(code)+';return EntryAbility;')(class{},h.Owner,{closeIfReady(){}},{destroyStage(){},setForeground(){}},{flushIfReady(){}},{setOrCreate(){}});
+  const Ability=new Function('UIAbility','NativeOutputSession','RemoteMediaSession','NativeWindowPresentation','PlaybackSession','AppStorage',stripTypeScriptTypes(code)+';return EntryAbility;')(class{},h.Owner,{closeIfReady(){}},{destroyStage(){},setForeground(){}},{flushIfReady(){}},{setOrCreate(){}});
   new Ability()[method]();assert.equal(h.diagnostic.snapshot().phase,'closing');assert.equal((await operation).phase,'cancelled');
  }
 });

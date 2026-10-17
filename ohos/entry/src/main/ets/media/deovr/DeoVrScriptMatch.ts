@@ -4,7 +4,7 @@ import { validateDeoVrEndpoint } from './DeoVrTypes';
 /** Metadata hint only. The returned opaque URI is NEVER passed to file IO.
  * Actual reads are exclusively entries returned by the authorized catalog's
  * ResourceLibrary.planSearch. Query/fragment never become a local path. */
-export function deoVrScriptMatchHint(path: string): ResourceFileEntry {
+export function deoVrScriptMatchHint(path: string, kind: 'deovr' | 'heresphere' = 'deovr'): ResourceFileEntry {
   if (typeof path !== 'string' || path.length === 0 || path.length > 4096 || /[\x00-\x1f\x7f-\x9f]/.test(path)) {
     throw new Error('远端媒体路径为空、过长或含控制字符。');
   }
@@ -25,7 +25,7 @@ export function deoVrScriptMatchHint(path: string): ResourceFileEntry {
   if (name.length === 0 || name === '.' || name === '..' || name.length > 4096 || /[\x00-\x1f\x7f-\x9f]/.test(name)) {
     throw new Error('远端媒体名称无法用于受管脚本匹配。');
   }
-  return new ResourceFileEntry('deovr-metadata-hint', name, name);
+  return new ResourceFileEntry(kind + '-metadata-hint', name, name);
 }
 
 /** Bounded endpoint action adapter. The original optional address-family prefix

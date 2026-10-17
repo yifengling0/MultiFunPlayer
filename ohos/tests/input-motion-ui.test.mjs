@@ -33,9 +33,9 @@ function fixture(action = defaultShortcutAction('Shortcut::Enabled::Set')) {
   return { panel, edits, actions, cancellations, stops: () => stops };
 }
 
-test('178 actions are reachable once through 20 bounded groups', () => {
+test('182 actions are reachable once through 20 bounded groups', () => {
   const { panel } = fixture(); const groups = panel.categories();
-  assert.equal(catalog.length, 178); assert.equal(newSpecs.length, 39); assert.equal(groups.length, 20);
+  assert.equal(catalog.length, 182); assert.equal(newSpecs.length, 39); assert.equal(groups.length, 20);
   const expected = ['media-playback', 'media-markers', 'media-loop', 'media-script', 'axis-script', 'axis-sync-lock',
     'axis-link-bypass', 'axis-limit', 'axis-home', 'axis-motion', 'sync', 'internal', 'app',
     'motion-custom', 'motion-looping', 'motion-pattern', 'motion-random', 'shortcut', 'output', 'source'];

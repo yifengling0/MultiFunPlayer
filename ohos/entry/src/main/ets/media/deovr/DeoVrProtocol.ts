@@ -12,9 +12,23 @@ export interface DeoVrPlayerPacket {
   durationSeconds: number | null;
   positionSeconds: number | null;
   speed: number | null;
+  /** Inert HereSphere identifier metadata. Never a path/network capability. */
+  sceneUri?: string | null;
 }
 export type DeoVrCommandKind = 'playPause' | 'seek' | 'path' | 'speed';
 export interface DeoVrCommand { kind: DeoVrCommandKind; playing?: boolean; value?: number; path?: string; }
+/** Only wire field interpretation varies. Lifecycle, framing and provenance stay
+ * in the source core; implementations never receive transport/file capabilities. */
+export interface DeoVrProtocolStrategy {
+  readonly sourceKind: 'deovr' | 'heresphere';
+  decodePacket(bytes: Uint8Array): DeoVrPlayerPacket;
+  encodeCommand(command: DeoVrCommand): Uint8Array;
+}
+export class DeoVrProtocol implements DeoVrProtocolStrategy {
+  readonly sourceKind: 'deovr' | 'heresphere' = 'deovr';
+  decodePacket(bytes: Uint8Array): DeoVrPlayerPacket { return decodeDeoVrPacket(bytes); }
+  encodeCommand(command: DeoVrCommand): Uint8Array { return encodeDeoVrCommand(command); }
+}
 export interface DeoVrReceiveIngress { ingressId: number; receivedAtMs: number; }
 export interface DeoVrObservedFrame {
   payload: Uint8Array | null;
@@ -146,21 +160,28 @@ export function validDeoVrPath(path: string): boolean {
 }
 /** Invalid JSON throws; missing/blank path is a distinct source reset. Unknown
  * fields are ignored after the bounded tree/prototype-safety check. */
-export function decodeDeoVrPacket(bytes: Uint8Array): DeoVrPlayerPacket {
+export function decodeDeoVrDocument(bytes: Uint8Array): Record<string, Object> {
   if (bytes.byteLength < 1 || bytes.byteLength > DEOVR_MAXIMUM_FRAME_BYTES) { throw new DeoVrError('invalidFrameLength'); }
   const text: string = decodeDeoVrUtf8(bytes);
   let raw: Object;
   try { raw = JSON.parse(text) as Object; } catch { throw new DeoVrError('invalidJson'); }
   guardJson(raw, 0, [2048]);
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) { throw new DeoVrError('invalidJsonObject'); }
-  const object: Record<string, Object> = raw as Record<string, Object>;
-  const path: Object = object['path']; const state: Object = object['playerState']; const speed: Object = object['playbackSpeed'];
+  return raw as Record<string, Object>;
+}
+/** Shared bounded primitive field semantics; callers use the guarded document. */
+export function decodeDeoVrPlayerFields(object: Record<string, Object>, path: Object): DeoVrPlayerPacket {
+  const state: Object = object['playerState']; const speed: Object = object['playbackSpeed'];
   return {
     path: typeof path === 'string' && validDeoVrPath(path) ? path : null,
     playerState: typeof state === 'number' && Number.isInteger(state) && state >= -2147483648 && state <= 2147483647 ? state : null,
     durationSeconds: timeValue(object['duration']), positionSeconds: timeValue(object['currentTime']),
     speed: typeof speed === 'number' && Number.isFinite(speed) && speed > 0 && speed <= DEOVR_MAXIMUM_SPEED ? speed : null
   };
+}
+export function decodeDeoVrPacket(bytes: Uint8Array): DeoVrPlayerPacket {
+  const object: Record<string, Object> = decodeDeoVrDocument(bytes);
+  return decodeDeoVrPlayerFields(object, object['path']);
 }
 /** Json.NET emits integral doubles with .0; JSON readers treat this identically. */
 function doubleJson(value: number): string {

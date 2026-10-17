@@ -31,7 +31,7 @@ test('source and endpoint round trip exactly as detached preferences without run
   assert.notEqual(cloned.mediaSources, value.mediaSources); assert.notEqual(cloned.mediaSources.deoVr, value.mediaSources.deoVr);
   cloned.mediaSources.deoVr.host = 'other.local'; cloned.mediaSources.selectedSource = 'internal';
   assert.equal(value.mediaSources.deoVr.host, 'Player-One.local'); assert.equal(value.mediaSources.selectedSource, 'deovr');
-  assert.deepEqual(Object.keys(JSON.parse(encoded).mediaSources).sort(), ['deoVr', 'selectedSource']);
+  assert.deepEqual(Object.keys(JSON.parse(encoded).mediaSources).sort(), ['deoVr', 'hereSphere', 'selectedSource']);
   assert.deepEqual(Object.keys(JSON.parse(encoded).mediaSources.deoVr).sort(), ['host', 'port']);
 });
 
@@ -96,7 +96,7 @@ test('restoring DeoVR selection or old schema never writes and does not invent a
     assert.equal(loaded.readOnly, false); assert.equal(loaded.recoveryRequired, false);
     assert.equal(loaded.configuration.mediaSources.selectedSource, mediaSources?.selectedSource ?? 'internal');
     assert.deepEqual(port.writes, []); assert.deepEqual(port.reads, ['primary']);
-    assert.deepEqual(Object.keys(store.snapshot().mediaSources).sort(), ['deoVr', 'selectedSource']);
+    assert.deepEqual(Object.keys(store.snapshot().mediaSources).sort(), ['deoVr', 'hereSphere', 'selectedSource']);
   }
 });
 

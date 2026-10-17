@@ -33,6 +33,7 @@ const { LocalShortcutEngine, ShortcutDispatch, ShortcutKeyEvent } = await import
 const { GeneralConfiguration } = await import('../entry/src/main/ets/settings/GeneralConfiguration.ts');
 const { ErrorPresentation, horizontalWorkspace } = await import('../entry/src/main/ets/presentation/GeneralPresentation.ts');
 const {MediaSourceConfiguration}=await import('../entry/src/main/ets/settings/MediaSourceConfiguration.ts');
+const {parseMediaSourceShortcut}=await import('../entry/src/main/ets/input/ShortcutSourceActions.ts');
 const {deoVrScriptMatchHint,parseDeoVrEndpointText}=await import('../entry/src/main/ets/media/deovr/DeoVrScriptMatch.ts');
 class ActualPlaybackEngine extends PlaybackSessionCore { flush() {} }
 
@@ -80,7 +81,7 @@ function setup(options = {}) {
   const dependencies = {
     SocketDiagnosticSession: options.diagnosticOwner || { claimOwner() { return 1; }, owns(owner) { return owner > 0; }, releaseOwner() {}, cancel() {}, blocked() { return false; }, outputsQuiet() { return true; }, snapshot() { return { requestId: 0, busy: false, phase: 'idle' }; } },
     ShortcutConnectionOwner, OutputEndpoint, applyOutputEndpointAction, isOutputEndpointAction, outputConnectionOperation,
-    MediaSourceConfiguration, deoVrScriptMatchHint, parseDeoVrEndpointText, DeoVrSession: { current: () => options.remoteSource || inertRemote },
+    MediaSourceConfiguration, deoVrScriptMatchHint, parseDeoVrEndpointText, parseMediaSourceShortcut, RemoteMediaSession: options.remoteOwner || { current: kind => (kind === 'heresphere' ? options.hereSphereSource : options.remoteSource) || inertRemote, allClosed: () => [options.remoteSource, options.hereSphereSource].every(source => !source || source.snapshot().closeConfirmed) },
     KeyboardInputSession, KeyboardShortcutConfiguration, ShortcutAction, cloneShortcutAction, shortcutActionCatalog, EMERGENCY_STOP_KEY, isShortcutKey,
     resolveManagedLoopingSelection, parseManagedLoopingScript, applyOutputRangeAction, SettingsOption: class { constructor(value,label){this.value=value;this.label=label;} },
     applyAxisShortcutAction, applySyncShortcutAction, applyMediaShortcut, shortcutNameEquals, applyShortcutPointAction, customCurvePointArguments, applyMotionShortcutAction, motionShortcutProviderId, LocalShortcutEngine, ShortcutDispatch, ShortcutKeyEvent, GeneralConfiguration, ErrorPresentation, horizontalWorkspace,

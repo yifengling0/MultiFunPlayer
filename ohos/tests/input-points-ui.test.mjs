@@ -61,14 +61,14 @@ function mountedEditor(panel, touch = false) {
   return editor;
 }
 
-test('all 178 actions stay reachable once in bounded touch categories, including both point setters and manual/gap commands', () => {
+test('all 182 actions stay reachable once in bounded touch categories, including both point setters and manual/gap commands', () => {
   const { panel } = fixture(); const reachable = [];
   for (const category of panel.categories()) {
     const options = panel.actionOptions(false, category.value);
     assert.ok(options.length > 0 && options.length <= 16, category.value + ': ' + options.length);
     reachable.push(...options.map(option => option.value));
   }
-  assert.equal(reachable.length, 178); assert.equal(new Set(reachable).size, 178);
+  assert.equal(reachable.length, 182); assert.equal(new Set(reachable).size, 182);
   for (const id of [SMART, CUSTOM, 'Script::SkipGap', 'Axis::Value::Set', 'Axis::Value::Offset']) assert.ok(reachable.includes(id));
 });
 

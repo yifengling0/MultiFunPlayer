@@ -17,7 +17,7 @@ function apply(config,command,value=0,text='',target='L0'){
 }
 
 test('exact 16 scalar source templates expand to 34 provider-applicable scalar actions, all executable',()=>{
- const all=shortcutActionCatalog();assert.equal(all.length,178);assert.equal(new Set(all.map(x=>x.id)).size,178);
+ const all=shortcutActionCatalog();assert.equal(all.length,182);assert.equal(new Set(all.map(x=>x.id)).size,182);
  const motions=all.filter(x=>x.category==='motion'&&x.pointsKind==='none'&&!x.managedScript);assert.equal(motions.length,34);
  for(const provider of ids){
   const expected=common.concat(specifics[provider]).map(x=>'MotionProvider::'+provider+'::'+x).sort();

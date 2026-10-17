@@ -19,7 +19,7 @@ function keyboard(actions){const result=new KeyboardShortcutConfiguration(),mapp
 function pairs(points){return points.map(({x,y})=>[x,y])}
 
 test('0.15 adds exactly five source identities with source-derived numeric bounds and payload defaults',()=>{
- const specs=shortcutActionCatalog();assert.equal(specs.length,178);assert.equal(new Set(specs.map(s=>s.id)).size,178);
+ const specs=shortcutActionCatalog();assert.equal(specs.length,182);assert.equal(new Set(specs.map(s=>s.id)).size,182);
  const script=readFileSync(new URL('../../Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs',import.meta.url),'utf8');
  for(const id of [SMART,'Axis::Value::Set','Axis::Value::Offset','Script::SkipGap'])assert.ok(script.includes('"'+id+'"'),id);
  for(const id of ['Media::Position::SkipGap','MotionProvider::CustomCurve::Points::Set'])assert.equal(specs.find(s=>s.id===id),undefined);

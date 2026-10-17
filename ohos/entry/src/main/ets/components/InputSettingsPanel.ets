@@ -503,7 +503,7 @@ export struct InputSettingsPanel {
       new SettingsOption('motion-pattern', '运动参数 · Pattern'), new SettingsOption('motion-random', '运动参数 · Random'),
       new SettingsOption('sync', '全局同步设置'), new SettingsOption('internal', 'Internal 播放列表'),
       new SettingsOption('shortcut', '快捷键 · 启用状态'), new SettingsOption('output', '输出目标 · 轴范围'),
-      new SettingsOption('source', '媒体源 · DeoVR / Internal'), new SettingsOption('app', '应用 · App')].filter(option => this.actionCatalog.some(spec => this.categoryOf(spec) === option.value));
+      new SettingsOption('source', '媒体源 · Internal / DeoVR / HereSphere'), new SettingsOption('app', '应用 · App')].filter(option => this.actionCatalog.some(spec => this.categoryOf(spec) === option.value));
   }
   private axisLabel(name: string): string {
     if (this.axisNames.indexOf(name) < 0) { return name + '（当前配置不存在，已保留）'; }

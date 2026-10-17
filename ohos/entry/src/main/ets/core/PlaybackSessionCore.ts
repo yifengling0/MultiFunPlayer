@@ -84,6 +84,7 @@ export class PlaybackSessionCore {
   private externalClock: boolean = false;
   private internalSourceClock: boolean = false;
   private remoteSourceClock: boolean = false;
+  private remoteSourceKind: 'deovr' | 'heresphere' = 'deovr';
   private remoteClock: RemoteMediaClock = new RemoteMediaClock();
   private remoteBindingsPending: boolean = false;
   private remoteEventSequence: number = -1;
@@ -216,10 +217,12 @@ export class PlaybackSessionCore {
     return !first && detected;
   }
   /** A distinct received clock. Commands and send receipts never enter this API. */
-  useDeoVrSource(generation: number): void {
+  useDeoVrSource(generation: number, kind: 'deovr' | 'heresphere' = 'deovr'): void {
+    if (kind !== 'deovr' && kind !== 'heresphere') { throw new Error('Unsupported remote source.'); }
+    this.remoteSourceKind = kind;
     this.useExternalClock(false); this.remoteSourceClock = true; this.remoteClock.begin(generation);
     this.processingEnabled = true; this.remoteBindingsPending = false; this.remoteEventSequence = -1;
-    this.sourceIdentity = 'deovr:' + generation; this.state = 'paused';
+    this.sourceIdentity = this.remoteSourceKind + ':' + generation; this.state = 'paused';
   }
   /** Captures only an already running/fresh source. This neither plays nor arms. */
   beginDeoVrControl(request: DeoVrControlRequest, snapshot: DeoVrSnapshot, nowMs: number): OutputControlLease | null {
@@ -229,7 +232,7 @@ export class PlaybackSessionCore {
     const frame = this.frame();
     if (!this.remoteSourceClock || !this.processingEnabled || !this.connected || !this.foreground || this.failure.length > 0 ||
       !this.remoteClock.ready(nowMs) || this.remoteBindingsPending || this.scriptReloadToken !== 0 || this.seekTransition?.status === 'pending' ||
-      this.remoteSnapshot === null || snapshot.lastObservation === null || this.remoteSnapshot.lastObservation === null ||
+      (snapshot.sourceKind ?? 'deovr') !== this.remoteSourceKind || this.remoteSnapshot === null || snapshot.lastObservation === null || this.remoteSnapshot.lastObservation === null ||
       !sameDeoVrObservationSource(snapshot.lastObservation, this.remoteSnapshot.lastObservation) ||
       snapshot.lastObservation.packetSequence !== this.remoteSnapshot.lastObservation.packetSequence ||
       this.publishedRemotePacket !== snapshot.lastObservation.packetSequence ||
@@ -306,7 +309,7 @@ export class PlaybackSessionCore {
     return true; // No resumable seek token: this protocol has no correlated ACK.
   }
   acceptDeoVrSnapshot(snapshot: DeoVrSnapshot, events: ReadonlyArray<DeoVrEvent>, nowMs: number = Math.max(this.monotonicMs, snapshot.lastReceivedAtMs)): void {
-    if (!this.remoteSourceClock || snapshot.generation !== this.remoteClock.generation || this.failure.length > 0 ||
+    if (!this.remoteSourceClock || (snapshot.sourceKind ?? 'deovr') !== this.remoteSourceKind || snapshot.generation !== this.remoteClock.generation || this.failure.length > 0 ||
       snapshot.resourceRevision < this.remoteClock.resourceRevision || snapshot.eventSequence < this.remoteEventSequence) { return; }
     const priorSnapshot = this.remoteSnapshot;
     if (this.remoteControl !== null && this.remoteControlLease !== null) {
@@ -328,7 +331,7 @@ export class PlaybackSessionCore {
     }
     if (changedResource) {
       const admitted = this.remoteClock.admitted;
-      this.sourceChanged('deovr:' + snapshot.generation + ':' + snapshot.resourceRevision);
+      this.sourceChanged(this.remoteSourceKind + ':' + snapshot.generation + ':' + snapshot.resourceRevision);
       this.processingEnabled = admitted; this.armed = false; this.tracker.reset(); this.mediaDurationMs = 0;
       this.mediaLoop.clear(); this.autoSkip.cancel(); this.pipeline.advanceEpoch(++this.epoch);
       this.document = new FunscriptDocument([]); this.discovered = [];
@@ -365,8 +368,8 @@ export class PlaybackSessionCore {
       this.pipeline.advanceEpoch(++this.epoch); this.pipeline.invalidateAxes(undefined, this.configuration.sync.syncOnSeek);
     }
   }
-  loadDeoVrBindings(generation: number, resourceRevision: number, document: FunscriptDocument, bindings: AxisScriptBinding[]): boolean {
-    if (!this.remoteSourceClock || generation !== this.remoteClock.generation || resourceRevision !== this.remoteClock.resourceRevision ||
+  loadDeoVrBindings(generation: number, resourceRevision: number, document: FunscriptDocument, bindings: AxisScriptBinding[], kind: 'deovr' | 'heresphere' = 'deovr'): boolean {
+    if (!this.remoteSourceClock || kind !== this.remoteSourceKind || generation !== this.remoteClock.generation || resourceRevision !== this.remoteClock.resourceRevision ||
       !this.remoteClock.admitted || !this.processingEnabled || !this.foreground || this.failure.length > 0) { return false; }
     this.document = FunscriptParser.cloneDocument(document); this.discovered = bindings.slice();
     this.scripts.reload(this.registry.axes.map(axis => bindings.find(binding => binding.axisName === axis.name) ?? new AxisScriptBinding(axis.name, null)));

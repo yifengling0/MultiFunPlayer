@@ -31,6 +31,8 @@ export interface DeoVrEvent {
   /** -1 for lifecycle reset; never mistaken for an actual receive. */
   receivedAtMs: number;
   path?: string;
+  /** HereSphere path-change metadata only; never dereference or persist. */
+  sceneUri?: string | null;
   playing?: boolean;
   /** Seconds for duration/position; scalar for speed. */
   value?: number;
@@ -63,6 +65,10 @@ export interface DeoVrDispatchBoundary {
 /** Returning false cancels this queued command without faulting its source. */
 export type DeoVrDispatchCallback = (boundary: DeoVrDispatchBoundary) => boolean | void;
 export interface DeoVrSnapshot {
+  /** Concrete sources always identify their protocol; optional for old fixtures. */
+  sourceKind?: 'deovr' | 'heresphere';
+  /** Context of the last path event, cleared on reset. Inert and transient. */
+  sceneUri?: string | null;
   status: DeoVrStatus;
   generation: number;
   endpoint: DeoVrEndpoint | null;

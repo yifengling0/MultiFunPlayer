@@ -1,9 +1,9 @@
 import { DeoVrError, validateDeoVrEndpoint } from './DeoVrTypes';
 import type { DeoVrClock, DeoVrDispatchBoundary, DeoVrDispatchCallback, DeoVrEndpoint, DeoVrEvent, DeoVrEventKind, DeoVrOptions, DeoVrPacketObservation,
   DeoVrSendReceipt, DeoVrSnapshot, DeoVrTransport, DeoVrTransportFactory, DeoVrTransportSink } from './DeoVrTypes';
-import type { DeoVrCommand, DeoVrObservedFrame, DeoVrPlayerPacket } from './DeoVrProtocol';
+import type { DeoVrCommand, DeoVrObservedFrame, DeoVrPlayerPacket, DeoVrProtocolStrategy } from './DeoVrProtocol';
 import { DeoVrFrameDecoder, DEOVR_MAXIMUM_RECEIVE_BYTES,
-  decodeDeoVrPacket, encodeDeoVrCommand, deoVrTimeSpanSeconds } from './DeoVrProtocol';
+  DeoVrProtocol, deoVrTimeSpanSeconds } from './DeoVrProtocol';
 
 // Private source ownership cannot be supplied through a public metadata factory.
 // Frozen detached copies remain genuine; a spread/handmade object does not.
@@ -74,23 +74,33 @@ export class DeoVrMediaSource {
   private readonly factory: DeoVrTransportFactory;
   private readonly clock: DeoVrClock;
   private readonly options: DeoVrOptions;
+  private readonly decodePacket: (bytes: Uint8Array) => DeoVrPlayerPacket;
+  private readonly encodeCommand: (command: DeoVrCommand) => Uint8Array;
   private value: DeoVrSnapshot = initialSnapshot();
   private current: DeoVrGeneration | null = null;
   private listeners: Array<(snapshot: DeoVrSnapshot, events: ReadonlyArray<DeoVrEvent>) => void> = [];
   private lastNow: number = -1;
   private commandSequence: number = 0;
-  constructor(factory: DeoVrTransportFactory, clock: DeoVrClock, options: DeoVrOptions = defaultOptions()) {
+  constructor(factory: DeoVrTransportFactory, clock: DeoVrClock, options: DeoVrOptions = defaultOptions(),
+    protocol: DeoVrProtocolStrategy = new DeoVrProtocol()) {
     const values: number[] = [options.connectTimeoutMs, options.sendTimeoutMs, options.closeTimeoutMs, options.heartbeatIntervalMs, options.maximumQueuedCommands];
     if (values.some(value => !Number.isSafeInteger(value) || value <= 0 || value > 2147483647) || options.maximumQueuedCommands > 1024) {
       throw new DeoVrError('invalidOptions');
     }
-    this.factory = factory; this.clock = clock;
+    const sourceKind: 'deovr' | 'heresphere' = protocol.sourceKind;
+    if ((sourceKind !== 'deovr' && sourceKind !== 'heresphere') ||
+      typeof protocol.decodePacket !== 'function' || typeof protocol.encodeCommand !== 'function') { throw new DeoVrError('invalidProtocol'); }
+    this.factory = factory; this.clock = clock; this.value.sourceKind = sourceKind;
+    // Capture dispatch once; later external strategy-object edits cannot swap
+    // protocol identity or parsing/encoding functions in a live source.
+    this.decodePacket = protocol.decodePacket.bind(protocol); this.encodeCommand = protocol.encodeCommand.bind(protocol);
+    if (sourceKind === 'heresphere') { this.value.sceneUri = null; }
     this.options = { connectTimeoutMs: options.connectTimeoutMs, sendTimeoutMs: options.sendTimeoutMs,
       closeTimeoutMs: options.closeTimeoutMs, heartbeatIntervalMs: options.heartbeatIntervalMs, maximumQueuedCommands: options.maximumQueuedCommands };
   }
   snapshot(): DeoVrSnapshot { return this.copySnapshot(this.value); }
   private copySnapshot(value: DeoVrSnapshot): DeoVrSnapshot {
-    return { status: value.status, generation: value.generation,
+    const copy: DeoVrSnapshot = { sourceKind: value.sourceKind, status: value.status, generation: value.generation,
       endpoint: value.endpoint === null ? null : { host: value.endpoint.host, port: value.endpoint.port, family: value.endpoint.family },
       path: value.path, playerState: value.playerState, playing: value.playing, durationSeconds: value.durationSeconds,
       positionSeconds: value.positionSeconds, speed: value.speed, resourceRevision: value.resourceRevision,
@@ -99,6 +109,8 @@ export class DeoVrMediaSource {
       observedAtMs: value.observedAtMs, lastChangedAtMs: value.lastChangedAtMs, lastReceivedAtMs: value.lastReceivedAtMs,
       lastObservation: value.lastObservation === null ? null : this.copyObservation(value.lastObservation),
       diagnostic: value.diagnostic, closeConfirmed: value.closeConfirmed, quarantined: value.quarantined };
+    if (value.sceneUri !== undefined) { copy.sceneUri = value.sceneUri; }
+    return copy;
   }
   private copyObservation(value: DeoVrPacketObservation): DeoVrPacketObservation {
     const copy: DeoVrPacketObservation = Object.freeze({ packetSequence: value.packetSequence, generation: value.generation,
@@ -116,9 +128,13 @@ export class DeoVrMediaSource {
     for (const listener of this.listeners.slice()) {
       // Each observer receives its own detached copy and cannot corrupt the
       // next observer's ordered event batch or prevent resource cleanup.
-      const copies: DeoVrEvent[] = events.map(event => ({ kind: event.kind, generation: event.generation, sequence: event.sequence,
-        resourceRevision: event.resourceRevision, receivedAtMs: event.receivedAtMs, path: event.path,
-        playing: event.playing, value: event.value, reason: event.reason }));
+      const copies: DeoVrEvent[] = events.map(event => {
+        const copy: DeoVrEvent = { kind: event.kind, generation: event.generation, sequence: event.sequence,
+          resourceRevision: event.resourceRevision, receivedAtMs: event.receivedAtMs, path: event.path,
+          playing: event.playing, value: event.value, reason: event.reason };
+        if (event.sceneUri !== undefined) { copy.sceneUri = event.sceneUri; }
+        return copy;
+      });
       try { listener(this.copySnapshot(snapshot), copies); } catch { /* Observer failure cannot revive a generation. */ }
     }
   }
@@ -181,7 +197,7 @@ export class DeoVrMediaSource {
     return this.command({ kind: 'speed', value: speed }, onDispatch);
   }
   private async command(command: DeoVrCommand, onDispatch?: DeoVrDispatchCallback): Promise<DeoVrSendReceipt> {
-    const bytes: Uint8Array = encodeDeoVrCommand(command);
+    const bytes: Uint8Array = this.encodeCommand(command);
     const entry: DeoVrGeneration | null = this.current;
     if (entry === null || !this.live(entry) || !entry.connected || this.value.status !== 'connected') { throw new DeoVrError('notConnected'); }
     if (entry.queue.length >= this.options.maximumQueuedCommands) { throw new DeoVrError('commandQueueFull'); }
@@ -321,7 +337,7 @@ export class DeoVrMediaSource {
         if (frame.payload === null) { this.resetMedia(entry, receivedAt, 'emptyFrame', false); continue; }
         entry.allocatedState = true;
         let packet: DeoVrPlayerPacket;
-        try { packet = decodeDeoVrPacket(frame.payload); }
+        try { packet = this.decodePacket(frame.payload); }
         catch (error) {
           this.value.currentTimeValid = false; this.value.lastObservation = null;
           this.value.diagnostic = error instanceof DeoVrError ? error.code : 'invalidPacket'; this.notify(); continue;
@@ -347,7 +363,9 @@ export class DeoVrMediaSource {
     // those equality semantics, but revoke current-resource evidence separately.
     if (packet.path !== this.value.path) {
       this.value.path = packet.path; this.value.resourceRevision++; this.clearResourceEvidence();
-      const event: DeoVrEvent = this.event(entry, 'path', receivedAt); event.path = packet.path as string; events.push(event);
+      const event: DeoVrEvent = this.event(entry, 'path', receivedAt); event.path = packet.path as string;
+      if (packet.sceneUri !== undefined) { this.value.sceneUri = packet.sceneUri; event.sceneUri = packet.sceneUri; }
+      events.push(event);
     }
     if (packet.playerState !== null) {
       this.value.playerStateValid = true;
@@ -389,6 +407,7 @@ export class DeoVrMediaSource {
     if (!entry.allocatedState && !force) { return; }
     entry.allocatedState = false; entry.rawDurationSeconds = null; entry.rawPositionSeconds = null; this.value.resourceRevision++;
     this.value.path = null; this.value.playerState = null; this.value.playing = false;
+    if (this.value.sceneUri !== undefined) { this.value.sceneUri = null; }
     this.value.durationSeconds = null; this.value.positionSeconds = null; this.value.speed = null; this.clearResourceEvidence();
     const event: DeoVrEvent = this.event(entry, 'reset', receivedAt); event.reason = reason; this.notify([event]);
   }

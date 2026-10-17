@@ -1,3 +1,16 @@
+# 0.21 checkpoint and remaining priorities
+
+HereSphere now has a complete explicit-source path beside DeoVR/Internal; the18 previously-unwired media registrations were independently audited, and one HereSphere endpoint site is newly partial. Current coverage154/188=110full-portable+44partial;34unwired. Four added concrete names are not four new original sites. Full remaining rows are in tools/reference/action-coverage-021-source.json.
+
+1. **Actual user-device feedback first:** readable UI/global Stop, AVPlayer/fullscreen, source state/clock and dedicated TCP/UDP diagnostics on authorized phone/tablet/PC. SDK and Linux fixtures cannot establish OHOS NetworkKit, real font/IME/touch or actual HereSphere compatibility. Do not contact an unspecified player/device.
+2. **17 remaining source/lifecycle sites:** next self-contained low-secret candidates are MPC's actual HTTP variables/control protocol or Whirligig's honest receive-only protocol. Whirligig must not show unsupported play/seek/rate controls. VLC is high-value but needs secure password entry/storage and HTTP Basic/version/playlist semantics before full integration. mpv needs a real local process/IPC strategy; a TCP field cannot replace original Windows named pipes. OFS requires live funscript/project edit integration. Plex/Emby/Jellyfin need secure secrets and actual client/session discovery. Source auto-connect requires a real bounded host scanner and must never grant physical Arm.
+3. **9 continuous Drive sites:** real absolute/relative pointer/gamepad/touch sampling, delta/dt, held-input cancellation and lifecycle; discrete buttons are not substitutes. Preserve text focus and always-available hard Stop.
+4. **7 output scheduler/protocol sites:** actual auto-connect scheduling, Buttplug, pipe, serial and Handy resource/credential discovery and ownership. Current TCP/UDP/WS support does not implement these. Unsupported protocols must not show successful connection status.
+5. **44 partial boundaries:** retain strict finite/managed domains and target scopes; prove original WPF binding/dispatcher/attached-canvas effects where possible instead of guessing. HereSphere/DeoVR ordinary-control observations are not causal ACK; seek/path always revoke Arm.44 partial is not a declaration of full parity.
+6. **1 debug action and broader product gaps:** original bounded log dispatch, repositories(XBVR/Stash), plugins, desktop lists and platform convenience need actual end-to-end behavior. File special review remains blocked; no reroute or recording claim. Git operations remain separately authorized and are not part of this archive.
+
+## Historical record
+
 # 0.20 practical-use checkpoint
 
 Readable defaults/shared52vp controls, fixed always-reachable72×52vp global Stop, and actual TCP/UDP Linux production-chain socket evidence are delivered, with reachable OHOS one-shot diagnostics and a dedicated receiver. Native-device network/visual/input validation is still pending. The runnable browser preview has no rendered screenshots because permitted execution was blocked. No original action-count increment is claimed:153/188sites,43partial and35unwired remain as in0.19.

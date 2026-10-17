@@ -38,7 +38,7 @@ test('application native output lifecycle creates no connection and gates immedi
  assert.equal(collection.get('tcp:0'),port);assert.deepEqual(calls,[['create'],['foreground',false]]);
  NativeOutputSession.current({});assert.equal(calls.filter(([kind])=>kind==='create').length,1);
  const ability=readFileSync(new URL('../entry/src/main/ets/entryability/EntryAbility.ets',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace('export default class','class');
- const EntryAbility=new Function('UIAbility','NativeOutputSession','AppStorage','PlaybackSession','NativeWindowPresentation','DeoVrSession',stripTypeScriptTypes(ability)+';return EntryAbility;')(class{},NativeOutputSession,{setOrCreate(_name,value){calls.push(['storage',value]);}},{flushIfReady(){calls.push(['flush']);}},{setForeground(){},destroyStage(){}},{closeIfReady(){}});
+ const EntryAbility=new Function('UIAbility','NativeOutputSession','AppStorage','PlaybackSession','NativeWindowPresentation','RemoteMediaSession',stripTypeScriptTypes(ability)+';return EntryAbility;')(class{},NativeOutputSession,{setOrCreate(_name,value){calls.push(['storage',value]);}},{flushIfReady(){calls.push(['flush']);}},{setForeground(){},destroyStage(){}},{closeIfReady(){}});
  calls.length=0;const app=new EntryAbility();app.onBackground();assert.deepEqual(calls,[['foreground',false],['storage',false],['flush']]);
  calls.length=0;app.onForeground();assert.deepEqual(calls,[['foreground',true],['storage',true]]);
  app.onDestroy();assert.ok(calls.filter(([kind,value])=>kind==='foreground'&&value===false).length>0);

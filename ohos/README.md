@@ -1,3 +1,19 @@
+# MultiFunPlayer for OHOS — 0.21.0 local candidate
+
+## Current scope (0.21.0 / code 22)
+
+HereSphere is now a second independently owned remote media source alongside DeoVR and Internal/local AVPlayer. Source choice and separate validated endpoints persist inertly. The actual app connects explicitly, receives framed TCP JSON, tracks resource/legacy-path identity and observed time/state/duration/rate, matches scripts only in the authorized Download catalog, and routes common play/pause/speed/seek/path/AB/AutoSkip controls to the exact current source. Source callbacks, clock proof and asynchronous script reads include source kind, connection and resource identity; equal numeric generations cannot cross owners.
+
+Switching retires both old source owners and requires confirmed closure before replacement. Stop, background, page/Stage/Ability teardown, failed close and stale operations close dispatch and revoke intent. Restored configuration never connects or Arms. HereSphere resource identifiers are inert context, never a network fetch or filesystem capability. No new directory or single-video import is added.
+
+The original187-assertion HereSphere reader/writer oracle executes under .NET9. Three real127.0.0.1 socket fixtures exercise HereSphere → production native TCP adapter logic → an injected Node SDK bridge, including fragmentation, command bytes, reset, timeout, late write and cleanup. The official clean SDK build and3163/3163 aggregate pass. This is not actual HereSphere-player or OHOS-NetworkKit-device interoperability; local signing/deployment and authorized device testing remain necessary.
+
+The protocol has no causal command ACK/server timestamp. Play/pause/speed reuse bounded compatible-observation continuity only for targets already explicitly Armed; writes alone prove nothing. Seek/path/source changes revoke Arm and require explicit reauthorization. Strict bounded parser/endpoint domains, missing Windows process checks and missing source auto-connect remain declared portable differences.
+
+All0.20 readable defaults,≥52vp controls, fixed global Stop, same native video Surface, output independence and one-shot network diagnostics remain. No new rendered UI screenshots were generated. Coverage is **182 IDs=164 literal original+14 aliases+4 OHOS;154/188 sites=110 full-portable+44 partial;34 unwired**. Four concrete HereSphere names add only one original site. This is still incomplete1:1 parity. See [usage](USAGE_ZH.md), [local tests](LOCAL_TEST_021.md), [exact coverage](ACTION_COVERAGE_021.md), [validation](VALIDATION.md) and [remaining priorities](NEXT_PARITY_STEPS.md). File recording remains unintegrated; its blocked review was not retried. Git publication is not part of this candidate freeze.
+
+## Historical record
+
 # MultiFunPlayer for OHOS — 0.20.0 local candidate
 
 ## Current scope (0.20.0 / code 21)

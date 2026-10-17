@@ -1,4 +1,4 @@
-import { DeoVrSession } from '../app/DeoVrSession';
+import { RemoteMediaSession } from '../app/RemoteMediaSession';
 import { UIAbility } from '@kit.AbilityKit';
 import { window } from '@kit.ArkUI';
 import { PlaybackSession } from '../app/PlaybackSession';
@@ -33,17 +33,17 @@ export default class EntryAbility extends UIAbility {
     AppStorage.setOrCreate('mfpForeground', true); NativeWindowPresentation.setForeground(true);
   }
   onBackground(): void {
-    DeoVrSession.closeIfReady();
+    RemoteMediaSession.closeIfReady();
     this.applicationForeground = false; NativeOutputSession.setForeground(false);
     AppStorage.setOrCreate('mfpForeground', false); NativeWindowPresentation.setForeground(false); PlaybackSession.flushIfReady();
   }
   onWindowStageDestroy(): void {
-    DeoVrSession.closeIfReady();
+    RemoteMediaSession.closeIfReady();
     this.stageGeneration++; NativeWindowPresentation.destroyStage();
     NativeOutputSession.setForeground(false); AppStorage.setOrCreate('mfpForeground', false);
   }
   onDestroy(): void {
-    DeoVrSession.closeIfReady();
+    RemoteMediaSession.closeIfReady();
     this.stageGeneration++; this.applicationForeground = false; NativeWindowPresentation.destroyStage();
     NativeOutputSession.closeIfReady(); AppStorage.setOrCreate('mfpForeground', false); PlaybackSession.flushIfReady();
   }

@@ -3,7 +3,10 @@ import { UiStyle } from '../presentation/UiStyle';
 import { applyOutputEndpointAction, isOutputEndpointAction, outputConnectionOperation } from '../input/ShortcutOutputConnectionActions';
 import type { DeoVrDispatchBoundary } from '../media/deovr/DeoVrTypes';
 import type { DeoVrControlRequest } from '../media/deovr/DeoVrControlEvidence';
-import { DeoVrSession } from '../app/DeoVrSession';
+import { RemoteMediaSession } from '../app/RemoteMediaSession';
+import type { RemoteSourceKind } from '../app/RemoteMediaSession';
+import type { DeoVrMediaSource } from '../media/deovr/DeoVrMediaSource';
+import { parseMediaSourceShortcut } from '../input/ShortcutSourceActions';
 import { DeoVrSourcePanel } from '../components/DeoVrSourcePanel';
 import { MediaSourceConfiguration } from '../settings/MediaSourceConfiguration';
 import { deoVrScriptMatchHint, parseDeoVrEndpointText } from '../media/deovr/DeoVrScriptMatch';
@@ -188,6 +191,7 @@ struct Index {
   @State deoVrDuration: number | null = null;
   @State deoVrPlaying: boolean = false;
   @State deoVrStale: boolean = true;
+  private remoteKind: RemoteSourceKind = 'deovr';
   private deoVrActive: boolean = false;
   private deoVrRequest: number = 0;
   private deoVrControlRequest: number = 0;
@@ -305,8 +309,11 @@ struct Index {
     this.viewActive = true;
     this.diagnosticOwner = SocketDiagnosticSession.claimOwner();
     this.mediaSourceConfiguration = this.engine.mediaSourceConfiguration();
-    this.deoVrUnsubscribe = DeoVrSession.current().subscribe((snapshot: DeoVrSnapshot, events: ReadonlyArray<DeoVrEvent>) => this.deoVrSnapshot(snapshot, events));
-    this.deoVrSnapshot(DeoVrSession.current().snapshot(), []);
+    this.remoteKind = this.mediaSourceConfiguration.selectedSource === 'heresphere' ? 'heresphere' : 'deovr';
+    const deoUnsubscribe = RemoteMediaSession.current('deovr').subscribe((snapshot: DeoVrSnapshot, events: ReadonlyArray<DeoVrEvent>) => this.deoVrSnapshot(snapshot, events, 'deovr'));
+    const hereUnsubscribe = RemoteMediaSession.current('heresphere').subscribe((snapshot: DeoVrSnapshot, events: ReadonlyArray<DeoVrEvent>) => this.deoVrSnapshot(snapshot, events, 'heresphere'));
+    this.deoVrUnsubscribe = (): void => { deoUnsubscribe(); hereUnsubscribe(); };
+    this.deoVrSnapshot(this.remoteSource().snapshot(), [], this.remoteKind);
     this.keyboardConfiguration = this.engine.keyboardConfiguration(); this.generalConfiguration = this.engine.generalConfiguration();
     this.keyboard.setConfiguration(this.keyboardConfiguration);
     this.keyboardOwner = KeyboardInputSession.setListener((_editing: boolean): void => this.updateKeyboardContext(),
@@ -625,24 +632,31 @@ struct Index {
     const context = this.playlistContext();
     const mediaAction = action.id.startsWith('Media::Position::') || action.id.startsWith('Media::Loop::') ||
       action.id.startsWith('Media::Chapter::') || action.id.startsWith('Media::Bookmark::');
-    if (action.id === 'DeoVR::Endpoint::Set') {
-      const endpoint = parseDeoVrEndpointText(action.text); const configuration = this.engine.mediaSourceConfiguration();
-      configuration.deoVr.host = endpoint.host; configuration.deoVr.port = endpoint.port;
-      MediaSourceConfiguration.clone(configuration);
-      if (!await this.applyMediaSourceSettings(configuration)) { throw new Error(this.deoVrError || '当前状态未保存 DeoVR 端点。'); } return label + '：已保存，需显式连接；未自动 Arm';
+    const sourceAction = parseMediaSourceShortcut(action);
+    if (sourceAction !== null && sourceAction.kind === 'endpoint') {
+      const configuration = this.engine.mediaSourceConfiguration();
+      const endpoint = sourceAction.endpoint!;
+      const target = sourceAction.source === 'heresphere' ? configuration.hereSphere : configuration.deoVr;
+      target.host = endpoint.host; target.port = endpoint.port;
+      if (!await this.applyMediaSourceSettings(configuration)) { throw new Error(this.deoVrError || '当前状态未保存远端端点。'); }
+      return label + '：已保存指定来源端点，需显式连接；未自动 Arm';
     }
-    if ((action.id.startsWith('DeoVR::Connection::') || action.id.startsWith('Internal::Connection::'))) {
+    if (sourceAction !== null && sourceAction.kind === 'connection') {
       if (context.busy) { throw new Error('媒体源正在切换，请稍后重试。'); }
-      const remote = action.id.startsWith('DeoVR::'); const connected = remote ? this.deoVrConnected : this.internalConnected;
-      const disconnect = action.id.endsWith('::Disconnect') || (action.id.endsWith('::Toggle') && connected);
-      if (disconnect) { if (remote) { if (this.deoVrActive && !await this.disconnectDeoVr()) { throw new Error(this.deoVrError); } } else { this.disconnectInternal(); } }
-      else if (!connected) { if (remote) { await this.connectDeoVr(); } else { await this.connectInternal(); } }
-      this.sync(); return label + '：' + ((remote ? this.deoVrConnected : this.internalConnected) ? '媒体源已连接，输出未自动 Arm' : '媒体源未连接');
+      const remote = sourceAction.source !== 'internal';
+      const kind: RemoteSourceKind = sourceAction.source === 'heresphere' ? 'heresphere' : 'deovr';
+      const connected = remote ? this.remoteKind === kind && this.deoVrConnected : this.internalConnected;
+      const disconnect = sourceAction.command === 'disconnect' || (sourceAction.command === 'toggle' && connected);
+      if (disconnect) {
+        if (remote) { if (this.remoteKind === kind && !await this.disconnectDeoVr()) { throw new Error(this.deoVrError); } }
+        else { this.disconnectInternal(); }
+      } else if (!connected) { if (remote) { await this.connectDeoVr(kind); } else { await this.connectInternal(); } }
+      this.sync(); return label + '：' + ((remote ? this.remoteKind === kind && this.deoVrConnected : this.internalConnected) ? '媒体源已连接，输出未自动 Arm' : '媒体源未连接');
     }
     if (action.id === 'Media::Path::Set') {
-      if (!this.deoVrActive || !this.deoVrConnected || context.busy || action.text.length === 0) { throw new Error('此路径命令仅用于已连接的 DeoVR；不会打开任意本地文件。'); }
+      if (!this.deoVrActive || !this.deoVrConnected || context.busy || action.text.length === 0) { throw new Error('此路径命令仅用于已连接的远程媒体源；不会打开任意本地文件。'); }
       const owner = this.deoVrRequest; this.output.stop(); this.engine.beginDeoVrSeek(); this.syncOutput();
-      await DeoVrSession.current().changePath(action.text);
+      await this.remoteSource().changePath(action.text);
       if (owner !== this.deoVrRequest || !this.deoVrActive) { throw new Error('远端路径请求已取消。'); }
       return label + '：已本地提交，等待远端媒体状态；仅匹配已授权 Download，设备需重新 Arm';
     }
@@ -1142,70 +1156,85 @@ struct Index {
     settings.autoSkipEnabled = this.engine.autoSkip.enabled; settings.autoSkipOffsetSeconds = this.engine.autoSkip.offsetSeconds;
     this.engine.changePlaybackConfiguration(settings);
   }
+  private remoteSource(): DeoVrMediaSource { return RemoteMediaSession.current(this.remoteKind); }
+  private remoteName(): string { return this.remoteKind === 'heresphere' ? 'HereSphere' : 'DeoVR'; }
   async applyMediaSourceSettings(configuration: MediaSourceConfiguration): Promise<boolean> {
     if (this.settingsReadOnly || this.recoveryRequired || !this.viewActive || !this.foreground) { return false; }
     const request = ++this.mediaSettingsRequest; const prior = JSON.stringify(this.engine.mediaSourceConfiguration());
     const next = MediaSourceConfiguration.clone(configuration);
     if (JSON.stringify(next) === JSON.stringify(this.engine.mediaSourceConfiguration())) { return true; }
     const selectionChanged = next.selectedSource !== this.engine.mediaSourceConfiguration().selectedSource;
-    if (this.deoVrActive || !DeoVrSession.current().snapshot().closeConfirmed || selectionChanged) {
+    if (this.deoVrActive || !RemoteMediaSession.allClosed() || selectionChanged) {
       this.cancelKeyboardWork(); this.output.stop(); this.engine.stop();
       if (!await this.disconnectDeoVr()) { return false; }
-      if (selectionChanged && next.selectedSource === 'deovr') { this.disconnectInternal(); if (this.videoMode) { this.closeVideo(); await this.video.release(); } }
+      if (selectionChanged && next.selectedSource !== 'internal') { this.disconnectInternal(); if (this.videoMode) { this.closeVideo(); await this.video.release(); } }
     }
     if (!this.viewActive || !this.foreground || this.settingsReadOnly || this.recoveryRequired) { return false; }
     if (request !== this.mediaSettingsRequest || prior !== JSON.stringify(this.engine.mediaSourceConfiguration())) { return false; }
     this.engine.changeMediaSourceConfiguration(next); this.mediaSourceConfiguration = next;
+    this.remoteKind = next.selectedSource === 'heresphere' ? 'heresphere' : 'deovr';
+    this.deoVrError = ''; this.deoVrSnapshot(this.remoteSource().snapshot(), [], this.remoteKind);
     this.status = '媒体源配置已保存；未连接、未启用输出。'; this.sync(); return true;
   }
-  async connectDeoVr(): Promise<void> {
+  async connectDeoVr(kind: RemoteSourceKind = 'deovr'): Promise<void> {
     if (!this.viewActive || !this.foreground || this.runtimeBusy || this.libraryBusy || this.importing || this.openingVideo ||
       this.deoVrBusy || this.settingsReadOnly || this.recoveryRequired || !this.libraryLoaded || this.libraryRoot.length === 0) { return; }
-    this.mediaSettingsRequest++;
-    const source = DeoVrSession.current();
-    if (source.snapshot().status === 'connected') { return; }
+    const intent = ++this.mediaSettingsRequest;
+    if (kind === this.remoteKind && this.remoteSource().snapshot().status === 'connected') { return; }
+    // Retire both source owners before selecting a different one. A failed close
+    // cannot be bypassed through the other protocol's independent factory.
+    if (this.deoVrActive || !RemoteMediaSession.allClosed()) {
+      const closing = this.disconnectDeoVr(); const retiring = this.deoVrRequest;
+      if (!await closing || retiring !== this.deoVrRequest) { return; }
+    }
+    if (intent !== this.mediaSettingsRequest || !this.viewActive || !this.foreground || this.settingsReadOnly || this.recoveryRequired) { return; }
+    this.remoteKind = kind; const source = this.remoteSource(); const name = this.remoteName();
     this.cancelKeyboardWork(); this.disconnectInternal(); this.cancelMediaSeek(); this.output.stop(); this.engine.stop();
     this.openVideoRequest++; this.pendingVideoUri = ''; this.videoMode = false; this.videoReady = false; this.setVideoFullscreen(false);
     const request = ++this.deoVrRequest; this.deoVrBusy = true; this.deoVrError = ''; this.deoVrMatchRequest++;
-    const current = (): boolean => request === this.deoVrRequest && this.viewActive && this.foreground;
+    const current = (): boolean => request === this.deoVrRequest && this.remoteKind === kind && this.viewActive && this.foreground;
     try {
       await this.video.release(); if (!current()) { return; }
       if (this.video.snapshot().failure.length > 0) { throw new Error(this.video.snapshot().failure); }
-      if (!source.snapshot().closeConfirmed) { await source.disconnect(); if (!current()) { return; } }
-      this.engine.clearScripts(); this.document = new FunscriptDocument([]); this.fileName = '等待 DeoVR 媒体及受管脚本匹配';
-      const configuration = this.engine.mediaSourceConfiguration(); configuration.selectedSource = 'deovr';
+      if (!RemoteMediaSession.allClosed()) { throw new Error('旧媒体源关闭尚未确认。'); }
+      this.engine.clearScripts(); this.document = new FunscriptDocument([]); this.fileName = '等待 ' + name + ' 媒体及受管脚本匹配';
+      const configuration = this.engine.mediaSourceConfiguration(); configuration.selectedSource = kind;
       this.engine.changeMediaSourceConfiguration(configuration); this.mediaSourceConfiguration = configuration;
       this.deoVrActive = true; this.deoVrResourceRevision = -1; this.deoVrGeneration = -1;
-      const operation = source.connect({ host: configuration.deoVr.host, port: configuration.deoVr.port,
-        family: configuration.deoVr.host.indexOf(':') >= 0 ? 2 : 1 });
-      await operation; if (!current()) { return; }
-      this.status = 'DeoVR TCP 已连接，等待真实媒体状态；输出未自动连接或 Arm。';
+      const endpoint = kind === 'heresphere' ? configuration.hereSphere : configuration.deoVr;
+      await source.connect({ host: endpoint.host, port: endpoint.port, family: endpoint.host.indexOf(':') >= 0 ? 2 : 1 });
+      if (!current()) { return; }
+      this.status = name + ' TCP 已连接，等待真实媒体状态；输出未自动连接或 Arm。';
     } catch (error) {
-      if (current()) { this.deoVrActive = false; this.engine.stop(); this.output.stop(); this.deoVrError = (error as Error).message; this.status = 'DeoVR 连接失败：' + this.deoVrError; }
-    } finally { if (current()) { this.deoVrBusy = false; this.deoVrSnapshot(source.snapshot(), []); this.sync(); } }
+      if (current()) { this.deoVrActive = false; this.engine.stop(); this.output.stop(); this.deoVrError = (error as Error).message; this.status = name + ' 连接失败：' + this.deoVrError; }
+    } finally { if (current()) { this.deoVrBusy = false; this.deoVrSnapshot(source.snapshot(), [], kind); this.sync(); } }
   }
   async disconnectDeoVr(): Promise<boolean> {
     this.deoVrRequest++; this.deoVrMatchRequest++; this.deoVrMatching = false;
     const owned = this.deoVrActive || this.engine.isDeoVrSource(); this.deoVrActive = false;
     if (owned) {
       this.cancelMediaSeek(); this.cancelManagedReload(); this.output.stop(); this.engine.clearScripts(); this.engine.useExternalClock(false);
-      this.document = new FunscriptDocument([]); this.fileName = 'DeoVR 已停止，需显式连接';
+      this.document = new FunscriptDocument([]); this.fileName = this.remoteName() + ' 已停止，需显式连接';
     }
-    const source = DeoVrSession.current();
-    try { await source.disconnect(); return source.snapshot().closeConfirmed; }
-    catch (error) { this.deoVrError = 'DeoVR 关闭未确认：' + (error as Error).message; return false; }
-    finally { if (this.viewActive) { this.deoVrSnapshot(source.snapshot(), []); } }
+    const kind = this.remoteKind; const source = this.remoteSource();
+    // Invoke both cancellations synchronously, before awaiting either close.
+    const operations = [RemoteMediaSession.current('deovr'), RemoteMediaSession.current('heresphere')].map(owner =>
+      owner.disconnect().then((): boolean => owner.snapshot().closeConfirmed).catch((): boolean => false));
+    const closed = (await Promise.all(operations)).every(value => value) && RemoteMediaSession.allClosed();
+    if (!closed) { this.deoVrError = '媒体源关闭未确认；所有来源切换和重新连接已锁定。'; }
+    if (this.viewActive && kind === this.remoteKind) { this.deoVrSnapshot(source.snapshot(), [], kind); }
+    return closed;
   }
-  deoVrSnapshot(snapshot: DeoVrSnapshot, events: ReadonlyArray<DeoVrEvent>): void {
-    if (!this.viewActive) { return; }
+  deoVrSnapshot(snapshot: DeoVrSnapshot, events: ReadonlyArray<DeoVrEvent>, kind: RemoteSourceKind = 'deovr'): void {
+    if (!this.viewActive || kind !== this.remoteKind || (snapshot.sourceKind !== undefined && snapshot.sourceKind !== kind)) { return; }
     this.deoVrConnected = snapshot.status === 'connected'; this.deoVrBusy = snapshot.status === 'connecting' || snapshot.status === 'disconnecting';
-    this.deoVrCloseConfirmed = snapshot.closeConfirmed; this.deoVrStatus = snapshot.status;
+    this.deoVrCloseConfirmed = snapshot.closeConfirmed && RemoteMediaSession.allClosed(); this.deoVrStatus = snapshot.status;
     this.deoVrPath = snapshot.path || ''; this.deoVrPosition = snapshot.positionSeconds; this.deoVrDuration = snapshot.durationSeconds;
     this.deoVrPlaying = snapshot.playing;
     if (snapshot.diagnostic !== null) { this.deoVrError = snapshot.diagnostic; }
     if (!this.deoVrActive || !this.foreground) { return; }
     if (snapshot.status === 'connecting' && snapshot.generation !== this.deoVrGeneration) {
-      this.deoVrGeneration = snapshot.generation; this.engine.useDeoVrSource(snapshot.generation);
+      this.deoVrGeneration = snapshot.generation; this.engine.useDeoVrSource(snapshot.generation, kind);
     }
     if (snapshot.generation !== this.deoVrGeneration) { return; }
     if (snapshot.status === 'connected' && snapshot.playerState !== null && snapshot.playerState !== 0 && snapshot.playerState !== 1) { this.status = '远端报告非普通播放/暂停状态，输出权限已撤销；需明确恢复普通状态并重新 Arm。'; }
@@ -1216,42 +1245,42 @@ struct Index {
     this.engine.acceptDeoVrSnapshot(snapshot, events, this.inputNow());
     if (changed) {
       this.deoVrResourceRevision = snapshot.resourceRevision;
-      this.document = this.engine.displayDocument(); this.fileName = '正在按受管目录匹配 DeoVR 媒体…';
+      this.document = this.engine.displayDocument(); this.fileName = '正在按受管目录匹配 ' + this.remoteName() + ' 媒体…';
       this.matchDeoVrScripts(snapshot);
     }
     if (snapshot.status === 'fault' || snapshot.status === 'disconnected') { this.engine.stop(); this.deoVrActive = false; }
     this.sync();
   }
   async matchDeoVrScripts(snapshot: DeoVrSnapshot): Promise<void> {
-    const request = ++this.deoVrMatchRequest; const owner = this.deoVrRequest;
+    const request = ++this.deoVrMatchRequest; const owner = this.deoVrRequest; const kind = this.remoteKind; const source = this.remoteSource();
     const root = this.libraryRoot; const catalog = this.mediaCatalog; const libraries = this.scriptLibraries; const libraryRequest = this.libraryRequest;
     const profile = this.engine.activeRegistry().revision;
-    const current = (): boolean => request === this.deoVrMatchRequest && owner === this.deoVrRequest && this.deoVrActive &&
+    const current = (): boolean => request === this.deoVrMatchRequest && owner === this.deoVrRequest && kind === this.remoteKind && source === this.remoteSource() && this.deoVrActive &&
       this.viewActive && this.foreground && this.libraryLoaded && !this.libraryBusy && root.length > 0 && root === this.libraryRoot &&
       catalog === this.mediaCatalog && libraries === this.scriptLibraries && libraryRequest === this.libraryRequest && profile === this.engine.activeRegistry().revision &&
-      snapshot.generation === DeoVrSession.current().snapshot().generation && snapshot.resourceRevision === DeoVrSession.current().snapshot().resourceRevision;
+      snapshot.generation === source.snapshot().generation && snapshot.resourceRevision === source.snapshot().resourceRevision;
     this.deoVrMatching = true;
     try {
       if (!current() || snapshot.path === null) { throw new Error('受管目录或远端媒体已失效。'); }
-      const media = deoVrScriptMatchHint(snapshot.path);
+      const media = deoVrScriptMatchHint(snapshot.path, kind);
       const catalogs = [new ResourceLibraryCatalog(root, catalog, true)].concat(
         this.scriptLibraries.map(source => new ResourceLibraryCatalog(source.uri, source.files, source.recursive)));
       const selection = await this.readCompanionSelection(media, [], catalogs, current, true);
       if (!current()) { return; }
       const document = selection.document || new FunscriptDocument([]); let bindings: AxisScriptBinding[] = [];
       for (const item of selection.axisSources) { bindings = bindings.concat(this.engine.resources(item.document, item.file.uri, item.file.name)); }
-      if (!this.engine.loadDeoVrBindings(snapshot.generation, snapshot.resourceRevision, document, bindings)) { return; }
-      this.document = document; this.fileName = selection.selectedFiles.length > 0 ? selection.selectedFiles.map(item => item.name).join(' + ') : 'DeoVR 媒体无匹配脚本';
+      if (!this.engine.loadDeoVrBindings(snapshot.generation, snapshot.resourceRevision, document, bindings, kind)) { return; }
+      this.document = document; this.fileName = selection.selectedFiles.length > 0 ? selection.selectedFiles.map(item => item.name).join(' + ') : this.remoteName() + ' 媒体无匹配脚本';
       this.status = this.fileName + '；仅接收的媒体时钟有效，输出需单独 Arm。';
     } catch (error) {
-      if (current()) { this.output.stop(); this.engine.stop(); this.deoVrError = 'DeoVR 脚本匹配失败：' + (error as Error).message; this.status = this.deoVrError; }
+      if (current()) { this.output.stop(); this.engine.stop(); this.deoVrError = this.remoteName() + ' 脚本匹配失败：' + (error as Error).message; this.status = this.deoVrError; }
     } finally { if (request === this.deoVrMatchRequest) { this.deoVrMatching = false; if (this.viewActive) { this.sync(); } } }
   }
   async setDeoVrPlaying(playing: boolean): Promise<void> { await this.controlDeoVr({ kind: playing ? 'play' : 'pause' }); }
   private async controlDeoVr(control: DeoVrControlRequest): Promise<void> {
     if (!this.deoVrActive || !this.deoVrConnected || !this.viewActive || !this.foreground) { return; }
     const owner = this.deoVrRequest; const request = ++this.deoVrControlRequest;
-    const source = DeoVrSession.current(); const initial = source.snapshot();
+    const source = this.remoteSource(); const initial = source.snapshot();
     const current = (): boolean => owner === this.deoVrRequest && request === this.deoVrControlRequest && this.deoVrActive &&
       this.foreground && this.viewActive && initial.generation === source.snapshot().generation &&
       initial.resourceRevision === source.snapshot().resourceRevision;
@@ -1281,10 +1310,10 @@ struct Index {
     if (!this.deoVrActive || !this.deoVrConnected || !this.foreground || !this.viewActive || !Number.isFinite(position) || position < 0 || position > this.durationMs) { return; }
     this.cancelMediaSeek(); this.output.stop();
     if (!this.engine.beginDeoVrSeek()) { return; }
-    const owner = this.deoVrRequest; const initial = DeoVrSession.current().snapshot(); const command = ++this.deoVrControlRequest; this.syncOutput();
-    const current = (): boolean => owner === this.deoVrRequest && command === this.deoVrControlRequest && this.deoVrActive && initial.generation === DeoVrSession.current().snapshot().generation && initial.resourceRevision === DeoVrSession.current().snapshot().resourceRevision;
+    const owner = this.deoVrRequest; const initial = this.remoteSource().snapshot(); const command = ++this.deoVrControlRequest; this.syncOutput();
+    const current = (): boolean => owner === this.deoVrRequest && command === this.deoVrControlRequest && this.deoVrActive && initial.generation === this.remoteSource().snapshot().generation && initial.resourceRevision === this.remoteSource().snapshot().resourceRevision;
     try {
-      await DeoVrSession.current().seek(position / 1000);
+      await this.remoteSource().seek(position / 1000);
       if (current()) { this.status = '远端跳转已提交；协议无 seek ACK，设备 Arm 已撤销，收到新状态后需手动重新启用。'; }
     } catch (error) { if (current()) { this.engine.stop(); this.output.stop(); this.deoVrError = (error as Error).message; } }
     if (this.viewActive) { this.sync(); }
@@ -1310,7 +1339,7 @@ struct Index {
       this.settingsReadOnly || this.recoveryRequired) { return; }
     if (this.internalConnected) { this.disconnectInternal(); this.sync(); return; }
     const retiringRequest = ++this.internalRequest; this.internalBusy = true;
-    if (this.deoVrActive || !DeoVrSession.current().snapshot().closeConfirmed) {
+    if (this.deoVrActive || !RemoteMediaSession.allClosed()) {
       const closed = await this.disconnectDeoVr();
       if (retiringRequest !== this.internalRequest) { return; }
       if (!closed || !this.viewActive || !this.foreground) { this.internalBusy = false; this.status = this.deoVrError; return; }
@@ -1400,14 +1429,14 @@ struct Index {
     const openRequest = this.openVideoRequest; const internalRequest = this.internalRequest;
     const item = this.internalConnected ? this.playlist.currentItem : null;
     const video = this.videoMode ? this.activeVideoFile : null;
-    const remote = this.deoVrActive ? DeoVrSession.current().snapshot() : null;
+    const remote = this.deoVrActive ? this.remoteSource().snapshot() : null;
     const remoteRequest = this.deoVrRequest;
     const current = (): boolean => request === this.scriptReloadRequest && this.engine.isScriptReloadCurrent(token) &&
       root === this.libraryRoot && libraryRequest === this.libraryRequest && catalog === this.mediaCatalog && libraries === this.scriptLibraries &&
       openRequest === this.openVideoRequest && internalRequest === this.internalRequest &&
       (!this.internalConnected || item === this.playlist.currentItem) &&
-      (remote === null || (this.deoVrActive && remoteRequest === this.deoVrRequest && remote.generation === DeoVrSession.current().snapshot().generation &&
-        remote.resourceRevision === DeoVrSession.current().snapshot().resourceRevision)) && this.viewActive && this.foreground &&
+      (remote === null || (this.deoVrActive && remoteRequest === this.deoVrRequest && remote.generation === this.remoteSource().snapshot().generation &&
+        remote.resourceRevision === this.remoteSource().snapshot().resourceRevision)) && this.viewActive && this.foreground &&
       !this.settingsReadOnly && !this.recoveryRequired && (shortcut === null || this.keyboard.isDispatchCurrent(shortcut));
     this.scriptReloadBusy = true; this.scriptReloadStatus = '正在重新扫描同一Download目录并读取资源；媒体继续，发送暂待新帧。';
     // Suspend all existing targets immediately, before even the first await.
@@ -1435,7 +1464,7 @@ struct Index {
             selection = InternalSourceLibrary.selectSingle(ResourceLibrary.parseCandidate(contents, file, this.engine.activeRegistry().profile), this.engine.activeRegistry().profile);
           } else { selection = await this.readCompanionSelection(InternalSourceLibrary.companionMedia(file, this.engine.activeRegistry().profile), files, [], current, true); }
         } else if (remote !== null) {
-          if (remote.path === null) { throw new Error('DeoVR 没有当前媒体路径。'); }
+          if (remote.path === null) { throw new Error(this.remoteName() + ' 没有当前媒体路径。'); }
           selection = await this.readCompanionSelection(deoVrScriptMatchHint(remote.path), [], [new ResourceLibraryCatalog(root, files, true)], current, true);
         } else {
           // Match the existing source only by catalog identity. Never form an I/O
@@ -1799,7 +1828,7 @@ struct Index {
     if (this.runtimeBusy) { return; }
     if (!this.viewActive || !this.foreground || this.libraryBusy || this.openingVideo || this.importing) { return; }
     const retiringRequest = ++this.libraryRequest; this.libraryBusy = true;
-    if (this.deoVrActive || !DeoVrSession.current().snapshot().closeConfirmed) {
+    if (this.deoVrActive || !RemoteMediaSession.allClosed()) {
       const closed = await this.disconnectDeoVr();
       if (retiringRequest !== this.libraryRequest) { return; }
       if (!closed || !this.viewActive || !this.foreground) { this.libraryBusy = false; this.libraryMessage = this.deoVrError; return; }
@@ -1911,7 +1940,7 @@ struct Index {
     const video = manual ? item.videos.find((value: ResourceFileEntry) => value.uri === this.manualVideoUri) : item.video;
     if (video === undefined) { this.libraryMessage = 'Choose one video explicitly.'; return; }
     const retiringRequest = ++this.openVideoRequest; this.openingVideo = true;
-    if (this.deoVrActive || !DeoVrSession.current().snapshot().closeConfirmed) {
+    if (this.deoVrActive || !RemoteMediaSession.allClosed()) {
       const closed = await this.disconnectDeoVr();
       if (retiringRequest !== this.openVideoRequest) { return; }
       if (!closed || !this.viewActive || !this.foreground) { this.openingVideo = false; this.status = this.deoVrError; return; }
@@ -2003,7 +2032,7 @@ struct Index {
     this.cancelMediaSeek();
     if (this.internalConnected) { this.playlist.setPlaying(false); this.playlist.drainEvents(); }
     this.output.stop();
-    if (this.deoVrActive) { const owner = this.deoVrRequest; const initial = DeoVrSession.current().snapshot(); const command = ++this.deoVrControlRequest; this.engine.requestDeoVrPause(); DeoVrSession.current().playPause(false).catch(() => { if (owner === this.deoVrRequest && command === this.deoVrControlRequest && this.deoVrActive && initial.generation === DeoVrSession.current().snapshot().generation && initial.resourceRevision === DeoVrSession.current().snapshot().resourceRevision) { this.output.stop(); this.engine.stop(); } }); }
+    if (this.deoVrActive) { const owner = this.deoVrRequest; const initial = this.remoteSource().snapshot(); const command = ++this.deoVrControlRequest; this.engine.requestDeoVrPause(); this.remoteSource().playPause(false).catch(() => { if (owner === this.deoVrRequest && command === this.deoVrControlRequest && this.deoVrActive && initial.generation === this.remoteSource().snapshot().generation && initial.resourceRevision === this.remoteSource().snapshot().resourceRevision) { this.output.stop(); this.engine.stop(); } }); }
     else { this.engine.pause(); }
     if (this.videoMode) { this.video.pause(); }
   }
@@ -2335,7 +2364,7 @@ struct Index {
           Text(t(this.videoMode ? this.videoState : 'Disconnected')).fontSize(UiStyle.helper).fontColor(this.videoReady ? UiStyle.success : '#D32F2F')
         }.width(100).height(UiStyle.control).justifyContent(FlexAlign.Center).backgroundColor(this.videoMode ? UiStyle.accentSoft : UiStyle.card)
           .onClick(() => { this.showLibrary(); })
-        Button('DeoVR · ' + this.deoVrStatus).flatButton().height(UiStyle.control).onClick(() => { this.showSourceSettings = true; })
+        Button(this.remoteName() + ' · ' + this.deoVrStatus).flatButton().height(UiStyle.control).onClick(() => { this.showSourceSettings = true; })
         Blank()
         Button('⌕').flatButton().height(UiStyle.control).width(UiStyle.control).accessibilityText(t('Resources and script libraries')).onClick(() => this.showLibrary())
         Button(this.showSourceSettings ? '⌃' : '⚙').flatButton().height(UiStyle.control).width(UiStyle.control).accessibilityText(t('Source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
@@ -2366,8 +2395,8 @@ struct Index {
           connected: this.deoVrConnected, busy: this.deoVrBusy, closeConfirmed: this.deoVrCloseConfirmed, status: this.deoVrStatus, error: this.deoVrError,
           mediaPath: this.deoVrPath, positionSeconds: this.deoVrPosition, durationSeconds: this.deoVrDuration, playing: this.deoVrPlaying, stale: this.deoVrStale,
           onChange: (configuration: MediaSourceConfiguration) => { this.applyMediaSourceSettings(configuration); },
-          onConnect: () => { this.connectDeoVr(); }, onDisconnect: () => { this.disconnectDeoVr(); } })
-        Text('Internal 是独立脚本时钟；本地视频使用原生媒体时钟。DeoVR 仅按接收时间驱动，远端路径只匹配 Download 脚本。连接媒体源不会连接或启用设备输出。').fontSize(UiStyle.helper).fontColor('#795548').padding(10)
+          onConnect: () => { this.connectDeoVr(this.mediaSourceConfiguration.selectedSource === 'heresphere' ? 'heresphere' : 'deovr'); }, onDisconnect: () => { this.disconnectDeoVr(); } })
+        Text('Internal 是独立脚本时钟；本地视频使用原生媒体时钟。DeoVR / HereSphere 仅按接收时间驱动，远端路径只匹配 Download 脚本。连接媒体源不会连接或启用设备输出。').fontSize(UiStyle.helper).fontColor('#795548').padding(10)
         InternalPlaylistPanel({ snapshot: this.playlistView, compact: this.compactControls(),
           onAction: (action: PlaylistPanelAction) => { this.playlistAction(action); } })
         if (this.videoMode) {
