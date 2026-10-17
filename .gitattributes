@@ -1,7 +1,14 @@
-# The OHOS test harness strips ES module imports with a `\n`-terminated regex and the
-# interpolation golden fixture pins SHA256 of upstream C# sources, so both need LF bytes
-# in the working tree regardless of a cloner's core.autocrlf.
+# OHOS tests read upstream sources straight from the working tree and pin them by
+# content hash (SHA256, and git blob SHA1 for vendored copies); the harness also strips
+# ES module imports with a `\n`-terminated regex. Git for Windows sets core.autocrlf=true
+# system-wide, which smudges these LF blobs to CRLF and turns every pinned byte check
+# into a failure. Pin LF wherever a test compares bytes. Docs/ and the desktop C# build
+# are not content-pinned, so they keep their .editorconfig crlf preference.
 /ohos/** text eol=lf
-/Source/MultiFunPlayer/Common/Utils/MathUtils.cs text eol=lf
-/Source/MultiFunPlayer/Common/KeyframeCollection.cs text eol=lf
-/Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs text eol=lf
+/Source/** text eol=lf
+/tools/** text eol=lf
+
+# Two upstream files were committed with CRLF inside the blob itself, so they must be
+# reproduced byte for byte rather than normalized.
+/Source/MultiFunPlayer/UI/Controls/KeyframesHeatmap.xaml.cs -text
+/Source/MultiFunPlayer/UI/Controls/KeyframesHeatmapToolTip.xaml.cs -text
