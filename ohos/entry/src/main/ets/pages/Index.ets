@@ -2226,7 +2226,7 @@ struct Index {
   }
   shortcutOutputOptions(): SettingsOption[] {
     return this.outputTargets.filter(target => target.kind === 'tcp' || target.kind === 'udp' || target.kind === 'webSocket').map(target => new SettingsOption(target.id,
-      target.name + ' · ' + target.id + (target.removing ? '（移除中，不可执行）' : ' · ' + target.connection)));
+      target.name + ' · ' + target.id + (target.removing ? '（移除中，不可执行）' : ' · ' + t(target.connection))));
   }
   shortcutScriptOptions(): SettingsOption[] {
     return this.mediaCatalog.filter(file => file.name.toLowerCase().endsWith('.funscript'))
@@ -2286,7 +2286,7 @@ struct Index {
     Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
       Button('⌕').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontSize(22).accessibilityText(t('Script repositories and resources')).onClick(() => this.showLibrary())
       Button('↻').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontSize(22).accessibilityText(t('Refresh Download media folder')).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.refreshLibrary())
-      Button('AB').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).enabled(!this.libraryBusy && !this.importing && !this.openingVideo && (this.deoVrActive ? this.deoVrConnected : this.videoMode ? this.videoReady : this.internalConnected) && Number.isFinite(this.engine.mediaPositionSeconds())).accessibilityText('Set AB loop start, end, or clear').onClick(() => { this.playlistAction(new PlaylistPanelAction('loopCycle')); })
+      Button('AB').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).enabled(!this.libraryBusy && !this.importing && !this.openingVideo && (this.deoVrActive ? this.deoVrConnected : this.videoMode ? this.videoReady : this.internalConnected) && Number.isFinite(this.engine.mediaPositionSeconds())).accessibilityText(t('Set AB loop start, end, or clear')).onClick(() => { this.playlistAction(new PlaylistPanelAction('loopCycle')); })
       Button(this.playing ? 'Ⅱ' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? '↶' : '▶')).flatButton()
         .width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontColor(UiStyle.success).fontSize(22).accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
         .enabled(this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds))).onClick(() => this.playPause())
@@ -2338,7 +2338,7 @@ struct Index {
           ForEach(this.axisNames, (name: string, index: number) => {
             Column({ space: 0 }) {
               Text(name).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold).fontColor(index === this.selectedAxis ? UiStyle.ink : UiStyle.muted)
-              Text(this.axisIndicators[index] || '· · · ·').fontSize(UiStyle.helper).fontColor(UiStyle.muted).accessibilityText('Script, motion, home and limit state')
+              Text(this.axisIndicators[index] || '· · · ·').fontSize(UiStyle.helper).fontColor(UiStyle.muted).accessibilityText(t('Script, motion, home and limit state'))
             }.width(76).height(60).justifyContent(FlexAlign.Center).backgroundColor(index === this.selectedAxis ? UiStyle.accentSoft : UiStyle.card)
               .onClick(() => { this.selectedAxis = index; this.sync(); })
           })
@@ -2347,13 +2347,13 @@ struct Index {
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
           Button('▣').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Script settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
           Button('↕').flatButton().width(this.axisToolWidth()).height(UiStyle.control).enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy && !this.settingsReadOnly && !this.recoveryRequired).backgroundColor(this.axisInverted ? '#CFD8DC' : UiStyle.card).accessibilityText(t('Invert selected script')).onClick(() => { const configuration = this.engine.getAxisConfiguration(this.axisNames[this.selectedAxis]); configuration.invertScript = !this.axisInverted; this.applyAxisSettings(configuration); })
-          Button('Ⅱ').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Axis bypass and transitions').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('↗').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Axis script links').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('≋').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Motion provider settings').onClick(() => { this.showMotionSettings = !this.showMotionSettings; this.sync(); })
-          Button('⌁').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Smart limit settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('◴').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Speed limit settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('Ⅱ').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Axis bypass and transitions')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('↗').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Axis script links')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('≋').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Motion provider settings')).onClick(() => { this.showMotionSettings = !this.showMotionSettings; this.sync(); })
+          Button('⌁').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Smart limit settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('◴').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Speed limit settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
           Button('∿').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Interpolation settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('⌂').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Auto home settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('⌂').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Auto home settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
       }.width('100%')
       if (this.showAxisSettings) {
         Text(t(this.fileName)).fontSize(UiStyle.helper).fontColor(UiStyle.ink).width('100%').padding(10)
@@ -2390,7 +2390,7 @@ struct Index {
   libraryPanel() {
     Column({ space: 10 }) {
       this.heading('Local resources', 'AUTHORIZED FILES')
-      Button('Close resource list').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showResources = false; this.resourceFocus = false; })
+      Button(t('Close resource list')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showResources = false; this.resourceFocus = false; })
       Text(t(this.libraryFolder)).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).width('100%').copyOption(CopyOptions.InApp)
       Text(t('Place videos and matching scripts or ZIP files in this folder. Scanning never copies videos. Refresh stops playback.')).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
       if (this.libraryBusy) {
@@ -2442,10 +2442,10 @@ struct Index {
           .onClick(() => { this.showSourceSettings = true; if (!this.internalConnected) { this.connectInternal(); } })
         Column({ space: 2 }) {
           Text(t('Local video')).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold)
-          Text(t(this.videoMode ? this.videoState : 'Disconnected')).fontSize(UiStyle.helper).fontColor(this.videoReady ? UiStyle.success : '#D32F2F')
+          Text(t(this.videoMode ? this.videoState : t('Disconnected'))).fontSize(UiStyle.helper).fontColor(this.videoReady ? UiStyle.success : '#D32F2F')
         }.width('50%').constraintSize({ minHeight: UiStyle.control }).justifyContent(FlexAlign.Center).backgroundColor(this.videoMode ? UiStyle.accentSoft : UiStyle.card)
           .onClick(() => { this.showLibrary(); })
-        Button(this.remoteName() + ' · ' + this.deoVrStatus).flatButton().constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').onClick(() => { this.showSourceSettings = true; })
+        Button(this.remoteName() + ' · ' + t(this.deoVrStatus)).flatButton().constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').onClick(() => { this.showSourceSettings = true; })
         Button('⌕').flatButton().constraintSize({ minHeight: UiStyle.control }).width('50%').accessibilityText(t('Resources and script libraries')).onClick(() => this.showLibrary())
         Button(this.showSourceSettings ? '⌃' : '⚙').flatButton().constraintSize({ minHeight: UiStyle.control }).width('50%').accessibilityText(t('Source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
       }.width('100%')
@@ -2548,7 +2548,7 @@ struct Index {
       }.width('100%')
       ForEach(this.outputTargets, (target: OutputTargetSummary) => {
         Column({ space: 8 }) {
-          Button((target.id === this.selectedOutputId ? '● ' : '') + target.name + ' · ' + target.connection + (target.armed ? (target.dispatchSuspended ? ' · 待命，无输出' : ' · 已启用') : ''))
+          Button((target.id === this.selectedOutputId ? '● ' : '') + target.name + ' · ' + t(target.connection) + (target.armed ? (target.dispatchSuspended ? ' · 待命，无输出' : ' · 已启用') : ''))
             .flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => this.selectOutputTarget(target.id, target.generation))
           Text(target.id + ' · ' + target.name).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
           Button(target.removing ? '重试删除' : '删除').flatButton().fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).height(UiStyle.control).width('100%').enabled(!this.settingsReadOnly && !this.recoveryRequired)
@@ -2696,21 +2696,21 @@ struct Index {
   @Builder
   devicePanel() {
     Column({ space: 8 }) {
-      Button(this.showDeviceSettings ? 'Device profiles ⌃' : 'Device profiles ⌄').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
+      Button(this.showDeviceSettings ? t('Device profiles ⌃') : t('Device profiles ⌄')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
         .onClick(() => { this.showDeviceSettings = !this.showDeviceSettings; })
       Text(this.settingsMessage).fontSize(UiStyle.helper).fontColor(this.settingsReadOnly || this.recoveryRequired ? '#B71C1C' : UiStyle.muted).width('100%')
       if (this.recoveryRequired && !this.settingsReadOnly) {
-        Button('Review recovered settings before saving').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => {
+        Button(t('Review recovered settings before saving')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => {
           AlertDialog.show({ title: 'Replace damaged settings?', message: this.settingsMessage + '\nKeep this recovered configuration and allow saving it?',
             primaryButton: { value: 'Keep original files', action: () => {} },
             secondaryButton: { value: 'Use recovered settings', action: () => { this.engine.acceptSettingsRecovery(); this.sync(); } } });
         })
       }
       if (this.engine.settingsStatus().lastError !== null && !this.settingsReadOnly && !this.recoveryRequired) {
-        Button('Retry saving settings').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.engine.retrySettingsSave(); this.sync(); })
+        Button(t('Retry saving settings')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.engine.retrySettingsSave(); this.sync(); })
       }
       if (this.showDeviceSettings) {
-        Text('Active now: ' + this.engine.activeRegistry().profile.name + ' · profile changes apply after restart').fontSize(UiStyle.helper).fontColor('#795548')
+        Text(t('Active now: ') + this.engine.activeRegistry().profile.name + t(' · profile changes apply after restart')).fontSize(UiStyle.helper).fontColor('#795548')
         DeviceSettingsPanel({ profiles: this.profiles, selectedProfileId: this.selectedProfileId, activeProfileId: this.engine.activeRegistry().profile.id,
           compact: this.compactControls(), readOnly: this.settingsReadOnly || this.recoveryRequired,
           onSelectProfile: (id: string) => this.editDevice('select', undefined, id),
@@ -2806,7 +2806,7 @@ struct Index {
   workspaceStatus() {
     Column({ space: 8 }) {
       if (this.sessionFault.length > 0) {
-        Text('Playback fault · output closed: ' + this.sessionFault).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.danger).width('100%')
+        Text(t('Playback fault · output closed: ') + this.sessionFault).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.danger).width('100%')
         Button('安全重建运行状态并停止').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').enabled(!this.runtimeBusy).onClick(() => { this.resetRuntimeSafely(); })
       }
       Text(t(this.status)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
