@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "canonical": {
+    "runtime": ".NET 9.0.21",
+    "platform": "linux",
+    "architecture": "X64",
+    "backend": "icu",
+    "icuVersion": "76.1.0.0",
+    "unicodeVersion": "16.0.0.0",
+    "pairCount": 1453,
+    "fixture": "ordinal-case-net9.json",
+    "fixtureSha256": "72c6c1e82bec7ef276a89d25653d61e55a200435f416e08069576fcd709b2c0d",
+    "policy": "Stable OHOS scalar casing table from this explicit reference backend; not all Windows/WPF/.NET environments."
+  },
+  "ageData": {
+    "path": "unicode/DerivedAge-16.0.0.txt",
+    "source": "https://www.unicode.org/Public/16.0.0/ucd/DerivedAge.txt",
+    "sha256": "60caa81b99a4dfb0bc5d38440d323073e3f356f46f9ca7869da848cd0715408b"
+  },
+  "supportedOracleProfiles": [
+    {
+      "runtime": ".NET 9.0.21",
+      "platform": "linux",
+      "architecture": "X64",
+      "backend": "icu",
+      "icuVersion": "74.2.0.0",
+      "unicodeVersion": "15.1.0.0",
+      "maximumAge": "15.1",
+      "source": "https://icu.unicode.org/download/74"
+    },
+    {
+      "runtime": ".NET 9.0.21",
+      "platform": "linux",
+      "architecture": "X64",
+      "backend": "icu",
+      "icuVersion": "76.1.0.0",
+      "unicodeVersion": "16.0.0.0",
+      "maximumAge": "16.0",
+      "source": "https://icu.unicode.org/download/76"
+    },
+    {
+      "runtime": ".NET 9.0.21",
+      "platform": "linux",
+      "architecture": "X64",
+      "backend": "invariant",
+      "icuVersion": null,
+      "unicodeVersion": null,
+      "maximumAge": "15.0",
+      "source": "https://github.com/dotnet/runtime/tree/v9.0.21/src/libraries/System.Private.CoreLib/src/System/Globalization"
+    }
+  ],
+  "projection": "For only these explicitly verified profiles, retain a canonical pair iff both code points have DerivedAge <= maximumAge; compare the entire actual scan exactly. This is not a general algorithm for historic casing changes. Any unrecognized backend/version or additional/missing/changed mapping fails."
+}

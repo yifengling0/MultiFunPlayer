@@ -1,8 +1,10 @@
-/** Pinned simple ordinal case mappings observed from the official .NET 9.0.21
- * reference runtime: scan every Unicode scalar; retain s != upper(s) only when
- * String.Equals(s, upper(s), OrdinalIgnoreCase). 1453 pairs. This deliberately
- * avoids JS full-uppercase expansions and a newer host Unicode version.
- * Reproducible oracle: tests/shortcut-ordinal-oracle.test.mjs. */
+/** Canonical portable scalar casing: .NET 9.0.21 on Linux x64, ICU 76.1
+ * (Unicode 16.0), not a promise of identical results on every Windows/NLS/ICU
+ * host. Full scalar scan retains s != upper(s) only when OrdinalIgnoreCase
+ * equates them: 1453 pairs. Runtime supplementary casing also uses .NET tables.
+ * Values are deliberately fixed rather than delegated to changing JS Unicode.
+ * Reproduction/backend provenance: tests/shortcut-ordinal-oracle.test.mjs and
+ * tests/fixtures/ordinal-oracle-provenance.json. */
 const CASE_PAIRS: readonly number[] = [
   0x61, 0x41, 0x62, 0x42, 0x63, 0x43, 0x64, 0x44, 0x65, 0x45, 0x66, 0x46, 0x67, 0x47, 0x68, 0x48,
   0x69, 0x49, 0x6a, 0x4a, 0x6b, 0x4b, 0x6c, 0x4c, 0x6d, 0x4d, 0x6e, 0x4e, 0x6f, 0x4f, 0x70, 0x50,
