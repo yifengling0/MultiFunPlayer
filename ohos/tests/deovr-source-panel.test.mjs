@@ -6,16 +6,17 @@ import { registerHooks, stripTypeScriptTypes } from 'node:module';
 registerHooks({ resolve(specifier, context, next) {
   return next(specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier) ? specifier + '.ts' : specifier, context);
 } });
+const { SettingsDraftOwner } = await import('../entry/src/main/ets/presentation/SettingsDraftOwner.ts');
 const { MediaSourceConfiguration } = await import('../entry/src/main/ets/settings/MediaSourceConfiguration.ts');
 const source = readFileSync(new URL('../entry/src/main/ets/components/DeoVrSourcePanel.ets', import.meta.url), 'utf8');
 const pure = source.split('@Component')[0].replace(/^import .*;\n/gm, '').replace('export class ', 'class ');
 const DeoVrSourceEdits = new Function('MediaSourceConfiguration', stripTypeScriptTypes(pure) + '\nreturn DeoVrSourceEdits;')(MediaSourceConfiguration);
 const start = source.indexOf('export struct DeoVrSourcePanel');
 const controller = source.slice(start, source.indexOf('  build()', start)).replace('export struct', 'class')
-  .replace(/@(Prop|State|Watch)(\([^)]*\))?\s*/g, '') + '\n}';
+  .replace(/@(Prop|State|Watch|StorageLink)(\([^)]*\))?\s*/g, '') + '\n}';
 class SettingsOption { constructor(value, label) { this.value = value; this.label = label; } }
-const Panel = new Function('MediaSourceConfiguration', 'DeoVrSourceEdits', 'SettingsOption',
-  stripTypeScriptTypes(controller) + '\nreturn DeoVrSourcePanel;')(MediaSourceConfiguration, DeoVrSourceEdits, SettingsOption);
+const Panel = new Function('SettingsDraftOwner', 'MediaSourceConfiguration', 'DeoVrSourceEdits', 'SettingsOption',
+  stripTypeScriptTypes(controller) + '\nreturn DeoVrSourcePanel;')(SettingsDraftOwner, MediaSourceConfiguration, DeoVrSourceEdits, SettingsOption);
 function mounted(selectedSource = 'deovr') {
   const panel = new Panel(); panel.configuration.selectedSource = selectedSource;
   const calls = []; const changes = [];
@@ -121,7 +122,7 @@ test('status formatting distinguishes unknown data, stale clock and unconfirmed 
 
 test('layout is parent-scrolled touch-friendly content with explicit capabilities and no fake player controls', () => {
   assert.match(source, /Column\(\{ space: UiStyle\.gap\(this\.compact\) \}\)/); assert.doesNotMatch(source, /\bScroll\(|nestedScroll|\bList\(/);
-  assert.match(source, /@Prop compact: boolean = false/); assert.match(source, /constraintSize\(\{ minHeight: UiStyle\.control, maxWidth: \'100%\' \}\)/);
+  assert.match(source, /@Prop compact: boolean = false/); assert.match(source, /constraintSize\(\{ minHeight: UiStyle\.control, maxWidth: \'100%\', minWidth: UiStyle\.control \}\)/);
   for (const field of ['SettingsChoiceField', 'SettingsTextField', 'SettingsNumberField']) {
     const control = source.slice(source.indexOf(field + '({')); assert.match(control.slice(0, control.indexOf('})')), /compact: this\.compact/);
   }

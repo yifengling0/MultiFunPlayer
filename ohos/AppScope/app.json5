@@ -2,8 +2,8 @@
   "app": {
     "bundleName": "com.multifunplayer.ohos",
     "vendor": "local",
-    "versionCode": 24,
-    "versionName": "0.23.0",
+    "versionCode": 30,
+    "versionName": "0.29.0",
     "icon": "$media:app_icon",
     "label": "$string:app_name"
   }

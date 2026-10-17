@@ -1,3 +1,70 @@
+# 0.29.0 / code30：视频与控制分开
+
+首页改为视频列表，点击进入独立播放器；控制页保留全部轴/输出/媒体/设置。普通目标48vp，全局Stop52vp。轴高级组单开，连接端点优先展示，连接后必须明确断开才能改IP/端口。手机/平板新增观察确认的横屏/系统栏全屏事务，PC沿用窗口全屏。见[合同](PLAYER_WORKSPACE_029_CONTRACT.md)和[设备检查](LOCAL_TEST_029.md)。无真机截图或硬件验收声明，原覆盖统计不变。
+
+# MultiFunPlayer for OHOS — 0.28.0 local continuous-input candidate
+
+Settings → Input now contains one collapsed local continuous-input editor/surface. Actual touch, held mouse and calibrated wheel samples feed the original five Drive transformations; independent Offset uses its own100ms scheduler. Nine original action templates reach Axis Value, Blend, named Motion Speed/Minimum/Maximum and explicit TCP/UDP/WebSocket target range Minimum/Maximum/Middle/Size. The approved four-tool layout and native material adapters remain.
+
+Configuration, explicit reception, preview and physical Arm remain separate. Focus/cancel/leave/resize/context changes retire held and queued input; wheel cannot start indefinite Offset. Settings persist only preferences. Real setters never fabricate an output frame. The numerical oracle executes3194 original-C# rows; native event/hardware/visual acceptance still needs [local checks](LOCAL_TEST_028.md). See [contract](CONTINUOUS_DRIVE_028_CONTRACT.md), [source audit](CONTINUOUS_DRIVE_028_SOURCE_AUDIT.md) and [validation](VALIDATION.md).
+
+Coverage: the ordinary button catalog remains182IDs; the separate continuous catalog adds9 templates.163of188 original sites are exposed (110full-portable,53partial,25unwired). These nine remain partial because local input is not Windows global RawInput/XInput and existing WPF setter/control boundaries remain. No gamepad map or serial feedback is invented. File review and Git publication remain separate. The restored0.27 baseline is untouched; the user's later translation changes are preserved in this candidate.
+
+## Historical record
+
+# MultiFunPlayer for OHOS — 0.27.0 native-control material candidate
+
+The supplied HarmonyOS Samples repository is pinned through its official GitCode migration. Supported API26 systems now receive real uiMaterial requests for shared Select controls and their menus, Toggle, Slider and actual system custom dialogs. Select/Toggle/Slider request native interactive and light feedback; menus/dialogs use noninteractive THICK material. The system chooses the resulting tier. API20–25 skip the new module entirely and keep the established clear fallback.
+
+Deletion, clipboard-overwrite, settings recovery, runtime rebuild and dialog-mode error notifications use the same owned native dialog. Confirm rechecks the exact target and source once; cancel/back/resize/background never executes it. Every modal contains fixed52vp Stop and handles delivered F12/Escape. A failed native close immediately hard-stops and locks new starts; restart the app rather than silently clearing uncertainty.
+
+The approved four-tool layout, single video Surface and draft owners remain. Ordinary body buttons use consistent system button styles with existing colors; lists retain grouping and selection. These locations are not advertised as native immersive-material surfaces outside the SDK-supported contexts. No new Navigation tree or global material metadata is introduced. The official sample's ordinary-blur wrapper is not reused as a claim of native effects.
+
+See [source pin](HARMONY_SAMPLE_027_SOURCE_PIN.json), [contract](IMMERSIVE_UI_027_CONTRACT.md), [local device checks](LOCAL_TEST_027.md) and [validation](VALIDATION.md). Apache2 license/attribution and the inheritedCH34x MIT notice ship inside the HAP. Actual material pixels, phone/tablet/PC touch, old-runtime behavior and hardware acceptance remain unverified. Original coverage is unchanged:182IDs,154of188sites (110full-portable,44partial,34unwired). Drive and File remain outside this increment.
+
+## Historical record
+
+# MultiFunPlayer for OHOS — 0.26.0 keyboard lifecycle candidate
+
+Actual main-window focus now gates keyboard shortcuts independently from whether the page is alive. Window blur and native cancellation retire held deadlines, pending work and later actions in an awaiting keyboard batch. Returning focus requires release and a new press; it does not replay input or Arm output. Old native-window, page-listener and Ability continuations cannot affect replacements.
+
+No visual reorganization or Drive controls are added: the approved0.25 player/four-tool inspector, volatile drafts and fixed Stop remain. Ordinary window blur does not stop existing media/output; application background retains its existing shutdown policy. Already-started ordinary media-source operations follow their independent lifecycle. Key CANCEL is API26, but the adapter only depends on old Down/Up enum values and real API10/12 window focus. Older runtime event delivery and all phone/tablet/PC hardware/visual behavior still need local testing.
+
+See [contract](KEYBOARD_FOCUS_026_CONTRACT.md), [local checks](LOCAL_TEST_026.md) and [validation](VALIDATION.md). Coverage remains182IDs/154of188sites (110full-portable,44partial,34unwired). Continuous Drive is audited but unimplemented. File recording remains dormant with review blocked; Git publication is separately authorized.
+
+## Historical record
+
+# MultiFunPlayer for OHOS — 0.25.0 approved visual-design candidate
+
+## Current scope (0.25.0 / code26)
+
+The user-approved light/teal design is now implemented across the workspace and all settings panels. Four persistent tools—脚本 / 输出 / 媒体 / 设置—replace the previous single long mixed-function column. Wide windows place the player and timeline beside the inspector; narrow windows place the video above it. The page uses one neutral surface, readable18vp body/14vp supporting text and52vp actions. Compact density remains explicit rather than inferred from device size.
+
+- Script: active-axis strip, scale/offset/invert first, five expandable groups retaining all29 axis fields, Motion/sync, resource reload, all-axis values and trace/markers. There is one axis title and one values fold.
+- Output: current target details first, exact-generation selector, folded add-protocol controls and other-target states. Actual connected/armed/waiting/fault counts remain visible above inspector scrolling on phones and larger devices. Connect and Arm remain separate explicit operations.
+- Media: Download resources, local video, Internal playlist/AB/AutoSkip, DeoVR/HereSphere and independent-preview/runtime recovery remain reachable. The timing shortcut visibly opens the script synchronization controls.
+- Settings: general settings, keyboard/touch actions and device/profile controls use the same palette, field and button hierarchy. Long choice values have explicit full-text disclosure; short numeric labels can share a row without remounting their input.
+- The0.24 page-owned volatile drafts and current-source/native-callback guards remain. Tool/axis/layout changes retire callbacks while preserving compatible unsubmitted text. Navigation, blur, collapse and restoration do not save, send an action, connect or Arm. A captured shortcut is cancelled when leaving its editor.
+
+This implements the approved design in source and official build, but is not a claim of rendered ArkUI or device visual acceptance. The concept image is a mockup; actual fonts, keyboard/IME, native Select menus, safe areas and touch need the [local device checks](LOCAL_TEST_025.md). One persistent native video Surface and fixed72×52vp global Stop remain. Existing experimental CH340/341 write-only, protocol/ACK and File-review boundaries are unchanged. No original action site was added:182IDs /154of188sites =110full-portable+44partial,34unwired. See [design contract](HARMONY_INTERFACE_025_CONTRACT.md) and [validation](VALIDATION.md).
+
+## Historical record
+
+# MultiFunPlayer for OHOS — 0.24.0 editor-lifecycle candidate
+
+## Current scope (0.24.0 / code25)
+
+Unsubmitted settings edits now belong to one bounded, volatile page owner instead of a disposable workspace branch. Axis, device, sync, Motion, output, remote-source and input/action editors retain compatible raw text, invalid values and curve coordinate drafts across rotation, phone/tablet/PC breakpoints, video layout and panel remount. This release repairs editing behavior; it does **not** claim the requested visual redesign is complete.
+
+- Numeric/text edits commit only with Enter or the visible52vp confirmation. Blur, rotation and background preserve the draft without saving or issuing a command. Cancel restores the current canonical value. Existing real-time sliders remain real-time with captured axis/context guards.
+- Equal-valued axis/profile/target replacement, readonly, background and late native callbacks cannot retarget an old edit. Incoming output drafts are checked before ArkUI Watch delivery. Late Connect or clipboard results cannot overwrite current edits or regain authority.
+- Output Connect/Arm and touch-action execution refuse relevant unconfirmed input. Output has a permanent cancel-all control for pending fields hidden by mode choices. Restoration never connects, captures a shortcut, sends an action or Arms. Destructive confirmations and active curve drags are not resumed.
+- Drafts are memory-only and bounded; ordinary layout changes retain them, while page destruction/process exit clears them. A genuine source-value/context change supersedes a conflicting draft. No claim is made to preserve OS IME composition, caret or focus across native component reconstruction.
+
+The0.23 serial/CH experimental write-only scope,155 prior production inputs, fixed global Stop and one video Surface remain. No new protocol or original action site was added:182IDs /154of188sites (110full-portable,44partial,34unwired). Physical USB/network/player behavior and rendered phone/tablet/PC visuals remain device acceptance work. File recording remains dormant and its blocked review has not been retried. See [draft contract](EDITOR_DRAFT_024_CONTRACT.md), [local checks](LOCAL_TEST_024.md), [usage](USAGE_ZH.md) and [validation](VALIDATION.md).
+
+## Historical record
+
 # MultiFunPlayer for OHOS — 0.23.0 serial candidate
 
 ## Current scope (0.23.0 / code24)

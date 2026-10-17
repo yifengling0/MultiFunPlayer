@@ -1,3 +1,4 @@
+import { SettingsDraftOwner } from '../entry/src/main/ets/presentation/SettingsDraftOwner.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -16,6 +17,7 @@ function helpers(name, exports, dependencies = {}) {
   const input = source(name).split('@Component')[0].replace(/^import .*;\n/gm, '').replace(/export class /g, 'class ');
   return new Function(...Object.keys(dependencies), stripTypeScriptTypes(input) + '\nreturn {' + exports.join(',') + '};')(...Object.values(dependencies));
 }
+const { UiStyle } = await import('../entry/src/main/ets/presentation/UiStyle.ts');
 const curve = helpers('CurvePointEditor', ['SettingsNumberLogic', 'SettingsOption', 'CurveEditRules', 'CurveGeometryOwners'], motion);
 const { SettingsNumberLogic, CurveEditRules } = curve;
 const { AxisSettingsEdits } = helpers('AxisSettingsPanel', ['AxisSettingsEdits'], { ...device, ...axis, ...motion });
@@ -208,15 +210,15 @@ test('Smart curve strictly orders edits while Custom preserves user order and du
 });
 
 function formClass(file, className, dependencies = {}) {
-  dependencies = { KeyboardInputSession, ...dependencies };
+  dependencies = { SettingsDraftOwner, KeyboardInputSession, UiStyle, ...dependencies };
   const text = source(file); const start = text.indexOf('export struct ' + className);
   let end = text.indexOf('  build()', start); const builder = text.indexOf('  @Builder', start);
   if (builder >= 0 && builder < end) end = builder;
-  const input = text.slice(start, end).replace('export struct', 'class').replace(/@(Prop|State|Watch)(\([^)]*\))?\s*/g, '') + '\n}';
+  const input = text.slice(start, end).replace('export struct', 'class').replace(/@(Prop|State|Watch|StorageLink)(\([^)]*\))?\s*/g, '') + '\n}';
   return new Function(...Object.keys(dependencies), stripTypeScriptTypes(input) + '\nreturn ' + className + ';')(...Object.values(dependencies));
 }
 
-test('numeric/text form commits on submit or blur, blocks invalid input and ignores unchanged/disabled fields', () => {
+test('numeric/text form commits explicitly, blocks invalid input and ignores unchanged/disabled fields', () => {
   const NumberField = formClass('CurvePointEditor', 'SettingsNumberField', curve);
   const form = new NumberField(); const changes = []; form.value = 2; form.minimum = 0; form.onCommit = value => { changes.push(value); return true; };
   form.aboutToAppear(); assert.equal(form.draft, '2'); form.commit(); assert.deepEqual(changes, []);

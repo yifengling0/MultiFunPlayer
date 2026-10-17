@@ -6,6 +6,7 @@ import { registerHooks, stripTypeScriptTypes } from 'node:module';
 registerHooks({ resolve(specifier, context, next) {
   return next(specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier) ? specifier + '.ts' : specifier, context);
 } });
+const { SettingsDraftOwner } = await import('../entry/src/main/ets/presentation/SettingsDraftOwner.ts');
 const model = await import('../entry/src/main/ets/input/ShortcutConfiguration.ts');
 const { KeyboardShortcutConfiguration, KeyboardShortcutMapping, defaultShortcutAction,
   cloneShortcutAction, cloneShortcutConfiguration, shortcutActionCatalog } = model;
@@ -14,9 +15,9 @@ const helpers = source.split('@Component')[0].replace(/^import .*;\n/gm, '').rep
 const Edits = new Function(...Object.keys(model), stripTypeScriptTypes(helpers) + '\nreturn InputSettingsEdits;')(...Object.values(model));
 const start = source.indexOf('export struct InputSettingsPanel');
 const controller = source.slice(start, source.indexOf('  @Builder', start)).replace('export struct', 'class')
-  .replace(/@(Prop|State|Watch)(\([^)]*\))?\s*/g, '') + '\n}';
+  .replace(/@(Prop|State|Watch|StorageLink)(\([^)]*\))?\s*/g, '') + '\n}';
 class SettingsOption { constructor(value, label = value) { this.value = value; this.label = label; } }
-const dependencies = { ...model, InputSettingsEdits: Edits, SettingsOption };
+const dependencies = { SettingsDraftOwner, ...model, InputSettingsEdits: Edits, SettingsOption };
 const Panel = new Function(...Object.keys(dependencies), stripTypeScriptTypes(controller) + '\nreturn InputSettingsPanel;')(...Object.values(dependencies));
 const scriptId = 'MotionProvider::Looping Script::Script::Set';
 const rangeId = 'OutputTarget::Axis::Range::Middle::Offset';

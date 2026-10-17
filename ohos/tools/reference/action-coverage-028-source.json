@@ -1,0 +1,1777 @@
+{
+  "schemaVersion": 1,
+  "auditedAtUtc": "2026-10-17T04:22:56.452194+00:00",
+  "scope": "0.28 local continuous-input delta; preserve all44 inherited partials, no partial promotions",
+  "baseline": {
+    "path": "ohos/tools/reference/action-coverage-021-source.json",
+    "sha256": "6b0d9b4703e2c105f06376630fcfcfa8802019033adf92c89a02229dcf2f5b58"
+  },
+  "candidate028": {
+    "buttonCatalogIds": 182,
+    "continuousTemplateIds": 9,
+    "continuousLiteralNames": 2,
+    "continuousExplicitIdentityAliases": 7,
+    "originalSites": 188,
+    "covered": 163,
+    "fullPortable": 110,
+    "partial": 53,
+    "unwired": 25
+  },
+  "newMappings": [
+    {
+      "index": 36,
+      "before": "unwired",
+      "after": "partial",
+      "continuousTemplate": "MotionProvider::Speed::Drive",
+      "original": {
+        "originalTemplateIndex": 36,
+        "template": "MotionProvider::{name}::Speed::Drive",
+        "family": "MotionProvider",
+        "knownConcreteNames": [
+          "MotionProvider::Custom Curve::Speed::Drive",
+          "MotionProvider::Looping Script::Speed::Drive",
+          "MotionProvider::Pattern::Speed::Drive",
+          "MotionProvider::Random::Speed::Drive"
+        ],
+        "baseline016Status": "unwired",
+        "featureGroup": "gesture_control",
+        "dependencyReason": "Gesture ValueOrDelta/DeltaTime/mode through a real axis-input producer, ApplyTo, minimum speed and per-axis stable motion provider; expands over four providers.",
+        "scope017": "not_in_planned_017_wiring",
+        "originalRegistrationEvidence": {
+          "templateIndex": 36,
+          "registrationId": "Source/MultiFunPlayer/MotionProvider/AbstractMotionProvider.cs:65",
+          "nameExpression": "$\"MotionProvider::{name}::Speed::Drive\"",
+          "template": "MotionProvider::{name}::Speed::Drive",
+          "knownConcreteNames": [
+            "MotionProvider::Custom Curve::Speed::Drive",
+            "MotionProvider::Looping Script::Speed::Drive",
+            "MotionProvider::Pattern::Speed::Drive",
+            "MotionProvider::Random::Speed::Drive"
+          ],
+          "runtimeExpansion": true,
+          "source": {
+            "path": "Source/MultiFunPlayer/MotionProvider/AbstractMotionProvider.cs",
+            "lineStart": 65,
+            "lineEnd": 67,
+            "sha256": "f970c36b3d6ad042c60bb393d9a8e7344c68ce22985d10dced85fa1783209f28",
+            "registrationSource": "s.RegisterAction<IAxisInputGestureData, DeviceAxis>($\"MotionProvider::{name}::Speed::Drive\",\n            s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All),\n            (data, axis) => UpdateProperty(axis, p => p.Speed = Math.Max(0.01, data.ApplyTo(p.Speed))));",
+            "argumentTypes": [
+              "IAxisInputGestureData",
+              "DeviceAxis"
+            ],
+            "parameters": [
+              {
+                "type": "DeviceAxis",
+                "labelSource": "\"Target axis\"",
+                "builderSource": "s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All)",
+                "defaultSource": "default(DeviceAxis)",
+                "numericSource": null,
+                "itemsSource": "DeviceAxis.All"
+              }
+            ],
+            "triggerSuppliedTypes": [
+              "IAxisInputGestureData"
+            ],
+            "callbackSource": "(data, axis) => UpdateProperty(axis, p => p.Speed = Math.Max(0.01, data.ApplyTo(p.Speed)))"
+          },
+          "registrationAndCallbackVerified": true
+        }
+      },
+      "limits": [
+        "Foreground local normalized touch/held mouse/calibrated wheel only; no Windows global RawInput/XInput, gamepad axisMap, hardware calibration or native-event/device acceptance. Configuration, reception, preview and physical Arm are independent; no fabricated pipeline frame.",
+        "Named provider identity; existing WPF RangeSlider/source-transfer and setter timing remain qualified; no Custom Curve Duration/Points/canvas reset implied."
+      ]
+    },
+    {
+      "index": 39,
+      "before": "unwired",
+      "after": "partial",
+      "continuousTemplate": "MotionProvider::Minimum::Drive",
+      "original": {
+        "originalTemplateIndex": 39,
+        "template": "MotionProvider::{name}::Minimum::Drive",
+        "family": "MotionProvider",
+        "knownConcreteNames": [
+          "MotionProvider::Custom Curve::Minimum::Drive",
+          "MotionProvider::Looping Script::Minimum::Drive",
+          "MotionProvider::Pattern::Minimum::Drive",
+          "MotionProvider::Random::Minimum::Drive"
+        ],
+        "baseline016Status": "unwired",
+        "featureGroup": "gesture_control",
+        "dependencyReason": "Same real gesture chain, applying to provider Minimum with original Clamp01; effective UI range coercion must not fabricate source write-back.",
+        "scope017": "not_in_planned_017_wiring",
+        "originalRegistrationEvidence": {
+          "templateIndex": 39,
+          "registrationId": "Source/MultiFunPlayer/MotionProvider/AbstractMotionProvider.cs:81",
+          "nameExpression": "$\"MotionProvider::{name}::Minimum::Drive\"",
+          "template": "MotionProvider::{name}::Minimum::Drive",
+          "knownConcreteNames": [
+            "MotionProvider::Custom Curve::Minimum::Drive",
+            "MotionProvider::Looping Script::Minimum::Drive",
+            "MotionProvider::Pattern::Minimum::Drive",
+            "MotionProvider::Random::Minimum::Drive"
+          ],
+          "runtimeExpansion": true,
+          "source": {
+            "path": "Source/MultiFunPlayer/MotionProvider/AbstractMotionProvider.cs",
+            "lineStart": 81,
+            "lineEnd": 83,
+            "sha256": "f970c36b3d6ad042c60bb393d9a8e7344c68ce22985d10dced85fa1783209f28",
+            "registrationSource": "s.RegisterAction<IAxisInputGestureData, DeviceAxis>($\"MotionProvider::{name}::Minimum::Drive\",\n            s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All),\n            (data, axis) => UpdateProperty(axis, p => p.Minimum = MathUtils.Clamp01(data.ApplyTo(p.Minimum))));",
+            "argumentTypes": [
+              "IAxisInputGestureData",
+              "DeviceAxis"
+            ],
+            "parameters": [
+              {
+                "type": "DeviceAxis",
+                "labelSource": "\"Target axis\"",
+                "builderSource": "s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All)",
+                "defaultSource": "default(DeviceAxis)",
+                "numericSource": null,
+                "itemsSource": "DeviceAxis.All"
+              }
+            ],
+            "triggerSuppliedTypes": [
+              "IAxisInputGestureData"
+            ],
+            "callbackSource": "(data, axis) => UpdateProperty(axis, p => p.Minimum = MathUtils.Clamp01(data.ApplyTo(p.Minimum)))"
+          },
+          "registrationAndCallbackVerified": true
+        }
+      },
+      "limits": [
+        "Foreground local normalized touch/held mouse/calibrated wheel only; no Windows global RawInput/XInput, gamepad axisMap, hardware calibration or native-event/device acceptance. Configuration, reception, preview and physical Arm are independent; no fabricated pipeline frame.",
+        "Named provider identity; existing WPF RangeSlider/source-transfer and setter timing remain qualified; no Custom Curve Duration/Points/canvas reset implied."
+      ]
+    },
+    {
+      "index": 42,
+      "before": "unwired",
+      "after": "partial",
+      "continuousTemplate": "MotionProvider::Maximum::Drive",
+      "original": {
+        "originalTemplateIndex": 42,
+        "template": "MotionProvider::{name}::Maximum::Drive",
+        "family": "MotionProvider",
+        "knownConcreteNames": [
+          "MotionProvider::Custom Curve::Maximum::Drive",
+          "MotionProvider::Looping Script::Maximum::Drive",
+          "MotionProvider::Pattern::Maximum::Drive",
+          "MotionProvider::Random::Maximum::Drive"
+        ],
+        "baseline016Status": "unwired",
+        "featureGroup": "gesture_control",
+        "dependencyReason": "Same real gesture chain, applying to provider Maximum with original Clamp01; expands over four providers and preserves independent endpoint semantics.",
+        "scope017": "not_in_planned_017_wiring",
+        "originalRegistrationEvidence": {
+          "templateIndex": 42,
+          "registrationId": "Source/MultiFunPlayer/MotionProvider/AbstractMotionProvider.cs:97",
+          "nameExpression": "$\"MotionProvider::{name}::Maximum::Drive\"",
+          "template": "MotionProvider::{name}::Maximum::Drive",
+          "knownConcreteNames": [
+            "MotionProvider::Custom Curve::Maximum::Drive",
+            "MotionProvider::Looping Script::Maximum::Drive",
+            "MotionProvider::Pattern::Maximum::Drive",
+            "MotionProvider::Random::Maximum::Drive"
+          ],
+          "runtimeExpansion": true,
+          "source": {
+            "path": "Source/MultiFunPlayer/MotionProvider/AbstractMotionProvider.cs",
+            "lineStart": 97,
+            "lineEnd": 99,
+            "sha256": "f970c36b3d6ad042c60bb393d9a8e7344c68ce22985d10dced85fa1783209f28",
+            "registrationSource": "s.RegisterAction<IAxisInputGestureData, DeviceAxis>($\"MotionProvider::{name}::Maximum::Drive\",\n            s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All),\n            (data, axis) => UpdateProperty(axis, p => p.Maximum = MathUtils.Clamp01(data.ApplyTo(p.Maximum))));",
+            "argumentTypes": [
+              "IAxisInputGestureData",
+              "DeviceAxis"
+            ],
+            "parameters": [
+              {
+                "type": "DeviceAxis",
+                "labelSource": "\"Target axis\"",
+                "builderSource": "s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All)",
+                "defaultSource": "default(DeviceAxis)",
+                "numericSource": null,
+                "itemsSource": "DeviceAxis.All"
+              }
+            ],
+            "triggerSuppliedTypes": [
+              "IAxisInputGestureData"
+            ],
+            "callbackSource": "(data, axis) => UpdateProperty(axis, p => p.Maximum = MathUtils.Clamp01(data.ApplyTo(p.Maximum)))"
+          },
+          "registrationAndCallbackVerified": true
+        }
+      },
+      "limits": [
+        "Foreground local normalized touch/held mouse/calibrated wheel only; no Windows global RawInput/XInput, gamepad axisMap, hardware calibration or native-event/device acceptance. Configuration, reception, preview and physical Arm are independent; no fabricated pipeline frame.",
+        "Named provider identity; existing WPF RangeSlider/source-transfer and setter timing remain qualified; no Custom Curve Duration/Points/canvas reset implied."
+      ]
+    },
+    {
+      "index": 59,
+      "before": "unwired",
+      "after": "partial",
+      "continuousTemplate": "OutputTarget::Axis::Range::Minimum::Drive",
+      "original": {
+        "originalTemplateIndex": 59,
+        "template": "{Identifier}::Axis::Range::Minimum::Drive",
+        "family": "OutputTarget",
+        "knownConcreteNames": [],
+        "baseline016Status": "unwired",
+        "featureGroup": "gesture_control",
+        "dependencyReason": "Real IAxisInputGestureData plus per-instance Minimum Drive helper/limit and output admission; numeric Set/Offset does not close this row.",
+        "scope017": "not_in_planned_017_wiring",
+        "originalRegistrationEvidence": {
+          "templateIndex": 59,
+          "registrationId": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs:271",
+          "nameExpression": "$\"{Identifier}::Axis::Range::Minimum::Drive\"",
+          "template": "{Identifier}::Axis::Range::Minimum::Drive",
+          "knownConcreteNames": [],
+          "runtimeExpansion": true,
+          "source": {
+            "path": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs",
+            "lineStart": 271,
+            "lineEnd": 274,
+            "sha256": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+            "registrationSource": "s.RegisterAction<IAxisInputGestureData, DeviceAxis, double>($\"{Identifier}::Axis::Range::Minimum::Drive\",\n            s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All),\n            s => s.WithDefaultValue(0).WithLabel(\"Value limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\"),\n            (data, axis, limit) => UpdateSettings(axis, s => SetMinimum(s, data.ApplyTo(s.Minimum), limit)));",
+            "argumentTypes": [
+              "IAxisInputGestureData",
+              "DeviceAxis",
+              "double"
+            ],
+            "parameters": [
+              {
+                "type": "DeviceAxis",
+                "labelSource": "\"Target axis\"",
+                "builderSource": "s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All)",
+                "defaultSource": "default(DeviceAxis)",
+                "numericSource": null,
+                "itemsSource": "DeviceAxis.All"
+              },
+              {
+                "type": "double",
+                "labelSource": "\"Value limit\"",
+                "builderSource": "s => s.WithDefaultValue(0).WithLabel(\"Value limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\")",
+                "defaultSource": "0",
+                "numericSource": {
+                  "minimum": "0",
+                  "maximum": "1",
+                  "interval": "0.01",
+                  "stringFormat": "\"{0:P0}\""
+                },
+                "itemsSource": null
+              }
+            ],
+            "triggerSuppliedTypes": [
+              "IAxisInputGestureData"
+            ],
+            "callbackSource": "(data, axis, limit) => UpdateSettings(axis, s => SetMinimum(s, data.ApplyTo(s.Minimum), limit))"
+          },
+          "registrationAndCallbackVerified": true
+        }
+      },
+      "limits": [
+        "Foreground local normalized touch/held mouse/calibrated wheel only; no Windows global RawInput/XInput, gamepad axisMap, hardware calibration or native-event/device acceptance. Configuration, reception, preview and physical Arm are independent; no fabricated pipeline frame.",
+        "TCP/UDP/WebSocket identities only; existing WPF range binding/physical scheduling boundary remains. Reverse/equal ranges retained; unsupported out-of-domain results explicitly reject."
+      ]
+    },
+    {
+      "index": 62,
+      "before": "unwired",
+      "after": "partial",
+      "continuousTemplate": "OutputTarget::Axis::Range::Maximum::Drive",
+      "original": {
+        "originalTemplateIndex": 62,
+        "template": "{Identifier}::Axis::Range::Maximum::Drive",
+        "family": "OutputTarget",
+        "knownConcreteNames": [],
+        "baseline016Status": "unwired",
+        "featureGroup": "gesture_control",
+        "dependencyReason": "Real gesture ApplyTo plus per-instance Maximum Drive helper/limit and output admission.",
+        "scope017": "not_in_planned_017_wiring",
+        "originalRegistrationEvidence": {
+          "templateIndex": 62,
+          "registrationId": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs:289",
+          "nameExpression": "$\"{Identifier}::Axis::Range::Maximum::Drive\"",
+          "template": "{Identifier}::Axis::Range::Maximum::Drive",
+          "knownConcreteNames": [],
+          "runtimeExpansion": true,
+          "source": {
+            "path": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs",
+            "lineStart": 289,
+            "lineEnd": 292,
+            "sha256": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+            "registrationSource": "s.RegisterAction<IAxisInputGestureData, DeviceAxis, double>($\"{Identifier}::Axis::Range::Maximum::Drive\",\n            s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All),\n            s => s.WithDefaultValue(1).WithLabel(\"Value limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\"),\n            (gesture, axis, limit) => UpdateSettings(axis, s => SetMaximum(s, gesture.ApplyTo(s.Maximum), limit)));",
+            "argumentTypes": [
+              "IAxisInputGestureData",
+              "DeviceAxis",
+              "double"
+            ],
+            "parameters": [
+              {
+                "type": "DeviceAxis",
+                "labelSource": "\"Target axis\"",
+                "builderSource": "s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All)",
+                "defaultSource": "default(DeviceAxis)",
+                "numericSource": null,
+                "itemsSource": "DeviceAxis.All"
+              },
+              {
+                "type": "double",
+                "labelSource": "\"Value limit\"",
+                "builderSource": "s => s.WithDefaultValue(1).WithLabel(\"Value limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\")",
+                "defaultSource": "1",
+                "numericSource": {
+                  "minimum": "0",
+                  "maximum": "1",
+                  "interval": "0.01",
+                  "stringFormat": "\"{0:P0}\""
+                },
+                "itemsSource": null
+              }
+            ],
+            "triggerSuppliedTypes": [
+              "IAxisInputGestureData"
+            ],
+            "callbackSource": "(gesture, axis, limit) => UpdateSettings(axis, s => SetMaximum(s, gesture.ApplyTo(s.Maximum), limit))"
+          },
+          "registrationAndCallbackVerified": true
+        }
+      },
+      "limits": [
+        "Foreground local normalized touch/held mouse/calibrated wheel only; no Windows global RawInput/XInput, gamepad axisMap, hardware calibration or native-event/device acceptance. Configuration, reception, preview and physical Arm are independent; no fabricated pipeline frame.",
+        "TCP/UDP/WebSocket identities only; existing WPF range binding/physical scheduling boundary remains. Reverse/equal ranges retained; unsupported out-of-domain results explicitly reject."
+      ]
+    },
+    {
+      "index": 65,
+      "before": "unwired",
+      "after": "partial",
+      "continuousTemplate": "OutputTarget::Axis::Range::Middle::Drive",
+      "original": {
+        "originalTemplateIndex": 65,
+        "template": "{Identifier}::Axis::Range::Middle::Drive",
+        "family": "OutputTarget",
+        "knownConcreteNames": [],
+        "baseline016Status": "unwired",
+        "featureGroup": "gesture_control",
+        "dependencyReason": "Real absolute/relative gesture and distinct SetMiddle helper, independent limits, instance identity and frame admission.",
+        "scope017": "not_in_planned_017_wiring",
+        "originalRegistrationEvidence": {
+          "templateIndex": 65,
+          "registrationId": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs:308",
+          "nameExpression": "$\"{Identifier}::Axis::Range::Middle::Drive\"",
+          "template": "{Identifier}::Axis::Range::Middle::Drive",
+          "knownConcreteNames": [],
+          "runtimeExpansion": true,
+          "source": {
+            "path": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs",
+            "lineStart": 308,
+            "lineEnd": 312,
+            "sha256": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+            "registrationSource": "s.RegisterAction<IAxisInputGestureData, DeviceAxis, double, double>($\"{Identifier}::Axis::Range::Middle::Drive\",\n            s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All),\n            s => s.WithDefaultValue(0).WithLabel(\"Minimum limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\"),\n            s => s.WithDefaultValue(1).WithLabel(\"Maximium limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\"),\n            (data, axis, minimumLimit, maximumLimit) => UpdateSettings(axis, s => SetMiddle(s, data, minimumLimit, maximumLimit)));",
+            "argumentTypes": [
+              "IAxisInputGestureData",
+              "DeviceAxis",
+              "double",
+              "double"
+            ],
+            "parameters": [
+              {
+                "type": "DeviceAxis",
+                "labelSource": "\"Target axis\"",
+                "builderSource": "s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All)",
+                "defaultSource": "default(DeviceAxis)",
+                "numericSource": null,
+                "itemsSource": "DeviceAxis.All"
+              },
+              {
+                "type": "double",
+                "labelSource": "\"Minimum limit\"",
+                "builderSource": "s => s.WithDefaultValue(0).WithLabel(\"Minimum limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\")",
+                "defaultSource": "0",
+                "numericSource": {
+                  "minimum": "0",
+                  "maximum": "1",
+                  "interval": "0.01",
+                  "stringFormat": "\"{0:P0}\""
+                },
+                "itemsSource": null
+              },
+              {
+                "type": "double",
+                "labelSource": "\"Maximium limit\"",
+                "builderSource": "s => s.WithDefaultValue(1).WithLabel(\"Maximium limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\")",
+                "defaultSource": "1",
+                "numericSource": {
+                  "minimum": "0",
+                  "maximum": "1",
+                  "interval": "0.01",
+                  "stringFormat": "\"{0:P0}\""
+                },
+                "itemsSource": null
+              }
+            ],
+            "triggerSuppliedTypes": [
+              "IAxisInputGestureData"
+            ],
+            "callbackSource": "(data, axis, minimumLimit, maximumLimit) => UpdateSettings(axis, s => SetMiddle(s, data, minimumLimit, maximumLimit))"
+          },
+          "registrationAndCallbackVerified": true
+        }
+      },
+      "limits": [
+        "Foreground local normalized touch/held mouse/calibrated wheel only; no Windows global RawInput/XInput, gamepad axisMap, hardware calibration or native-event/device acceptance. Configuration, reception, preview and physical Arm are independent; no fabricated pipeline frame.",
+        "TCP/UDP/WebSocket identities only; existing WPF range binding/physical scheduling boundary remains. Reverse/equal ranges retained; unsupported out-of-domain results explicitly reject."
+      ]
+    },
+    {
+      "index": 68,
+      "before": "unwired",
+      "after": "partial",
+      "continuousTemplate": "OutputTarget::Axis::Range::Size::Drive",
+      "original": {
+        "originalTemplateIndex": 68,
+        "template": "{Identifier}::Axis::Range::Size::Drive",
+        "family": "OutputTarget",
+        "knownConcreteNames": [],
+        "baseline016Status": "unwired",
+        "featureGroup": "gesture_control",
+        "dependencyReason": "Real gesture ApplyTo and distinct SetSize path plus output instance identity/limits and current frame admission.",
+        "scope017": "not_in_planned_017_wiring",
+        "originalRegistrationEvidence": {
+          "templateIndex": 68,
+          "registrationId": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs:328",
+          "nameExpression": "$\"{Identifier}::Axis::Range::Size::Drive\"",
+          "template": "{Identifier}::Axis::Range::Size::Drive",
+          "knownConcreteNames": [],
+          "runtimeExpansion": true,
+          "source": {
+            "path": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs",
+            "lineStart": 328,
+            "lineEnd": 332,
+            "sha256": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+            "registrationSource": "s.RegisterAction<IAxisInputGestureData, DeviceAxis, double, double>($\"{Identifier}::Axis::Range::Size::Drive\",\n            s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All),\n            s => s.WithDefaultValue(0).WithLabel(\"Minimum limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\"),\n            s => s.WithDefaultValue(1).WithLabel(\"Maximium limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\"),\n            (data, axis, minimumLimit, maximumLimit) => UpdateSettings(axis, s => SetSize(s, data, minimumLimit, maximumLimit)));",
+            "argumentTypes": [
+              "IAxisInputGestureData",
+              "DeviceAxis",
+              "double",
+              "double"
+            ],
+            "parameters": [
+              {
+                "type": "DeviceAxis",
+                "labelSource": "\"Target axis\"",
+                "builderSource": "s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All)",
+                "defaultSource": "default(DeviceAxis)",
+                "numericSource": null,
+                "itemsSource": "DeviceAxis.All"
+              },
+              {
+                "type": "double",
+                "labelSource": "\"Minimum limit\"",
+                "builderSource": "s => s.WithDefaultValue(0).WithLabel(\"Minimum limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\")",
+                "defaultSource": "0",
+                "numericSource": {
+                  "minimum": "0",
+                  "maximum": "1",
+                  "interval": "0.01",
+                  "stringFormat": "\"{0:P0}\""
+                },
+                "itemsSource": null
+              },
+              {
+                "type": "double",
+                "labelSource": "\"Maximium limit\"",
+                "builderSource": "s => s.WithDefaultValue(1).WithLabel(\"Maximium limit\").AsNumericUpDown(0, 1, 0.01, \"{0:P0}\")",
+                "defaultSource": "1",
+                "numericSource": {
+                  "minimum": "0",
+                  "maximum": "1",
+                  "interval": "0.01",
+                  "stringFormat": "\"{0:P0}\""
+                },
+                "itemsSource": null
+              }
+            ],
+            "triggerSuppliedTypes": [
+              "IAxisInputGestureData"
+            ],
+            "callbackSource": "(data, axis, minimumLimit, maximumLimit) => UpdateSettings(axis, s => SetSize(s, data, minimumLimit, maximumLimit))"
+          },
+          "registrationAndCallbackVerified": true
+        }
+      },
+      "limits": [
+        "Foreground local normalized touch/held mouse/calibrated wheel only; no Windows global RawInput/XInput, gamepad axisMap, hardware calibration or native-event/device acceptance. Configuration, reception, preview and physical Arm are independent; no fabricated pipeline frame.",
+        "TCP/UDP/WebSocket identities only; existing WPF range binding/physical scheduling boundary remains. Reverse/equal ranges retained; unsupported out-of-domain results explicitly reject."
+      ]
+    },
+    {
+      "index": 118,
+      "before": "unwired",
+      "after": "partial",
+      "continuousTemplate": "Axis::Value::Drive",
+      "original": {
+        "originalTemplateIndex": 118,
+        "template": "Axis::Value::Drive",
+        "family": "Axis",
+        "knownConcreteNames": [
+          "Axis::Value::Drive"
+        ],
+        "baseline016Status": "unwired",
+        "featureGroup": "gesture_control",
+        "dependencyReason": "Real gesture value/delta and gesture DeltaTime into SetAxisTransition; requires input producer, mode, current-axis binding, repeat/focus/disconnect cancellation and output safety.",
+        "scope017": "not_in_planned_017_wiring",
+        "originalRegistrationEvidence": {
+          "templateIndex": 118,
+          "registrationId": "Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs:1613",
+          "nameExpression": "\"Axis::Value::Drive\"",
+          "template": "Axis::Value::Drive",
+          "knownConcreteNames": [
+            "Axis::Value::Drive"
+          ],
+          "runtimeExpansion": false,
+          "source": {
+            "path": "Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs",
+            "lineStart": 1613,
+            "lineEnd": 1615,
+            "sha256": "3104cecc1510ef394a786c04239bafc58d33af4465d2b3c04b0409995c19debe",
+            "registrationSource": "s.RegisterAction<IAxisInputGestureData, DeviceAxis>(\"Axis::Value::Drive\",\n            s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All),\n            (data, axis) => SetAxisTransition(axis, data.ValueOrDelta, data.DeltaTime, offset: data.IsRelative));",
+            "argumentTypes": [
+              "IAxisInputGestureData",
+              "DeviceAxis"
+            ],
+            "parameters": [
+              {
+                "type": "DeviceAxis",
+                "labelSource": "\"Target axis\"",
+                "builderSource": "s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All)",
+                "defaultSource": "default(DeviceAxis)",
+                "numericSource": null,
+                "itemsSource": "DeviceAxis.All"
+              }
+            ],
+            "triggerSuppliedTypes": [
+              "IAxisInputGestureData"
+            ],
+            "callbackSource": "(data, axis) => SetAxisTransition(axis, data.ValueOrDelta, data.DeltaTime, offset: data.IsRelative)"
+          },
+          "registrationAndCallbackVerified": true
+        }
+      },
+      "limits": [
+        "Foreground local normalized touch/held mouse/calibrated wheel only; no Windows global RawInput/XInput, gamepad axisMap, hardware calibration or native-event/device acceptance. Configuration, reception, preview and physical Arm are independent; no fabricated pipeline frame.",
+        "Actual local gesture route does not prove original Windows source parity."
+      ]
+    },
+    {
+      "index": 171,
+      "before": "unwired",
+      "after": "partial",
+      "continuousTemplate": "Axis::MotionProviderBlend::Drive",
+      "original": {
+        "originalTemplateIndex": 171,
+        "template": "Axis::MotionProviderBlend::Drive",
+        "family": "Axis",
+        "knownConcreteNames": [
+          "Axis::MotionProviderBlend::Drive"
+        ],
+        "baseline016Status": "unwired",
+        "featureGroup": "gesture_control",
+        "dependencyReason": "Real gesture ApplyTo for per-axis MotionProviderBlend, Clamp01 and existing pipeline invalidation; not a scalar keyboard setting.",
+        "scope017": "not_in_planned_017_wiring",
+        "originalRegistrationEvidence": {
+          "templateIndex": 171,
+          "registrationId": "Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs:1935",
+          "nameExpression": "\"Axis::MotionProviderBlend::Drive\"",
+          "template": "Axis::MotionProviderBlend::Drive",
+          "knownConcreteNames": [
+            "Axis::MotionProviderBlend::Drive"
+          ],
+          "runtimeExpansion": false,
+          "source": {
+            "path": "Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs",
+            "lineStart": 1935,
+            "lineEnd": 1937,
+            "sha256": "3104cecc1510ef394a786c04239bafc58d33af4465d2b3c04b0409995c19debe",
+            "registrationSource": "s.RegisterAction<IAxisInputGestureData, DeviceAxis>(\"Axis::MotionProviderBlend::Drive\",\n            s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All),\n            (data, axis) => UpdateSettings(axis, s => s.MotionProviderBlend = MathUtils.Clamp01(data.ApplyTo(s.MotionProviderBlend))));",
+            "argumentTypes": [
+              "IAxisInputGestureData",
+              "DeviceAxis"
+            ],
+            "parameters": [
+              {
+                "type": "DeviceAxis",
+                "labelSource": "\"Target axis\"",
+                "builderSource": "s => s.WithLabel(\"Target axis\").WithItemsSource(DeviceAxis.All)",
+                "defaultSource": "default(DeviceAxis)",
+                "numericSource": null,
+                "itemsSource": "DeviceAxis.All"
+              }
+            ],
+            "triggerSuppliedTypes": [
+              "IAxisInputGestureData"
+            ],
+            "callbackSource": "(data, axis) => UpdateSettings(axis, s => s.MotionProviderBlend = MathUtils.Clamp01(data.ApplyTo(s.MotionProviderBlend)))"
+          },
+          "registrationAndCallbackVerified": true
+        }
+      },
+      "limits": [
+        "Foreground local normalized touch/held mouse/calibrated wheel only; no Windows global RawInput/XInput, gamepad axisMap, hardware calibration or native-event/device acceptance. Configuration, reception, preview and physical Arm are independent; no fabricated pipeline frame.",
+        "Actual local gesture route does not prove original Windows source parity."
+      ]
+    }
+  ],
+  "remaining025": [
+    {
+      "originalTemplateIndex": 1,
+      "template": "Debug::Log",
+      "family": "Debug",
+      "knownConcreteNames": [
+        "Debug::Log"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "diagnostics",
+      "dependencyReason": "Real diagnostic sink with original LogLevel/string dispatch, bounded messages and redaction. Logging is not a player/clock dependency.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 1,
+        "registrationId": "Source/MultiFunPlayer/Bootstrapper.cs:117",
+        "nameExpression": "\"Debug::Log\"",
+        "template": "Debug::Log",
+        "knownConcreteNames": [
+          "Debug::Log"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/Bootstrapper.cs",
+          "lineStart": 117,
+          "lineEnd": 120,
+          "sha256": "5d4e3812b0d8101906c00d25cb7ff5a8319873eaa1e45b33d1632228b0ccc7db",
+          "registrationSource": "shortcutManager.RegisterAction<LogLevel, string>(\"Debug::Log\",\n            s => s.WithLabel(\"Log level\").WithDefaultValue(LogLevel.Info).WithItemsSource(LogLevel.AllLoggingLevels),\n            s => s.WithLabel(\"Message\"),\n            Logger.Log);",
+          "argumentTypes": [
+            "LogLevel",
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "LogLevel",
+              "labelSource": "\"Log level\"",
+              "builderSource": "s => s.WithLabel(\"Log level\").WithDefaultValue(LogLevel.Info).WithItemsSource(LogLevel.AllLoggingLevels)",
+              "defaultSource": "LogLevel.Info",
+              "numericSource": null,
+              "itemsSource": "LogLevel.AllLoggingLevels"
+            },
+            {
+              "type": "string",
+              "labelSource": "\"Message\"",
+              "builderSource": "s => s.WithLabel(\"Message\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "Logger.Log"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 5,
+      "template": "{Name}::ServerBaseUri::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Emby::ServerBaseUri::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Emby URI validation plus authenticated server/session owner; changing destination must retire old requests rather than reuse a credential-bearing generation.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 5,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/EmbyMediaSource.cs:333",
+        "nameExpression": "$\"{Name}::ServerBaseUri::Set\"",
+        "template": "{Name}::ServerBaseUri::Set",
+        "knownConcreteNames": [
+          "Emby::ServerBaseUri::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/EmbyMediaSource.cs",
+          "lineStart": 333,
+          "lineEnd": 337,
+          "sha256": "adb9c2ce10e5e95c9e16fe59513c21331f7112c411c14c23e038d90d60c90818",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::ServerBaseUri::Set\", s => s.WithLabel(\"Endpoint\").WithDescription(\"schema://ipOrHost:port\"), serverBaseUri =>\n        {\n            if (Uri.TryCreate(serverBaseUri, UriKind.Absolute, out var uri))\n                ServerBaseUri = uri;\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Endpoint\"",
+              "builderSource": "s => s.WithLabel(\"Endpoint\").WithDescription(\"schema://ipOrHost:port\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "serverBaseUri => { if (Uri.TryCreate(serverBaseUri, UriKind.Absolute, out var uri)) ServerBaseUri = uri; }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 6,
+      "template": "{Name}::ApiKey::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Emby::ApiKey::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Emby API-key entry and secure storage/transport; original Windows ProtectedData is not portable. A string setting alone is not an authenticated source.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 6,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/EmbyMediaSource.cs:341",
+        "nameExpression": "$\"{Name}::ApiKey::Set\"",
+        "template": "{Name}::ApiKey::Set",
+        "knownConcreteNames": [
+          "Emby::ApiKey::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/EmbyMediaSource.cs",
+          "lineStart": 341,
+          "lineEnd": 341,
+          "sha256": "adb9c2ce10e5e95c9e16fe59513c21331f7112c411c14c23e038d90d60c90818",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::ApiKey::Set\", s => s.WithLabel(\"Api key\"), apiKey => ApiKey = apiKey);",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Api key\"",
+              "builderSource": "s => s.WithLabel(\"Api key\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "apiKey => ApiKey = apiKey"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 7,
+      "template": "{Name}::Device::SetByName",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Emby::Device::SetByName"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Emby device discovery list, first Ordinal name match and device-ID selection; old selection and session polls must be invalidated when changed.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 7,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/EmbyMediaSource.cs:345",
+        "nameExpression": "$\"{Name}::Device::SetByName\"",
+        "template": "{Name}::Device::SetByName",
+        "knownConcreteNames": [
+          "Emby::Device::SetByName"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/EmbyMediaSource.cs",
+          "lineStart": 345,
+          "lineEnd": 351,
+          "sha256": "adb9c2ce10e5e95c9e16fe59513c21331f7112c411c14c23e038d90d60c90818",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::Device::SetByName\", s => s.WithLabel(\"Name\"), name => {\n            var devcie = Devices.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.Ordinal));\n            if (devcie == null)\n                return;\n\n            SelectDeviceById(devcie.Id);\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Name\"",
+              "builderSource": "s => s.WithLabel(\"Name\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "name => { var devcie = Devices.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.Ordinal)); if (devcie == null) return; SelectDeviceById(devcie.Id); }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 8,
+      "template": "{Name}::RefreshDevices",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Emby::RefreshDevices"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Emby guarded asynchronous device refresh, authenticated requests, busy state and cancellation. Not a cached-list redraw.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 8,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/EmbyMediaSource.cs:355",
+        "nameExpression": "$\"{Name}::RefreshDevices\"",
+        "template": "{Name}::RefreshDevices",
+        "knownConcreteNames": [
+          "Emby::RefreshDevices"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/EmbyMediaSource.cs",
+          "lineStart": 355,
+          "lineEnd": 355,
+          "sha256": "adb9c2ce10e5e95c9e16fe59513c21331f7112c411c14c23e038d90d60c90818",
+          "registrationSource": "s.RegisterAction($\"{Name}::RefreshDevices\", async () => { if (CanRefreshDevices) await RefreshDevices(); });",
+          "argumentTypes": [],
+          "parameters": [],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "async () => { if (CanRefreshDevices) await RefreshDevices(); }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 21,
+      "template": "{Name}::ServerBaseUri::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Jellyfin::ServerBaseUri::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Jellyfin absolute server URI plus authenticated selected-session lifecycle and destination-bound requests.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 21,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/JellyfinMediaSource.cs:342",
+        "nameExpression": "$\"{Name}::ServerBaseUri::Set\"",
+        "template": "{Name}::ServerBaseUri::Set",
+        "knownConcreteNames": [
+          "Jellyfin::ServerBaseUri::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/JellyfinMediaSource.cs",
+          "lineStart": 342,
+          "lineEnd": 346,
+          "sha256": "f878542ed4a71382b08a348f16f88e6e6a1037ebdb1a0acd7ee7d6d3f7181f20",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::ServerBaseUri::Set\", s => s.WithLabel(\"Endpoint\").WithDescription(\"scheme://ipOrHost:port\"), serverBaseUri =>\n        {\n            if (Uri.TryCreate(serverBaseUri, UriKind.Absolute, out var uri))\n                ServerBaseUri = uri;\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Endpoint\"",
+              "builderSource": "s => s.WithLabel(\"Endpoint\").WithDescription(\"scheme://ipOrHost:port\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "serverBaseUri => { if (Uri.TryCreate(serverBaseUri, UriKind.Absolute, out var uri)) ServerBaseUri = uri; }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 22,
+      "template": "{Name}::ApiKey::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Jellyfin::ApiKey::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Jellyfin API-key entry/storage and scoped authenticated transport; no Windows ciphertext or plaintext fallback.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 22,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/JellyfinMediaSource.cs:350",
+        "nameExpression": "$\"{Name}::ApiKey::Set\"",
+        "template": "{Name}::ApiKey::Set",
+        "knownConcreteNames": [
+          "Jellyfin::ApiKey::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/JellyfinMediaSource.cs",
+          "lineStart": 350,
+          "lineEnd": 350,
+          "sha256": "f878542ed4a71382b08a348f16f88e6e6a1037ebdb1a0acd7ee7d6d3f7181f20",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::ApiKey::Set\", s => s.WithLabel(\"Api key\"), apiKey => ApiKey = apiKey);",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Api key\"",
+              "builderSource": "s => s.WithLabel(\"Api key\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "apiKey => ApiKey = apiKey"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 23,
+      "template": "{Name}::Device::SetByName",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Jellyfin::Device::SetByName"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Jellyfin refreshed device list, exact Ordinal first-name lookup and ID selection, with current-session invalidation.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 23,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/JellyfinMediaSource.cs:354",
+        "nameExpression": "$\"{Name}::Device::SetByName\"",
+        "template": "{Name}::Device::SetByName",
+        "knownConcreteNames": [
+          "Jellyfin::Device::SetByName"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/JellyfinMediaSource.cs",
+          "lineStart": 354,
+          "lineEnd": 360,
+          "sha256": "f878542ed4a71382b08a348f16f88e6e6a1037ebdb1a0acd7ee7d6d3f7181f20",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::Device::SetByName\", s => s.WithLabel(\"Name\"), name => {\n            var devcie = Devices.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.Ordinal));\n            if (devcie == null)\n                return;\n\n            SelectDeviceById(devcie.Id);\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Name\"",
+              "builderSource": "s => s.WithLabel(\"Name\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "name => { var devcie = Devices.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.Ordinal)); if (devcie == null) return; SelectDeviceById(devcie.Id); }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 24,
+      "template": "{Name}::RefreshDevices",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Jellyfin::RefreshDevices"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Jellyfin guarded authenticated async discovery and cancellation; actual results must own selected-device state.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 24,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/JellyfinMediaSource.cs:364",
+        "nameExpression": "$\"{Name}::RefreshDevices\"",
+        "template": "{Name}::RefreshDevices",
+        "knownConcreteNames": [
+          "Jellyfin::RefreshDevices"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/JellyfinMediaSource.cs",
+          "lineStart": 364,
+          "lineEnd": 364,
+          "sha256": "f878542ed4a71382b08a348f16f88e6e6a1037ebdb1a0acd7ee7d6d3f7181f20",
+          "registrationSource": "s.RegisterAction($\"{Name}::RefreshDevices\", async () => { if (CanRefreshDevices) await RefreshDevices(); });",
+          "argumentTypes": [],
+          "parameters": [],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "async () => { if (CanRefreshDevices) await RefreshDevices(); }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 25,
+      "template": "{Name}::Endpoint::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "MPC-HC::Endpoint::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "MPC-HC HTTP/HTML observation adapter, 200 ms original polling, capability-aware controls and whole-second seek wire formatting.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 25,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/MpcMediaSource.cs:222",
+        "nameExpression": "$\"{Name}::Endpoint::Set\"",
+        "template": "{Name}::Endpoint::Set",
+        "knownConcreteNames": [
+          "MPC-HC::Endpoint::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/MpcMediaSource.cs",
+          "lineStart": 222,
+          "lineEnd": 226,
+          "sha256": "160b1749d30f882d96fa4354b5d04c3053cc0d6e4bb411bed76a2b0a8b0a6036",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::Endpoint::Set\", s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\"), endpointString =>\n        {\n            if (NetUtils.TryParseEndpoint(endpointString, out var endpoint))\n                Endpoint = endpoint;\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Endpoint\"",
+              "builderSource": "s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "endpointString => { if (NetUtils.TryParseEndpoint(endpointString, out var endpoint)) Endpoint = endpoint; }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 26,
+      "template": "{Name}::Arguments::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "MPV::Arguments::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "MPV Arguments feeds optional mpv.exe launch and named-pipe IPC. Requires a platform-specific replacement/bridge design; not a network endpoint setting.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 26,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/MpvMediaSource.cs:351",
+        "nameExpression": "$\"{Name}::Arguments::Set\"",
+        "template": "{Name}::Arguments::Set",
+        "knownConcreteNames": [
+          "MPV::Arguments::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/MpvMediaSource.cs",
+          "lineStart": 351,
+          "lineEnd": 351,
+          "sha256": "58e0446561b280a2d11164ca33bda43dc31f8c84e70487f7561940d26b553258",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::Arguments::Set\", s => s.WithLabel(\"Arguments\") , arguments => Arguments = arguments);",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Arguments\"",
+              "builderSource": "s => s.WithLabel(\"Arguments\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "arguments => Arguments = arguments"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 27,
+      "template": "{Name}::Uri::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "OFS::Uri::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "OFS WebSocket source with timeline events, funscript change/removal, project reset and source capabilities; live script handling cannot be omitted.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 27,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/OfsMediaSource.cs:234",
+        "nameExpression": "$\"{Name}::Uri::Set\"",
+        "template": "{Name}::Uri::Set",
+        "knownConcreteNames": [
+          "OFS::Uri::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/OfsMediaSource.cs",
+          "lineStart": 234,
+          "lineEnd": 238,
+          "sha256": "af83e5abd7a16ceb6662b5c88f92e33961fb45fbd51300f851c780bb462b3b80",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::Uri::Set\", s => s.WithLabel(\"Uri\").WithDescription(\"ofs websocket uri\"), uriString =>\n        {\n            if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri))\n                Uri = uri;\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Uri\"",
+              "builderSource": "s => s.WithLabel(\"Uri\").WithDescription(\"ofs websocket uri\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "uriString => { if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri)) Uri = uri; }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 28,
+      "template": "{Name}::ServerBaseUri::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Plex::ServerBaseUri::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Plex server URI, token/client headers, XML timeline/metadata lifecycle and controlled destination replacement.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 28,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/PlexMediaSource.cs:447",
+        "nameExpression": "$\"{Name}::ServerBaseUri::Set\"",
+        "template": "{Name}::ServerBaseUri::Set",
+        "knownConcreteNames": [
+          "Plex::ServerBaseUri::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/PlexMediaSource.cs",
+          "lineStart": 447,
+          "lineEnd": 451,
+          "sha256": "08bf57d33cc2d5113825a5770076baedeab03088e8de248e3387a7dfbd6b0528",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::ServerBaseUri::Set\", s => s.WithLabel(\"Endpoint\").WithDescription(\"scheme://ipOrHost:port\"), serverBaseUri =>\n        {\n            if (Uri.TryCreate(serverBaseUri, UriKind.Absolute, out var uri))\n                ServerBaseUri = uri;\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Endpoint\"",
+              "builderSource": "s => s.WithLabel(\"Endpoint\").WithDescription(\"scheme://ipOrHost:port\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "serverBaseUri => { if (Uri.TryCreate(serverBaseUri, UriKind.Absolute, out var uri)) ServerBaseUri = uri; }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 29,
+      "template": "{Name}::PlexToken::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Plex::PlexToken::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Plex token secure entry/storage and scoped HTTP headers; no logging/export of the token and no implicit new persistent access.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 29,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/PlexMediaSource.cs:455",
+        "nameExpression": "$\"{Name}::PlexToken::Set\"",
+        "template": "{Name}::PlexToken::Set",
+        "knownConcreteNames": [
+          "Plex::PlexToken::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/PlexMediaSource.cs",
+          "lineStart": 455,
+          "lineEnd": 455,
+          "sha256": "08bf57d33cc2d5113825a5770076baedeab03088e8de248e3387a7dfbd6b0528",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::PlexToken::Set\", s => s.WithLabel(\"Token\"), token => PlexToken = token);",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Token\"",
+              "builderSource": "s => s.WithLabel(\"Token\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "token => PlexToken = token"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 30,
+      "template": "{Name}::Client::SetByName",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Plex::Client::SetByName"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Plex refreshed client list, exact Ordinal first-name lookup and MachineIdentifier selection; selected-client identity drives requests.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 30,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/PlexMediaSource.cs:459",
+        "nameExpression": "$\"{Name}::Client::SetByName\"",
+        "template": "{Name}::Client::SetByName",
+        "knownConcreteNames": [
+          "Plex::Client::SetByName"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/PlexMediaSource.cs",
+          "lineStart": 459,
+          "lineEnd": 465,
+          "sha256": "08bf57d33cc2d5113825a5770076baedeab03088e8de248e3387a7dfbd6b0528",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::Client::SetByName\", s => s.WithLabel(\"Name\"), name => {\n            var client = Clients.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.Ordinal));\n            if (client == null)\n                return;\n\n            SelectClientByMachineIdentifier(client.MachineIdentifier);\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Name\"",
+              "builderSource": "s => s.WithLabel(\"Name\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "name => { var client = Clients.FirstOrDefault(p => string.Equals(p.Name, name, StringComparison.Ordinal)); if (client == null) return; SelectClientByMachineIdentifier(client.MachineIdentifier); }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 31,
+      "template": "{Name}::RefreshClients",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Plex::RefreshClients"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Plex guarded authenticated async client discovery, busy state, preserved/retired selection and cancellation.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 31,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/PlexMediaSource.cs:469",
+        "nameExpression": "$\"{Name}::RefreshClients\"",
+        "template": "{Name}::RefreshClients",
+        "knownConcreteNames": [
+          "Plex::RefreshClients"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/PlexMediaSource.cs",
+          "lineStart": 469,
+          "lineEnd": 469,
+          "sha256": "08bf57d33cc2d5113825a5770076baedeab03088e8de248e3387a7dfbd6b0528",
+          "registrationSource": "s.RegisterAction($\"{Name}::RefreshClients\", async () => { if (CanRefreshClients) await RefreshClients(); });",
+          "argumentTypes": [],
+          "parameters": [],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "async () => { if (CanRefreshClients) await RefreshClients(); }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 32,
+      "template": "{Name}::Endpoint::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "VLC::Endpoint::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "VLC HTTP source and password/Basic-auth handling, API-version behavior, status/playlist identity and observed clock; endpoint text alone does not suffice.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 32,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/VlcMediaSource.cs:284",
+        "nameExpression": "$\"{Name}::Endpoint::Set\"",
+        "template": "{Name}::Endpoint::Set",
+        "knownConcreteNames": [
+          "VLC::Endpoint::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/VlcMediaSource.cs",
+          "lineStart": 284,
+          "lineEnd": 288,
+          "sha256": "2c95f2d4cfc1b39cb6c99597450c7925832893f195a12a149bb1e55fdfbfa526",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::Endpoint::Set\", s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\"), endpointString =>\n        {\n            if (NetUtils.TryParseEndpoint(endpointString, out var endpoint))\n                Endpoint = endpoint;\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Endpoint\"",
+              "builderSource": "s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "endpointString => { if (NetUtils.TryParseEndpoint(endpointString, out var endpoint)) Endpoint = endpoint; }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 33,
+      "template": "{Name}::Endpoint::Set",
+      "family": "MediaSource",
+      "knownConcreteNames": [
+        "Whirligig::Endpoint::Set"
+      ],
+      "baseline016Status": "unwired",
+      "featureGroup": "external_sources",
+      "dependencyReason": "Whirligig line-oriented TCP receiver and reset/freshness lifecycle. Original has no outbound control writer or rate observation; capabilities must reflect that.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 33,
+        "registrationId": "Source/MultiFunPlayer/MediaSource/ViewModels/WhirligigMediaSource.cs:142",
+        "nameExpression": "$\"{Name}::Endpoint::Set\"",
+        "template": "{Name}::Endpoint::Set",
+        "knownConcreteNames": [
+          "Whirligig::Endpoint::Set"
+        ],
+        "runtimeExpansion": false,
+        "source": {
+          "path": "Source/MultiFunPlayer/MediaSource/ViewModels/WhirligigMediaSource.cs",
+          "lineStart": 142,
+          "lineEnd": 146,
+          "sha256": "6f28db0f782feba699b0c215d1e4212cfd734d6003a3f6189a00c2d3fd509237",
+          "registrationSource": "s.RegisterAction<string>($\"{Name}::Endpoint::Set\", s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\"), endpointString =>\n        {\n            if (NetUtils.TryParseEndpoint(endpointString, out var endpoint))\n                Endpoint = endpoint;\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Endpoint\"",
+              "builderSource": "s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "endpointString => { if (NetUtils.TryParseEndpoint(endpointString, out var endpoint)) Endpoint = endpoint; }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 55,
+      "template": "{Identifier}::AutoConnectEnabled::Set",
+      "family": "OutputTarget",
+      "knownConcreteNames": [],
+      "baseline016Status": "unwired",
+      "featureGroup": "output_ownership",
+      "dependencyReason": "Per-instance saved auto-connect flag plus an operational, explicitly authorized retry owner. Current restoration is inert; flag storage alone is not original scan parity.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 55,
+        "registrationId": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs:255",
+        "nameExpression": "$\"{Identifier}::AutoConnectEnabled::Set\"",
+        "template": "{Identifier}::AutoConnectEnabled::Set",
+        "knownConcreteNames": [],
+        "runtimeExpansion": true,
+        "source": {
+          "path": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs",
+          "lineStart": 255,
+          "lineEnd": 255,
+          "sha256": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+          "registrationSource": "s.RegisterAction<bool>($\"{Identifier}::AutoConnectEnabled::Set\", s => s.WithLabel(\"Enable auto connect\"), enabled => AutoConnectEnabled = enabled);",
+          "argumentTypes": [
+            "bool"
+          ],
+          "parameters": [
+            {
+              "type": "bool",
+              "labelSource": "\"Enable auto connect\"",
+              "builderSource": "s => s.WithLabel(\"Enable auto connect\")",
+              "defaultSource": "false",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "enabled => AutoConnectEnabled = enabled"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 56,
+      "template": "{Identifier}::AutoConnectEnabled::Toggle",
+      "family": "OutputTarget",
+      "knownConcreteNames": [],
+      "baseline016Status": "unwired",
+      "featureGroup": "output_ownership",
+      "dependencyReason": "Same operational auto-connect dependency as Set, with current value toggle and no restoration of physical Arm.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 56,
+        "registrationId": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs:256",
+        "nameExpression": "$\"{Identifier}::AutoConnectEnabled::Toggle\"",
+        "template": "{Identifier}::AutoConnectEnabled::Toggle",
+        "knownConcreteNames": [],
+        "runtimeExpansion": true,
+        "source": {
+          "path": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs",
+          "lineStart": 256,
+          "lineEnd": 256,
+          "sha256": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+          "registrationSource": "s.RegisterAction($\"{Identifier}::AutoConnectEnabled::Toggle\", () => AutoConnectEnabled = !AutoConnectEnabled);",
+          "argumentTypes": [],
+          "parameters": [],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "() => AutoConnectEnabled = !AutoConnectEnabled"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 69,
+      "template": "{Identifier}::Endpoint::Set",
+      "family": "OutputTarget",
+      "knownConcreteNames": [],
+      "baseline016Status": "unwired",
+      "featureGroup": "output_ownership",
+      "dependencyReason": "Buttplug protocol client, device discovery/removal, capabilities/settings and stop/timing lifecycle. Raw WebSocket TCode is not a Buttplug adapter.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 69,
+        "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/ButtplugOutputTarget.cs:409",
+        "nameExpression": "$\"{Identifier}::Endpoint::Set\"",
+        "template": "{Identifier}::Endpoint::Set",
+        "knownConcreteNames": [],
+        "runtimeExpansion": true,
+        "source": {
+          "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/ButtplugOutputTarget.cs",
+          "lineStart": 409,
+          "lineEnd": 413,
+          "sha256": "eaef0c8976b630f0dde89c554b3a28124ba64b99d1da68cc0330d37777d2cb30",
+          "registrationSource": "s.RegisterAction<string>($\"{Identifier}::Endpoint::Set\", s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\"), endpointString =>\n        {\n            if (NetUtils.TryParseEndpoint(endpointString, out var endpoint))\n                Endpoint = endpoint;\n        });",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Endpoint\"",
+              "builderSource": "s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "endpointString => { if (NetUtils.TryParseEndpoint(endpointString, out var endpoint)) Endpoint = endpoint; }"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 70,
+      "template": "{Identifier}::PipeName::Set",
+      "family": "OutputTarget",
+      "knownConcreteNames": [],
+      "baseline016Status": "unwired",
+      "featureGroup": "output_ownership",
+      "dependencyReason": "Local named-pipe transport and process/platform capability. Existing OHOS TCP does not implement named pipes or authorize a new bridge.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 70,
+        "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/PipeOutputTarget.cs:158",
+        "nameExpression": "$\"{Identifier}::PipeName::Set\"",
+        "template": "{Identifier}::PipeName::Set",
+        "knownConcreteNames": [],
+        "runtimeExpansion": true,
+        "source": {
+          "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/PipeOutputTarget.cs",
+          "lineStart": 158,
+          "lineEnd": 158,
+          "sha256": "545a7b1d5ea52843d7bf00dc371c365021b420ae6f9a0b04067fc5a50d6ce1cd",
+          "registrationSource": "s.RegisterAction<string>($\"{Identifier}::PipeName::Set\", s => s.WithLabel(\"Pipe name\"), pipeName => PipeName = pipeName);",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Pipe name\"",
+              "builderSource": "s => s.WithLabel(\"Pipe name\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "pipeName => PipeName = pipeName"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 71,
+      "template": "{Identifier}::SerialPort::Set",
+      "family": "OutputTarget",
+      "knownConcreteNames": [],
+      "baseline016Status": "unwired",
+      "featureGroup": "output_ownership",
+      "dependencyReason": "Serial discovery and selected device ID, serial configuration, OS access permission and hot-unplug/close lifecycle; original WMI/COM path is Windows-specific.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 71,
+        "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/SerialOutputTarget.cs:319",
+        "nameExpression": "$\"{Identifier}::SerialPort::Set\"",
+        "template": "{Identifier}::SerialPort::Set",
+        "knownConcreteNames": [],
+        "runtimeExpansion": true,
+        "source": {
+          "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/SerialOutputTarget.cs",
+          "lineStart": 319,
+          "lineEnd": 319,
+          "sha256": "af1e4f5512d6786e117d151dc65b75cf39bea850de6e07b2a192c8aee106551d",
+          "registrationSource": "s.RegisterAction<string>($\"{Identifier}::SerialPort::Set\", s => s.WithLabel(\"Device ID\"), SelectSerialPortByDeviceId);",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Device ID\"",
+              "builderSource": "s => s.WithLabel(\"Device ID\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "SelectSerialPortByDeviceId"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 73,
+      "template": "{Identifier}::ConnectionKey::Set",
+      "family": "OutputTarget",
+      "knownConcreteNames": [],
+      "baseline016Status": "unwired",
+      "featureGroup": "output_ownership",
+      "dependencyReason": "The Handy connection-key secure handling plus authenticated cloud API, checks/mode change and command lifecycle; endpoint credential must not enter plain logs or exports.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 73,
+        "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/TheHandyOutputTarget.cs:202",
+        "nameExpression": "$\"{Identifier}::ConnectionKey::Set\"",
+        "template": "{Identifier}::ConnectionKey::Set",
+        "knownConcreteNames": [],
+        "runtimeExpansion": true,
+        "source": {
+          "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/TheHandyOutputTarget.cs",
+          "lineStart": 202,
+          "lineEnd": 202,
+          "sha256": "0c68fc83d0917ccf525224f482fa40a3a0cae0854633f60ffd64ca92254be033",
+          "registrationSource": "s.RegisterAction<string>($\"{Identifier}::ConnectionKey::Set\", s => s.WithLabel(\"Connection key\"), connectionKey => ConnectionKey = connectionKey);",
+          "argumentTypes": [
+            "string"
+          ],
+          "parameters": [
+            {
+              "type": "string",
+              "labelSource": "\"Connection key\"",
+              "builderSource": "s => s.WithLabel(\"Connection key\")",
+              "defaultSource": "default(string)",
+              "numericSource": null,
+              "itemsSource": null
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "connectionKey => ConnectionKey = connectionKey"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    },
+    {
+      "originalTemplateIndex": 74,
+      "template": "{Identifier}::SourceAxis::Set",
+      "family": "OutputTarget",
+      "knownConcreteNames": [],
+      "baseline016Status": "unwired",
+      "featureGroup": "output_ownership",
+      "dependencyReason": "The Handy selected source axis, original connected-source-axis Sync effect and polled device adapter; not merely a generic output axis mask.",
+      "scope017": "not_in_planned_017_wiring",
+      "originalRegistrationEvidence": {
+        "templateIndex": 74,
+        "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/TheHandyOutputTarget.cs:206",
+        "nameExpression": "$\"{Identifier}::SourceAxis::Set\"",
+        "template": "{Identifier}::SourceAxis::Set",
+        "knownConcreteNames": [],
+        "runtimeExpansion": true,
+        "source": {
+          "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/TheHandyOutputTarget.cs",
+          "lineStart": 206,
+          "lineEnd": 206,
+          "sha256": "0c68fc83d0917ccf525224f482fa40a3a0cae0854633f60ffd64ca92254be033",
+          "registrationSource": "s.RegisterAction<DeviceAxis>($\"{Identifier}::SourceAxis::Set\", s => s.WithLabel(\"Source axis\").WithItemsSource(DeviceAxis.All), axis => SourceAxis = axis);",
+          "argumentTypes": [
+            "DeviceAxis"
+          ],
+          "parameters": [
+            {
+              "type": "DeviceAxis",
+              "labelSource": "\"Source axis\"",
+              "builderSource": "s => s.WithLabel(\"Source axis\").WithItemsSource(DeviceAxis.All)",
+              "defaultSource": "default(DeviceAxis)",
+              "numericSource": null,
+              "itemsSource": "DeviceAxis.All"
+            }
+          ],
+          "triggerSuppliedTypes": [],
+          "callbackSource": "axis => SourceAxis = axis"
+        },
+        "registrationAndCallbackVerified": true
+      }
+    }
+  ],
+  "remainingFeatureGroups": {
+    "external_sources": {
+      "title": "External-source lifecycle and media switching",
+      "indices": [
+        5,
+        6,
+        7,
+        8,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33
+      ],
+      "count": 17
+    },
+    "output_ownership": {
+      "title": "Output connection, discovery and protocol ownership",
+      "indices": [
+        55,
+        56,
+        69,
+        70,
+        71,
+        73,
+        74
+      ],
+      "count": 7
+    },
+    "diagnostics": {
+      "title": "User-requested diagnostics",
+      "indices": [
+        1
+      ],
+      "count": 1
+    }
+  },
+  "evidence": [
+    {
+      "path": "ohos/entry/src/main/ets/input/ContinuousInputConfiguration.ts",
+      "sha256": "83749f6f5838f558ae8377c1a1904cd19b028618052e076a5ec06c948b706580"
+    },
+    {
+      "path": "ohos/entry/src/main/ets/input/ContinuousDriveEngine.ts",
+      "sha256": "f996b34bb4d7227285da55ee6369481c207ff655e35b4d36d4aece2fe9949e90"
+    },
+    {
+      "path": "ohos/entry/src/main/ets/input/ContinuousInputActions.ts",
+      "sha256": "bc51300af772725065627909363528eacc76ca3392bbfb56b91dad76e6b043ce"
+    },
+    {
+      "path": "ohos/entry/src/main/ets/input/LocalDrivePointer.ts",
+      "sha256": "38d26801013e2997540c645ba199654b0b588f0ad6cce2f739e132de4f0fb21f"
+    },
+    {
+      "path": "ohos/entry/src/main/ets/pages/Index.ets",
+      "sha256": "54f7d9f0b4cdf2e48956f59aac2b91bcab0242db4bf536ec992a7368313b3364"
+    },
+    {
+      "path": "ohos/entry/src/main/ets/core/PlaybackSessionCore.ts",
+      "sha256": "299e7125c1427378c28b3ac0194b9f70df8baf278608d6005f168408dc8ee877"
+    },
+    {
+      "path": "ohos/entry/src/main/ets/components/ContinuousInputPanel.ets",
+      "sha256": "5ba000c1d2615bebbc415eddd6407b9062cea427cd5cc28ada0e90f37e7bf627"
+    },
+    {
+      "path": "ohos/tools/reference/continuous-drive-028/source-manifest.json",
+      "sha256": "87560285ce0540d24505935b62bb54cd0cc76cb5689584344fce82cdc3c61366"
+    },
+    {
+      "path": "ohos/tools/reference/continuous-drive-028/golden.json",
+      "sha256": "df305fc616b2cadff7c22e4ff2122f8973d9503c2b8fecc6a83cdf4cac8f6752"
+    }
+  ]
+}

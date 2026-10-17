@@ -1,4 +1,5 @@
 import { UiStyle } from '../presentation/UiStyle';
+import { SettingsDraftOwner } from '../presentation/SettingsDraftOwner';
 import { KeyboardShortcutConfiguration, KeyboardShortcutMapping, ShortcutAction, ShortcutActionSpec, ShortcutPoint, ShortcutKeySpec, EMERGENCY_STOP_KEY, cloneShortcutConfiguration, cloneShortcutAction, defaultShortcutAction, validateShortcutConfiguration, validateShortcutAction, shortcutActionCatalog, keyCatalog, chordLabel, keyLabel } from '../input/ShortcutConfiguration';
 import { MotionCurvePoint } from '../core/MotionConfiguration';
 import type { InterpolationMode } from '../core/Interpolation';
@@ -179,6 +180,9 @@ export class InputSettingsEdits {
 
 @Component
 export struct InputSettingsPanel {
+  draftOwner: SettingsDraftOwner = new SettingsDraftOwner();
+  @Prop @Watch('draftContextChanged') draftScope: string = '';
+  @Prop @Watch('draftContextChanged') draftEpoch: number = 0;
   @Prop compact: boolean = false;
   @Prop @Watch('configurationChanged') configuration: KeyboardShortcutConfiguration = new KeyboardShortcutConfiguration();
   @Prop @Watch('availabilityChanged') readOnly: boolean = false;
@@ -208,13 +212,78 @@ export struct InputSettingsPanel {
   @State touchAction: ShortcutAction = new ShortcutAction('Media::PlayPause::Toggle');
   @State appendCategoryIds: string[] = [];
   @State appendCategoryValues: string[] = [];
+  @State localDraftStorageError: boolean = false;
+  private localDraftInitialized: boolean = false;
+  private localDraftOwner: SettingsDraftOwner | null = null;
+  private localDraftScope: string = '';
+  private localDraftEpoch: number = 0;
+  private touchDraftToken: number = 0;
+  private categoryIdsToken: number = 0;
+  private categoryValuesToken: number = 0;
   private get touchActionId(): string { return this.touchAction.id; }
   private get touchActionValue(): number { return this.touchAction.value; }
   aboutToAppear(): void {
     this.active = true; this.editEpoch++; this.axisContextKey = this.currentAxisContextKey();
     this.actionOptionsKey = this.currentActionOptionsKey();
+    this.restoreLocalDrafts();
   }
-  aboutToDisappear(): void { this.active = false; this.editEpoch++; }
+  aboutToDisappear(): void { this.active = false; this.editEpoch++; this.releaseLocalDrafts(); }
+  private releaseLocalDrafts(): void {
+    if (this.localDraftOwner !== null) {
+      this.localDraftOwner.release(this.touchDraftToken);
+      this.localDraftOwner.release(this.categoryIdsToken);
+      this.localDraftOwner.release(this.categoryValuesToken);
+    }
+    this.touchDraftToken = 0; this.categoryIdsToken = 0; this.categoryValuesToken = 0;
+  }
+  private restoreLocalDrafts(): void {
+    this.releaseLocalDrafts(); this.localDraftInitialized = true;
+    this.localDraftOwner = this.draftOwner; this.localDraftScope = this.draftScope; this.localDraftEpoch = this.draftEpoch;
+    const touch = this.draftOwner.open(this.draftScope, 'input:touch-action', 'touch-action-v1',
+      JSON.stringify(new ShortcutAction('Media::PlayPause::Toggle')));
+    const ids = this.draftOwner.open(this.draftScope, 'input:append-category-ids', 'append-categories-v1', '[]');
+    const values = this.draftOwner.open(this.draftScope, 'input:append-category-values', 'append-categories-v1', '[]');
+    this.touchDraftToken = touch.token; this.categoryIdsToken = ids.token; this.categoryValuesToken = values.token;
+    this.localDraftStorageError = touch.sourceId === 0 || ids.sourceId === 0 || values.sourceId === 0;
+    if (this.localDraftStorageError) { this.error = '草稿空间不足，触控参数暂不可编辑。请先取消其他未应用的编辑。'; }
+    if (!this.ownsLocalDrafts()) { return; }
+    this.touchAction = new ShortcutAction('Media::PlayPause::Toggle'); this.appendCategoryIds = []; this.appendCategoryValues = [];
+    try {
+      const action: ShortcutAction = JSON.parse(touch.value) as ShortcutAction;
+      if (validateShortcutAction(action)) { this.touchAction = cloneShortcutAction(action); }
+      const savedIds: string[] = JSON.parse(ids.value) as string[];
+      const savedValues: string[] = JSON.parse(values.value) as string[];
+      if (Array.isArray(savedIds) && Array.isArray(savedValues) && savedIds.length === savedValues.length &&
+        savedIds.every(value => typeof value === 'string') && savedValues.every(value => typeof value === 'string')) {
+        this.appendCategoryIds = savedIds.slice(); this.appendCategoryValues = savedValues.slice();
+      }
+    } catch (_) { /* A malformed transient draft never changes settings or invokes an action. */ }
+  }
+  private ownsLocalDrafts(): boolean {
+    return !this.localDraftInitialized || (this.localDraftOwner === this.draftOwner &&
+      this.localDraftScope === this.draftScope && this.localDraftEpoch === this.draftEpoch &&
+      this.draftOwner.isCurrent(this.touchDraftToken, 'touch-action-v1') &&
+      this.draftOwner.isCurrent(this.categoryIdsToken, 'append-categories-v1') &&
+      this.draftOwner.isCurrent(this.categoryValuesToken, 'append-categories-v1'));
+  }
+  private saveLocalDrafts(): void {
+    if (!this.localDraftInitialized || !this.ownsLocalDrafts()) { return; }
+    const touchSaved: boolean = this.draftOwner.write(this.touchDraftToken, 'touch-action-v1', JSON.stringify(this.touchAction));
+    const idsSaved: boolean = this.draftOwner.write(this.categoryIdsToken, 'append-categories-v1', JSON.stringify(this.appendCategoryIds));
+    const valuesSaved: boolean = this.draftOwner.write(this.categoryValuesToken, 'append-categories-v1', JSON.stringify(this.appendCategoryValues));
+    this.localDraftStorageError = !touchSaved || !idsSaved || !valuesSaved;
+    if (this.localDraftStorageError) { this.error = '草稿空间不足，本次触控编辑未完整保留，不能执行。请先取消其他未应用的编辑。'; }
+  }
+  private draftContextChanged(): void {
+    this.editEpoch++; this.touchEpoch++; this.renderRevision++;
+    if (this.active) { this.restoreLocalDrafts(); }
+  }
+  private mappingDraftSource(mapping: KeyboardShortcutMapping): string {
+    return JSON.stringify(mapping) + '|' + this.currentAxisContextKey() + '|' + this.currentActionOptionsKey();
+  }
+  private touchDraftSource(): string {
+    return JSON.stringify(this.touchAction) + '|' + this.currentAxisContextKey() + '|' + this.currentActionOptionsKey();
+  }
   private configurationChanged(): void { this.editEpoch++; this.renderRevision++; }
   private availabilityChanged(): void { this.editEpoch++; this.renderRevision++; }
   private captureChanged(): void { this.renderRevision++; }
@@ -239,7 +308,7 @@ export struct InputSettingsPanel {
     this.actionOptionsKey = key; this.editEpoch++; this.touchEpoch++; this.renderRevision++;
   }
   private ownsEdit(owner: KeyboardShortcutConfiguration, epoch: number): boolean {
-    return this.active && !this.readOnly && this.configuration === owner && this.editEpoch === epoch &&
+    return this.active && !this.readOnly && this.ownsLocalDrafts() && this.configuration === owner && this.editEpoch === epoch &&
       this.currentActionOptionsKey() === this.actionOptionsKey;
   }
   // Capture ownership when rendering, not when an old callback eventually runs.
@@ -371,13 +440,13 @@ export struct InputSettingsPanel {
     return index < 0 ? 'media-playback' : this.appendCategoryValues[index];
   }
   private selectAppendCategory(id: string, category: string): void {
-    if (this.readOnly || !this.configuration.mappings.some(mapping => mapping.id === id) ||
+    if (!this.active || this.readOnly || !this.ownsLocalDrafts() || !this.configuration.mappings.some(mapping => mapping.id === id) ||
       !this.actionCatalog.some(spec => this.categoryOf(spec) === category)) { return; }
     const ids: string[] = this.appendCategoryIds.slice(); const values: string[] = this.appendCategoryValues.slice();
     const index: number = ids.indexOf(id);
     if (index < 0) { ids.push(id); values.push(category); } else { values[index] = category; }
     this.appendCategoryIds = ids; this.appendCategoryValues = values;
-    this.editEpoch++; this.renderRevision++;
+    this.editEpoch++; this.renderRevision++; this.saveLocalDrafts();
   }
   private removeAction(id: string, index: number): void {
     if (!this.readOnly) { this.emit(InputSettingsEdits.removeAction(this.configuration, id, index)); }
@@ -386,35 +455,35 @@ export struct InputSettingsPanel {
     if (!this.readOnly) { this.emit(InputSettingsEdits.moveAction(this.configuration, id, index, direction)); }
   }
   private selectTouchAction(id: string): void {
-    if (this.readOnly || InputSettingsEdits.spec(id) === null) { return; }
-    this.touchEpoch++; this.touchAction = defaultShortcutAction(id);
+    if (!this.active || this.readOnly || !this.ownsLocalDrafts() || InputSettingsEdits.spec(id) === null) { return; }
+    this.touchEpoch++; this.touchAction = defaultShortcutAction(id); this.saveLocalDrafts();
   }
   private touchValue(value: number): boolean { return this.touchNumber('value', value); }
   private touchNumber(field: string, value: number): boolean {
-    if (this.readOnly) { return false; }
+    if (!this.active || this.readOnly || !this.ownsLocalDrafts()) { return false; }
     const action: ShortcutAction = cloneShortcutAction(this.touchAction);
     if (field === 'value') { action.value = value; }
     else if (field === 'secondaryValue') { action.secondaryValue = value; }
     else if (field === 'tertiaryValue') { action.tertiaryValue = value; }
     else { return false; }
     if (!InputSettingsEdits.validAction(action)) { return false; }
-    this.touchEpoch++; this.touchAction = action; return true;
+    this.touchEpoch++; this.touchAction = action; this.saveLocalDrafts(); return true;
   }
   private touchText(field: string, value: string): boolean {
-    if (this.readOnly || !this.actionChoiceAllowed(this.touchAction, field, value)) { return false; }
+    if (!this.active || this.readOnly || !this.ownsLocalDrafts() || !this.actionChoiceAllowed(this.touchAction, field, value)) { return false; }
     const action: ShortcutAction = cloneShortcutAction(this.touchAction);
     if (field === 'targetAxis') { action.targetAxis = value; }
     else if (field === 'outputTargetId') { action.outputTargetId = value; }
     else if (field === 'text') { action.text = value; }
     else { return false; }
     if (!InputSettingsEdits.validAction(action)) { return false; }
-    this.touchEpoch++; this.touchAction = action; return true;
+    this.touchEpoch++; this.touchAction = action; this.saveLocalDrafts(); return true;
   }
   private touchPoints(points: MotionCurvePoint[]): boolean {
-    if (this.readOnly) { return false; }
+    if (!this.active || this.readOnly || !this.ownsLocalDrafts()) { return false; }
     const action: ShortcutAction | null = InputSettingsEdits.pointAction(this.touchAction, points);
     if (action === null) { this.error = '曲线点无效：请检查坐标范围、顺序及点数上限。'; return false; }
-    this.error = ''; this.touchEpoch++; this.touchAction = action; return true;
+    this.error = ''; this.touchEpoch++; this.touchAction = action; this.saveLocalDrafts(); return true;
   }
   private touchPointsHandler(): (points: MotionCurvePoint[]) => void {
     const owner: KeyboardShortcutConfiguration = this.configuration; const epoch: number = this.editEpoch;
@@ -449,13 +518,22 @@ export struct InputSettingsPanel {
     const commit: (value: number) => boolean = this.touchNumberHandler();
     return (value: string): void => { commit(Number(value)); };
   }
+  private touchDraftPending(): boolean {
+    const prefix: string = 'touch:' + this.touchActionId + ':';
+    const scope: string = this.draftScope + ':touch';
+    const coordinateScope: string = JSON.stringify([scope, prefix + 'points', 'coordinates']);
+    return this.localDraftStorageError || this.draftOwner.hasPending(scope, prefix) || this.draftOwner.hasPending(coordinateScope);
+  }
   private touchActionHandler(): () => void {
     const owner: KeyboardShortcutConfiguration = this.configuration; const epoch: number = this.editEpoch;
     const touchEpoch: number = this.touchEpoch;
     const action: ShortcutAction = cloneShortcutAction(this.touchAction);
     return (): void => {
       if (action.id === 'App::Stop') { this.onStop(); return; }
-      if (this.ownsEdit(owner, epoch) && this.touchEpoch === touchEpoch) { this.dispatch(action); }
+      if (this.ownsEdit(owner, epoch) && this.touchEpoch === touchEpoch) {
+        if (this.touchDraftPending()) { this.error = '请先确认或取消未应用的触控参数，再执行动作。'; return; }
+        this.error = ''; this.dispatch(action);
+      }
     };
   }
   private dispatch(action: ShortcutAction): void {
@@ -628,7 +706,7 @@ export struct InputSettingsPanel {
     return spec === undefined ? this.actionCatalog[0] : spec;
   }
   @Builder
-  private pointEditor(action: ShortcutAction, maximumPoints: number, onChange: (points: MotionCurvePoint[]) => void) {
+  private pointEditor(action: ShortcutAction, maximumPoints: number, onChange: (points: MotionCurvePoint[]) => void, draftKey: string, draftSource: string, draftScope: string) {
     Column({ space: UiStyle.gap(this.compact) }) {
       Text('控制点 · ' + action.points.length + '/' + maximumPoints + '；每动作最多 4096 点，全部键盘映射合计最多 8192 点。')
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
@@ -642,6 +720,8 @@ export struct InputSettingsPanel {
           .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       }
       CurvePointEditor({ points: this.curvePoints(action), compact: this.compact,
+        draftOwner: this.draftOwner, draftScope: draftScope, draftKey: draftKey,
+        draftSource: draftSource, draftEpoch: this.draftEpoch,
         minimumX: this.spec(action.id).pointsKind === 'smartLimit' ? 0 : null,
         maximumX: this.spec(action.id).pointsKind === 'smartLimit' ? 100 : null,
         minimumY: 0, maximumY: this.spec(action.id).pointsKind === 'smartLimit' ? 100 : 1,
@@ -664,18 +744,26 @@ export struct InputSettingsPanel {
     } else if (mapping.trigger === 'click') {
       SettingsNumberField({ label: '连续点击次数', value: mapping.clickCount, minimum: 1, maximum: 8, integer: true,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':mappings', draftKey: 'mapping:' + mapping.id + ':trigger:clickCount',
+          draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
         editable: !this.readOnly, onCommit: this.bindEditNumber((value: number): boolean => this.changeNumber(mapping.id, 'clickCount', value)) })
       SettingsNumberField({ label: '最大点击间隔', unit: '毫秒 · 0–60000', value: mapping.maximumClickIntervalMs,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':mappings', draftKey: 'mapping:' + mapping.id + ':trigger:maximumClickIntervalMs',
+          draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
         minimum: 0, maximum: 60000, integer: true, editable: !this.readOnly,
         onCommit: this.bindEditNumber((value: number): boolean => this.changeNumber(mapping.id, 'maximumClickIntervalMs', value)) })
     } else if (mapping.trigger === 'hold') {
       SettingsNumberField({ label: '最短按住时长', unit: '毫秒 · 0–60000', value: mapping.minimumHoldDurationMs,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':mappings', draftKey: 'mapping:' + mapping.id + ':trigger:minimumHoldDurationMs',
+          draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
         minimum: 0, maximum: 60000, integer: true, editable: !this.readOnly,
         onCommit: this.bindEditNumber((value: number): boolean => this.changeNumber(mapping.id, 'minimumHoldDurationMs', value)) })
       SettingsNumberField({ label: '最长按住时长', unit: '毫秒 · -1 表示不限制', value: mapping.maximumHoldDurationMs,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':mappings', draftKey: 'mapping:' + mapping.id + ':trigger:maximumHoldDurationMs',
+          draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
         minimum: -1, maximum: 60000, integer: true, editable: !this.readOnly,
         onCommit: this.bindEditNumber((value: number): boolean => this.changeNumber(mapping.id, 'maximumHoldDurationMs', value)) })
       Text('沿用原版：最长时长不大于最短时长时不设上限。达到阈值执行模式只触发一次。')
@@ -688,7 +776,7 @@ export struct InputSettingsPanel {
   @Builder
   private actionRow(mapping: KeyboardShortcutMapping, action: ShortcutAction, index: number) {
     Column({ space: UiStyle.gap(this.compact) }) {
-      Text('动作 ' + (index + 1)).fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).width('100%')
+      Text('动作 ' + (index + 1)).fontSize(UiStyle.section).fontWeight(FontWeight.Medium).fontColor(UiStyle.ink).width('100%')
       SettingsChoiceField({ label: '动作分类', selected: this.category(action.id), options: this.categories(), editable: !this.readOnly,
         compact: this.compact,
         onSelect: this.bindEditChoice((value: string) => this.selectActionCategory(mapping.id, index, value)) })
@@ -717,6 +805,8 @@ export struct InputSettingsPanel {
       } else if (this.spec(action.id).textArgumentLabel.length > 0) {
         SettingsTextField({ label: this.spec(action.id).textArgumentLabel, value: action.text, editable: !this.readOnly,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':mappings', draftKey: 'mapping:' + mapping.id + ':action:' + index + ':' + action.id + ':text',
+          draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
           onCommit: this.bindEditText((value: string): boolean => this.actionText(mapping.id, index, 'text', value)) })
         Text(this.textArgumentDescription(action)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
         Text('禁用仅阻止后续新手势；当前动作组和已排队触发按原语义继续。要立即撤销请使用全局停止。')
@@ -725,6 +815,8 @@ export struct InputSettingsPanel {
       if (this.spec(action.id).valueKind === 'number') {
         SettingsNumberField({ label: this.spec(action.id).valueLabel, unit: this.spec(action.id).unit, value: action.value,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':mappings', draftKey: 'mapping:' + mapping.id + ':action:' + index + ':' + action.id + ':value',
+          draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
           minimum: this.spec(action.id).minimum, maximum: this.spec(action.id).maximum, integer: this.spec(action.id).integer, editable: !this.readOnly,
           onCommit: this.bindEditNumber((value: number): boolean => this.actionValue(mapping.id, index, value)) })
         Text('允许范围：' + this.spec(action.id).minimum + ' 至 ' + this.spec(action.id).maximum + ' ' + this.spec(action.id).unit)
@@ -741,6 +833,8 @@ export struct InputSettingsPanel {
       } else if (this.spec(action.id).valueKind === 'text') {
         SettingsTextField({ label: this.spec(action.id).valueLabel, value: action.text, editable: !this.readOnly,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':mappings', draftKey: 'mapping:' + mapping.id + ':action:' + index + ':' + action.id + ':text',
+          draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
           onCommit: this.bindEditText((value: string): boolean => this.actionText(mapping.id, index, 'text', value)) })
       } else if (this.spec(action.id).valueKind === 'enum' || this.spec(action.id).valueKind === 'axis' || this.spec(action.id).valueKind === 'provider') {
         SettingsChoiceField({ label: this.spec(action.id).valueLabel, selected: action.text, options: this.textOptions(action), editable: !this.readOnly,
@@ -750,28 +844,45 @@ export struct InputSettingsPanel {
       if (this.spec(action.id).secondaryValueKind === 'number') {
         SettingsNumberField({ label: this.spec(action.id).secondaryLabel, unit: this.spec(action.id).secondaryUnit, value: action.secondaryValue,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':mappings', draftKey: 'mapping:' + mapping.id + ':action:' + index + ':' + action.id + ':secondaryValue',
+          draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
           minimum: this.spec(action.id).secondaryMinimum, maximum: this.spec(action.id).secondaryMaximum, editable: !this.readOnly,
           onCommit: this.bindEditNumber((value: number): boolean => this.actionNumber(mapping.id, index, 'secondaryValue', value)) })
       }
       if (this.spec(action.id).tertiaryValueKind === 'number') {
         SettingsNumberField({ label: this.spec(action.id).tertiaryLabel, unit: this.spec(action.id).tertiaryUnit, value: action.tertiaryValue,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':mappings', draftKey: 'mapping:' + mapping.id + ':action:' + index + ':' + action.id + ':tertiaryValue',
+          draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
           minimum: this.spec(action.id).tertiaryMinimum, maximum: this.spec(action.id).tertiaryMaximum, editable: !this.readOnly,
           onCommit: this.bindEditNumber((value: number): boolean => this.actionNumber(mapping.id, index, 'tertiaryValue', value)) })
       }
       if (this.spec(action.id).pointsKind !== 'none') {
-        this.pointEditor(action, this.mappingMaximumPoints(mapping.id, index), this.mappingPointsHandler(mapping.id, index))
+        this.pointEditor(action, this.mappingMaximumPoints(mapping.id, index), this.mappingPointsHandler(mapping.id, index),
+          'mapping:' + mapping.id + ':action:' + index + ':' + action.id + ':points', this.mappingDraftSource(mapping), this.draftScope + ':mappings')
       }
       Flex({ wrap: FlexWrap.Wrap }) {
-        Button('动作上移').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-          .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
-          .enabled(!this.readOnly && index > 0).onClick(this.bindEditCommand(() => this.moveAction(mapping.id, index, -1)))
-        Button('动作下移').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-          .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
-          .enabled(!this.readOnly && index + 1 < mapping.actions.length).onClick(this.bindEditCommand(() => this.moveAction(mapping.id, index, 1)))
-        Button('移除动作').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-          .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
-          .enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).onClick(this.bindEditCommand(() => this.removeAction(mapping.id, index)))
+        Button('动作上移')
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .enabled(!this.readOnly && index > 0).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.bindEditCommand(() => this.moveAction(mapping.id, index, -1)))
+        Button('动作下移')
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .enabled(!this.readOnly && index + 1 < mapping.actions.length).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.bindEditCommand(() => this.moveAction(mapping.id, index, 1)))
+        Button('移除动作')
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.bindEditCommand(() => this.removeAction(mapping.id, index)))
       }.width('100%')
     }.width('100%').padding({ top: 8, bottom: 8 }).margin({ bottom: 8 })
   }
@@ -779,20 +890,26 @@ export struct InputSettingsPanel {
   private mappingRow(mapping: KeyboardShortcutMapping, index: number) {
     Column({ space: UiStyle.gap(this.compact) }) {
       Text((index + 1) + '. ' + (mapping.name.length > 0 ? mapping.name : '未命名映射'))
-        .fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).width('100%')
+        .fontSize(UiStyle.section).fontWeight(FontWeight.Medium).fontColor(UiStyle.ink).width('100%')
       SettingsSwitchField({ label: '启用此映射', value: mapping.enabled, editable: !this.readOnly,
         compact: this.compact,
         onChange: this.bindEditFlag((value: boolean) => this.changeFlag(mapping.id, 'enabled', value)) })
       SettingsTextField({ label: '映射名称（最多 80 字符）', value: mapping.name, editable: !this.readOnly,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':mappings', draftKey: 'mapping:' + mapping.id + ':name',
+          draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
         onCommit: this.bindEditText((value: string): boolean => this.changeName(mapping.id, value)) })
       Text('按键组合：' + (mapping.keys.length === 0 ? '未设置' : chordLabel(mapping.keys)))
         .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Flex({ wrap: FlexWrap.Wrap }) {
         ForEach(mapping.keys, (code: number) => {
-          Button('移除 ' + keyLabel(code)).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-            .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact))
-            .margin({ right: 6, bottom: 6 }).enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).onClick(this.bindEditCommand(() => this.removeKey(mapping.id, code)))
+          Button('移除 ' + keyLabel(code))
+            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+            .margin({ right: 6, bottom: 6 }).enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+            .stateStyles({
+              focused: { .outline({ width: 2, color: UiStyle.accent }) },
+              disabled: { .opacity(UiStyle.disabledOpacity) }
+            }).onClick(this.bindEditCommand(() => this.removeKey(mapping.id, code)))
         }, (code: number) => String(code))
       }.width('100%')
       SettingsChoiceField({ label: '选择组合键成员（最多 8 键）', selected: '', options: this.keyOptions(mapping),
@@ -803,17 +920,29 @@ export struct InputSettingsPanel {
         Text('捕获中：' + (this.captureKeys.length === 0 ? '请按下组合键，然后应用。' : chordLabel(this.captureKeys)))
           .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.accent).width('100%')
         Flex({ wrap: FlexWrap.Wrap }) {
-          Button('应用捕获按键').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-            .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
-            .enabled(!this.readOnly && this.captureKeys.length > 0).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).onClick(this.captureApplyHandler(mapping.id))
-          Button('取消捕获').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-            .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
-            .enabled(!this.readOnly).onClick(this.captureCancelHandler())
+          Button('应用捕获按键')
+            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+            .enabled(!this.readOnly && this.captureKeys.length > 0).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
+            .stateStyles({
+              focused: { .outline({ width: 2, color: UiStyle.accent }) },
+              disabled: { .opacity(UiStyle.disabledOpacity) }
+            }).onClick(this.captureApplyHandler(mapping.id))
+          Button('取消捕获')
+            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+            .enabled(!this.readOnly).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+            .stateStyles({
+              focused: { .outline({ width: 2, color: UiStyle.accent }) },
+              disabled: { .opacity(UiStyle.disabledOpacity) }
+            }).onClick(this.captureCancelHandler())
         }.width('100%')
       } else {
-        Button('从键盘捕获组合键').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-          .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).width('100%')
-          .enabled(!this.readOnly).onClick(this.bindEditCommand(() => this.startCapture(mapping.id)))
+        Button('从键盘捕获组合键')
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).width('100%')
+          .enabled(!this.readOnly).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.bindEditCommand(() => this.startCapture(mapping.id)))
       }
       this.triggerEditor(mapping)
       Text('按列表顺序执行动作；空按键或空动作列表不会触发。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
@@ -828,29 +957,45 @@ export struct InputSettingsPanel {
         editable: !this.readOnly && mapping.actions.length < KeyboardShortcutConfiguration.MAX_ACTIONS,
         onSelect: this.bindEditChoice((value: string) => this.addAction(mapping.id, value)) })
       Flex({ wrap: FlexWrap.Wrap }) {
-        Button('映射上移').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-          .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
-          .enabled(!this.readOnly && index > 0).onClick(this.bindEditCommand(() => this.moveMapping(mapping.id, -1)))
-        Button('映射下移').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-          .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
-          .enabled(!this.readOnly && index + 1 < this.configuration.mappings.length).onClick(this.bindEditCommand(() => this.moveMapping(mapping.id, 1)))
-        Button('移除此映射').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-          .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
-          .enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).onClick(this.bindEditCommand(() => this.removeMapping(mapping.id)))
+        Button('映射上移')
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .enabled(!this.readOnly && index > 0).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.bindEditCommand(() => this.moveMapping(mapping.id, -1)))
+        Button('映射下移')
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .enabled(!this.readOnly && index + 1 < this.configuration.mappings.length).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.bindEditCommand(() => this.moveMapping(mapping.id, 1)))
+        Button('移除此映射')
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.bindEditCommand(() => this.removeMapping(mapping.id)))
       }.width('100%')
     }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) }).border({ width: { bottom: 1 }, color: UiStyle.edge }).margin({ bottom: 12 })
   }
   build() {
     // The workspace owns scrolling; no nested unbounded Scroll or List.
     Column({ space: UiStyle.gap(this.compact) }) {
-      SettingsSectionTitle({ label: '输入 · KEYBOARD' })
+      SettingsSectionTitle({ label: '输入 · KEYBOARD', topLevel: true })
       Text('本地键盘映射按列表顺序匹配和执行。输入文字、捕获按键或应用进入后台时，普通映射暂停。')
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Text('F12 · 全局停止是 OHOS 新增的保留键，不可重新映射；只读和文字输入时仍可停止。')
         .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.danger).width('100%')
-      Button('全局停止 · F12').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-        .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%')
-        .fontColor(UiStyle.field).backgroundColor(UiStyle.danger).fontColor(UiStyle.field).backgroundColor(UiStyle.danger).onClick(() => this.stop())
+      Button('全局停止 · F12').fontSize(UiStyle.body(this.compact))
+        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: 52, maxWidth: '100%', minWidth: UiStyle.control }).width('100%')
+        .fontColor(UiStyle.field).backgroundColor(UiStyle.danger).border({ width: 1, color: UiStyle.danger })
+        .stateStyles({
+          focused: { .outline({ width: 2, color: UiStyle.accent }) },
+          disabled: { .opacity(UiStyle.disabledOpacity) }
+        }).onClick(() => this.stop())
       if (this.readOnly) { Text('当前设置仅可查看。全局停止始终可用。').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.warning).width('100%') }
       if (this.error.length > 0) { Text(this.error).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.danger).width('100%') }
       SettingsSwitchField({ label: '启用键盘映射', value: this.configuration.enabled, editable: !this.readOnly,
@@ -863,12 +1008,18 @@ export struct InputSettingsPanel {
       ForEach(this.configuration.mappings, (mapping: KeyboardShortcutMapping, index: number) => {
         this.mappingRow(mapping, index)
       }, (mapping: KeyboardShortcutMapping) => mapping.id + ':view:' + this.renderRevision)
-      Button('添加键盘映射 · ' + this.configuration.mappings.length + '/64').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-        .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%')
-        .enabled(!this.readOnly && this.configuration.mappings.length < KeyboardShortcutConfiguration.MAX_MAPPINGS).onClick(this.bindEditCommand(() => this.addMapping()))
+      Button('添加键盘映射 · ' + this.configuration.mappings.length + '/64').fontSize(UiStyle.body(this.compact))
+        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%')
+        .enabled(!this.readOnly && this.configuration.mappings.length < KeyboardShortcutConfiguration.MAX_MAPPINGS).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+        .stateStyles({
+          focused: { .outline({ width: 2, color: UiStyle.accent }) },
+          disabled: { .opacity(UiStyle.disabledOpacity) }
+        }).onClick(this.bindEditCommand(() => this.addMapping()))
       SettingsSectionTitle({ label: '触控等价动作 · TOUCH' })
       Text('无需键盘。选择动作和参数后执行，使用与键盘相同的受保护命令入口。此处不提供连接输出或 Arm。')
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+      Text('未应用的参数需先确认或取消；输入过程中不会按旧参数执行。')
+        .fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%')
       Text('动作目录共 ' + this.actionCatalog.length + ' 项，按分类选择。目标轴会显示为当前所选轴或固定轴。')
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       // Recreate same-valued fields when the full draft identity changes, so a
@@ -903,6 +1054,8 @@ export struct InputSettingsPanel {
         } else if (this.spec(this.touchActionId).textArgumentLabel.length > 0) {
           SettingsTextField({ label: this.spec(this.touchActionId).textArgumentLabel, value: this.touchAction.text, editable: !this.readOnly,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':touch', draftKey: 'touch:' + this.touchActionId + ':text',
+          draftSource: this.touchDraftSource(), draftEpoch: this.draftEpoch,
             onCommit: this.touchTextHandler() })
           Text(this.textArgumentDescription(this.touchAction)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
           Text('禁用仅阻止后续新手势；当前动作组和已排队触发按原语义继续。要立即撤销请使用全局停止。')
@@ -911,6 +1064,8 @@ export struct InputSettingsPanel {
         if (this.spec(this.touchActionId).valueKind === 'number') {
           SettingsNumberField({ label: this.spec(this.touchActionId).valueLabel, unit: this.spec(this.touchActionId).unit, value: this.touchActionValue,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':touch', draftKey: 'touch:' + this.touchActionId + ':value',
+          draftSource: this.touchDraftSource(), draftEpoch: this.draftEpoch,
             minimum: this.spec(this.touchActionId).minimum, maximum: this.spec(this.touchActionId).maximum,
             integer: this.spec(this.touchActionId).integer, editable: !this.readOnly,
             onCommit: this.touchNumberHandler() })
@@ -928,6 +1083,8 @@ export struct InputSettingsPanel {
         } else if (this.spec(this.touchActionId).valueKind === 'text') {
           SettingsTextField({ label: this.spec(this.touchActionId).valueLabel, value: this.touchAction.text, editable: !this.readOnly,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':touch', draftKey: 'touch:' + this.touchActionId + ':text',
+          draftSource: this.touchDraftSource(), draftEpoch: this.draftEpoch,
             onCommit: this.touchTextHandler() })
         } else if (this.spec(this.touchActionId).valueKind === 'enum' || this.spec(this.touchActionId).valueKind === 'axis' || this.spec(this.touchActionId).valueKind === 'provider') {
           SettingsChoiceField({ label: this.spec(this.touchActionId).valueLabel, selected: this.touchAction.text,
@@ -937,6 +1094,8 @@ export struct InputSettingsPanel {
         if (this.spec(this.touchActionId).secondaryValueKind === 'number') {
           SettingsNumberField({ label: this.spec(this.touchActionId).secondaryLabel, unit: this.spec(this.touchActionId).secondaryUnit,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':touch', draftKey: 'touch:' + this.touchActionId + ':secondaryValue',
+          draftSource: this.touchDraftSource(), draftEpoch: this.draftEpoch,
             value: this.touchAction.secondaryValue, minimum: this.spec(this.touchActionId).secondaryMinimum,
             maximum: this.spec(this.touchActionId).secondaryMaximum, editable: !this.readOnly,
             onCommit: this.touchNumberHandler('secondaryValue') })
@@ -944,17 +1103,24 @@ export struct InputSettingsPanel {
         if (this.spec(this.touchActionId).tertiaryValueKind === 'number') {
           SettingsNumberField({ label: this.spec(this.touchActionId).tertiaryLabel, unit: this.spec(this.touchActionId).tertiaryUnit,
         compact: this.compact,
+          draftOwner: this.draftOwner, draftScope: this.draftScope + ':touch', draftKey: 'touch:' + this.touchActionId + ':tertiaryValue',
+          draftSource: this.touchDraftSource(), draftEpoch: this.draftEpoch,
             value: this.touchAction.tertiaryValue, minimum: this.spec(this.touchActionId).tertiaryMinimum,
             maximum: this.spec(this.touchActionId).tertiaryMaximum, editable: !this.readOnly,
             onCommit: this.touchNumberHandler('tertiaryValue') })
         }
         if (this.spec(this.touchActionId).pointsKind !== 'none') {
-          this.pointEditor(this.touchAction, KeyboardShortcutConfiguration.MAX_POINTS_PER_ACTION, this.touchPointsHandler())
+          this.pointEditor(this.touchAction, KeyboardShortcutConfiguration.MAX_POINTS_PER_ACTION, this.touchPointsHandler(),
+            'touch:' + this.touchActionId + ':points', this.touchDraftSource(), this.draftScope + ':touch')
         }
-        Button('执行触控动作 · ' + this.spec(this.touchActionId).label).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-          .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').fontSize(UiStyle.body(this.compact))
+        Button('执行触控动作 · ' + this.spec(this.touchActionId).label)
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').fontSize(UiStyle.body(this.compact))
           .enabled(!this.readOnly || this.touchActionId === 'App::Stop')
-          .fontColor(UiStyle.field).backgroundColor(UiStyle.accent).onClick(this.touchActionHandler())
+          .fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.touchActionHandler())
       }, (identity: string) => identity)
       if (this.actionStatus.length > 0) {
         Text('执行结果：' + this.actionStatus).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)

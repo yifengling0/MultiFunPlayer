@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import { registerHooks } from 'node:module';
 registerHooks({
   resolve(s,c,next) {
+    if(s==='@kit.BasicServicesKit') return {url:'data:text/javascript,export const deviceInfo={deviceType:"2in1"};',shortCircuit:true};
     if(s==='@kit.ArkUI') return {url:'data:text/javascript,export const window={MaximizePresentation:{ENTER_IMMERSIVE:2,EXIT_IMMERSIVE:1}};',shortCircuit:true};
     if(s==='./WindowPresentation') return next('./WindowPresentation.ts',c);
     return next(s,c);

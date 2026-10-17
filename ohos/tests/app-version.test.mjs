@@ -6,7 +6,7 @@ const page = readFileSync(new URL('../entry/src/main/ets/pages/Index.ets', impor
 test('UI version derives from the tested version constants matching the package manifest', () => {
   const app = JSON.parse(readFileSync(new URL('../AppScope/app.json5', import.meta.url), 'utf8')).app;
   assert.equal(APP_VERSION_NAME, app.versionName); assert.equal(APP_VERSION_CODE, app.versionCode);
-  assert.match(page, /Text\(APP_VERSION_NAME \+ ' OHOS'\)/);
+  assert.match(page, /Text\('MultiFunPlayer ' \+ APP_VERSION_NAME \+ ' · OHOS'\)/);
   assert.doesNotMatch(page, /Text\(['"]\d+\.\d+\.\d+ OHOS['"]\)/);
 });
 test('narrow media toolbar distributes bounded touch targets rather than overflowing or shrinking them', () => {

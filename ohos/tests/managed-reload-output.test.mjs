@@ -11,6 +11,7 @@ const { ResourceFileEntry } = await import('../entry/src/main/ets/core/ResourceL
 const { OutputSettingsModel, OutputSettingsDraft } = await import('../entry/src/main/ets/output/OutputSettingsModel.ts');
 const { OutputEndpoint } = await import('../entry/src/main/ets/output/OutputCoordinator.ts');
 const { KeyboardInputSession } = await import('../entry/src/main/ets/app/KeyboardInputSession.ts');
+const { SettingsDraftOwner } = await import('../entry/src/main/ets/presentation/SettingsDraftOwner.ts');
 
 // Keep the actual panel's edit -> Disarm -> draft publication ordering, as well
 // as actual Index, NativeOutputSession, collection, coordinators and scheduler.
@@ -19,8 +20,8 @@ const panelSource = readFileSync(new URL('../entry/src/main/ets/components/Outpu
 const panelBody = ('class Panel {' + panelSource.slice(panelSource.indexOf('export struct OutputSettingsPanel {') +
   'export struct OutputSettingsPanel {'.length, panelSource.indexOf('  build() {')) + '}')
   .replace(/@Prop\s*@Watch\([^)]*\)\s*/g, '').replace(/@Prop\s*|@State\s*/g, '');
-const Panel = new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel', 'OutputSettingsDraft', 'OutputEndpoint', 'KeyboardInputSession',
-  stripTypeScriptTypes(panelBody) + '; return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel, OutputSettingsDraft, OutputEndpoint, KeyboardInputSession);
+const Panel = new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel', 'OutputSettingsDraft', 'OutputEndpoint', 'KeyboardInputSession', 'SettingsDraftOwner',
+  stripTypeScriptTypes(panelBody) + '; return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel, OutputSettingsDraft, OutputEndpoint, KeyboardInputSession, SettingsDraftOwner);
 
 function deferred() { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; }
 function operation() { return { started: deferred(), completion: deferred(), respectCancellation: false }; }

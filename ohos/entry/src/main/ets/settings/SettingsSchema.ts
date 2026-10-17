@@ -1,3 +1,4 @@
+import { ContinuousInputConfiguration } from '../input/ContinuousInputConfiguration';
 import { ConfigurationDiagnostic, DeviceAxisDefinition, DeviceProfile, DeviceProfiles } from '../core/DeviceProfile';
 import { AxisConfiguration, AxisConfigurationEntry, AxisConfigurationJson, SyncConfiguration } from '../core/AxisConfiguration';
 import { AxisMotionConfiguration, DeviceMotionConfiguration, MotionConfigurations, MotionProviderConfiguration } from '../core/MotionConfiguration';
@@ -82,6 +83,7 @@ export class AppConfiguration {
   playback: PlaybackConfiguration = new PlaybackConfiguration();
   outputs: OutputConfiguration = new OutputConfiguration();
   keyboard: KeyboardShortcutConfiguration = new KeyboardShortcutConfiguration();
+  continuousInput: ContinuousInputConfiguration = new ContinuousInputConfiguration();
   general: GeneralConfiguration = new GeneralConfiguration();
   mediaSources: MediaSourceConfiguration = new MediaSourceConfiguration();
   selectedDeviceId: string = 'TCode-0.3';
@@ -113,6 +115,7 @@ class JsonAppConfiguration {
   playback: PlaybackConfiguration = new PlaybackConfiguration();
   outputs: OutputConfiguration = new OutputConfiguration();
   keyboard: KeyboardShortcutConfiguration = new KeyboardShortcutConfiguration();
+  continuousInput: ContinuousInputConfiguration = new ContinuousInputConfiguration();
   general: GeneralConfiguration = new GeneralConfiguration();
   mediaSources: MediaSourceConfiguration = new MediaSourceConfiguration();
   selectedDeviceId: string = 'TCode-0.3';
@@ -173,6 +176,7 @@ export class SettingsSchema {
       result.playback = SettingsSchema.playback(raw.playback, diagnostics);
       result.outputs = OutputConfiguration.fromJson(raw.outputs);
       result.keyboard = KeyboardShortcutConfiguration.fromJson(raw.keyboard);
+      result.continuousInput = ContinuousInputConfiguration.fromJson(raw.continuousInput);
       result.general = GeneralConfiguration.fromJson(raw.general);
       result.mediaSources = MediaSourceConfiguration.fromJson(raw.mediaSources);
       result.sync = SettingsSchema.sync(raw.sync, diagnostics);
@@ -217,6 +221,7 @@ export class SettingsSchema {
     result.playback = PlaybackConfiguration.clone(configuration.playback);
     result.outputs = OutputConfiguration.clone(configuration.outputs);
     result.keyboard = KeyboardShortcutConfiguration.clone(configuration.keyboard);
+    result.continuousInput = ContinuousInputConfiguration.clone(configuration.continuousInput);
     result.general = GeneralConfiguration.clone(configuration.general);
     result.mediaSources = MediaSourceConfiguration.clone(configuration.mediaSources);
     result.selectedDeviceId = configuration.selectedDeviceId;

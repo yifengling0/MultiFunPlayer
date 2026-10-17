@@ -1,3 +1,4 @@
+import { SettingsDraftOwner } from '../entry/src/main/ets/presentation/SettingsDraftOwner.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -208,9 +209,9 @@ function fieldClass(name) {
   const end = fieldsSource.indexOf('  build()', start);
   assert.ok(start >= 0 && end > start, name);
   const code = fieldsSource.slice(start, end).replace('export struct', 'class')
-    .replace(/@(Prop|State|Watch)(\([^)]*\))?\s*/g, '') + '\n}';
-  return new Function('KeyboardInputSession', 'SettingsNumberLogic',
-    stripTypeScriptTypes(code) + '; return ' + name + ';')(Keyboard, SettingsNumberLogic);
+    .replace(/@(Prop|State|Watch|StorageLink)(\([^)]*\))?\s*/g, '') + '\n}';
+  return new Function('SettingsDraftOwner', 'KeyboardInputSession', 'SettingsNumberLogic',
+    stripTypeScriptTypes(code) + '; return ' + name + ';')(SettingsDraftOwner, Keyboard, SettingsNumberLogic);
 }
 
 function closeParen(text, start) {
@@ -273,6 +274,8 @@ for (const [name, initial, refreshed, nextText, expected] of [
   assert.equal(Keyboard.isEditing(), true);
   const current = fieldCallbacks(name, field);
   current.onChange(nextText); current.onBlur();
+  assert.deepEqual(commits, [], 'blur only retains the unapplied draft');
+  current.onSubmit();
   assert.deepEqual(commits, [expected]); assert.equal(Keyboard.isEditing(), false);
   old.onFocus(); assert.equal(Keyboard.isEditing(), false);
   current.onFocus(); assert.equal(current.onKeyPreIme({ keyCode: F12, type: 0 }), true);
@@ -294,6 +297,14 @@ test('every production TextInput binds change, focus, blur and pre-IME to the re
     for (const calls of textInputs(source(path))) {
       owners.push(path);
       const focus = /^KeyboardInputSession\.focusHandler\(this\.(\w+), true\)$/.exec(calls.get('onFocus') ?? '');
+      if (path === 'pages/Index.ets') {
+        assert.equal(calls.get('onFocus'), 'this.librarySearchFocusHandler(true)');
+        assert.equal(calls.get('onBlur'), 'this.librarySearchFocusHandler(false)');
+        assert.equal(calls.get('onChange'), 'KeyboardInputSession.changeHandler(this.librarySearchEditor, this.librarySearchHandler())');
+        assert.equal(calls.get('onKeyPreIme'), 'KeyboardInputSession.emergencyHandler(this.librarySearchEditor)');
+        assert.match(source(path), /const revision = this.screenRevision; const editor = this.librarySearchEditor/);
+        continue;
+      }
       assert.ok(focus, path + ': missing bound focus callback');
       const id = focus[1];
       assert.match(calls.get('onChange') ?? '', new RegExp('^KeyboardInputSession\\.changeHandler\\(this\\.' + id + ','), path);
@@ -305,10 +316,10 @@ test('every production TextInput binds change, focus, blur and pre-IME to the re
     }
   }
   assert.deepEqual(owners.sort(), [
+    'pages/Index.ets',
     'components/CurvePointEditor.ets', 'components/CurvePointEditor.ets',
     'components/DeviceSettingsPanel.ets', 'components/DeviceSettingsPanel.ets',
-    'components/OutputSettingsPanel.ets', 'components/OutputSettingsPanel.ets'
-  ]);
+  ].sort());
 });
 
 test('errors deduplicate by mode/key, return detached notices and bound displayed text', () => {

@@ -1,4 +1,5 @@
 import { UiStyle } from '../presentation/UiStyle';
+import { SettingsDraftOwner } from '../presentation/SettingsDraftOwner';
 import { GeneralConfiguration } from '../settings/GeneralConfiguration';
 import { SettingsChoiceField, SettingsOption, SettingsSectionTitle } from './CurvePointEditor';
 
@@ -19,19 +20,33 @@ export class GeneralSettingsEdits {
 
 @Component
 export struct GeneralSettingsPanel {
+  draftOwner: SettingsDraftOwner = new SettingsDraftOwner();
+  @Prop @Watch('ownerChanged') draftScope: string = '';
+  @Prop @Watch('ownerChanged') draftEpoch: number = 0;
   @Prop compact: boolean = false;
   @Prop @Watch('ownerChanged') configuration: GeneralConfiguration = new GeneralConfiguration();
   @Prop @Watch('ownerChanged') readOnly: boolean = false;
   onChange: (snapshot: GeneralConfiguration) => void = (_snapshot: GeneralConfiguration): void => {};
   private editEpoch: number = 0;
   private active: boolean = true;
+  private deliveryLease: number = 0;
+  private deliverySource(): string { return JSON.stringify([this.draftScope, this.draftEpoch, this.readOnly]); }
+  private deliveryToken(source: string): number {
+    if (!this.draftOwner.isCurrent(this.deliveryLease, source)) { this.deliveryLease = this.draftOwner.open(this.draftScope, '$delivery', source, '').token; }
+    return this.deliveryLease;
+  }
+  private deliveryCurrent(token: number, source: string): boolean {
+    return this.active && source === this.deliverySource() && this.draftOwner.isCurrent(token, source);
+  }
+
   aboutToAppear(): void { this.active = true; this.editEpoch++; }
-  aboutToDisappear(): void { this.active = false; this.editEpoch++; }
-  private ownerChanged(): void { this.editEpoch++; }
+  aboutToDisappear(): void { this.draftOwner.release(this.deliveryLease); this.active = false; this.editEpoch++; }
+  private ownerChanged(): void { this.draftOwner.release(this.deliveryLease); this.editEpoch++; }
   private choiceHandler(field: string): (value: string) => void {
     const owner: GeneralConfiguration = this.configuration; const epoch: number = this.editEpoch;
+    const source = this.deliverySource(); const token = this.deliveryToken(source);
     return (value: string): void => {
-      if (this.active && !this.readOnly && this.configuration === owner && this.editEpoch === epoch) {
+      if (this.deliveryCurrent(token, source) && !this.readOnly && this.configuration === owner && this.editEpoch === epoch) {
         this.change(field, value);
       }
     };
@@ -55,7 +70,7 @@ export struct GeneralSettingsPanel {
   build() {
     // The workspace owns scrolling. Keep this content reachable in a narrow pane.
     Column({ space: UiStyle.gap(this.compact) }) {
-      SettingsSectionTitle({ label: '通用 · GENERAL' })
+      SettingsSectionTitle({ label: '通用 · GENERAL', topLevel: true })
       if (this.readOnly) {
         Text('当前设置仅可查看。').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.warning).width('100%')
       }

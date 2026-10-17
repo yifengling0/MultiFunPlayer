@@ -1,3 +1,13 @@
+import { ContinuousInputConfiguration, ContinuousInputAction } from '../input/ContinuousInputConfiguration';
+import { ContinuousDriveEngine, ContinuousInputContext, ContinuousOutputIdentity, ContinuousCapture, ContinuousDispatch, ContinuousGestureData } from '../input/ContinuousDriveEngine';
+import { LocalDrivePointer, LocalSurfaceGeometry, LocalTouchPacket, LocalMousePacket, LocalWheelPacket, LocalPointerResult } from '../input/LocalDrivePointer';
+import { applyContinuousRange } from '../input/ContinuousInputActions';
+import { ContinuousInputPanel } from '../components/ContinuousInputPanel';
+import { ImmersiveMaterialManager } from '../presentation/immersive/ImmersiveMaterialManager';
+import { MfpSliderMaterialModifier } from '../presentation/immersive/ImmersiveMaterialModifiers';
+import { ConfirmationOwner, ConfirmationRequest, ConfirmationActions } from '../presentation/ConfirmationOwner';
+import { OwnedConfirmationDialog, ConfirmationDialogGeometry } from '../components/OwnedConfirmationDialog';
+import { SettingsDraftOwner } from '../presentation/SettingsDraftOwner';
 import { NativeDeviceClipboard } from '../settings/NativeDeviceClipboard';
 import { SerialDiagnosticSession, SerialDiagnosticSnapshot } from '../app/SerialDiagnosticSession';
 import { NativeSerialFactory } from '../output/serial/NativeSerialFactory';
@@ -71,7 +81,7 @@ import { ScriptZipFiles } from '../library/ScriptZipFiles';
 import { ScriptZipCandidate } from '../core/ScriptZip';
 import { Heatmap, HeatmapBucket } from '../core/Heatmap';
 import { NativeVideoAdapter } from '../media/NativeVideoAdapter';
-import { VideoWorkspaceLayout, videoWorkspaceLayout } from '../core/VideoLayout';
+import { VideoWorkspaceLayout, videoWorkspaceLayout, applicationWorkspaceLayout } from '../core/VideoLayout';
 import { DownloadLibrary } from '../library/DownloadLibrary';
 import { t } from '../l10n/Texts';
 
@@ -101,6 +111,7 @@ class VideoSurfaceController extends XComponentController {
 
 @Extend(Button)
 function flatButton() {
+  .buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL)
   .backgroundColor(UiStyle.field).fontColor(UiStyle.ink).borderRadius(UiStyle.radius)
   .padding({ left: 12, right: 12, top: 8, bottom: 8 }).fontSize(18)
   .border({ width: 1, color: UiStyle.edge })
@@ -115,6 +126,12 @@ class ShortcutConnectionOwner {
 @Entry
 @Component
 struct Index {
+  @StorageLink('mfpImmersiveMaterialRevision') @Watch('materialPresentationChanged') materialRevision: number = 0;
+  private materialPresentationChanged(): void {}
+  private confirmationOwner: ConfirmationOwner | null = null;
+  private confirmationController: CustomDialogController | undefined = undefined;
+  private confirmationCloseUnconfirmed: boolean = false;
+  @State private confirmationErrorId: number = 0;
   @StorageLink('mfpForeground') @Watch('foregroundChanged') foreground: boolean = true;
   @State widthVp: number = 400;
   @State heightVp: number = 800;
@@ -153,9 +170,9 @@ struct Index {
   private settingsScroller: Scroller = new Scroller();
   private sourceScroller: Scroller = new Scroller();
   @State showSourceSettings: boolean = false;
-  @State showOutputSettings: boolean = false;
+  @State showOutputSettings: boolean = true;
   @State showMediaSettings: boolean = false;
-  @State showAxisSettings: boolean = false;
+  @State showAxisSettings: boolean = true;
   @State showAxisValues: boolean = false;
   @State showMarkerDetails: boolean = false;
   @State showHeatSettings: boolean = false;
@@ -279,6 +296,175 @@ struct Index {
   private surfaceId: string = '';
   private pendingVideoUri: string = '';
   private openVideoRequest: number = 0;
+  private libraryPlayRequest: number = -1;
+  private libraryOpeningRevision: number = -1;
+  private screenRevision: number = 0;
+  @State currentScreen: string = 'library';
+  @State workspacePreviewCollapsed: boolean = false;
+  @State librarySearch: string = '';
+  private librarySearchEditor: number = KeyboardInputSession.newEditorId();
+  @State libraryDetailsId: string = '';
+  private settingsDraftOwner: SettingsDraftOwner = new SettingsDraftOwner();
+  @State settingsDraftEpoch: number = 0;
+  private settingsDraftContext: string = '';
+  @State workspaceTool: string = 'script';
+  @State showTrace: boolean = false;
+  @State showAddOutput: boolean = false;
+  @State showAllOutputStates: boolean = false;
+  @State showScriptResourceDetails: boolean = false;
+  @State showMediaAdvanced: boolean = false;
+  private selectScreen(screen: string): void {
+    if (!['library', 'player', 'workspace'].some(value => value === screen) || screen === this.currentScreen) { return; }
+    if (screen === 'player' && !this.videoMode) { return; }
+    this.retireSettingsDrafts(); this.screenRevision++; KeyboardInputSession.setEditorFocus(this.librarySearchEditor, false);
+    if (screen !== 'player') { this.cancelLibraryPlayback(); this.setVideoFullscreen(false); }
+    this.currentScreen = screen;
+  }
+  private selectWorkspaceTool(tool: string): void {
+    if (!['script', 'output', 'media', 'settings'].some(value => value === tool)) { return; }
+    const changed = tool !== this.workspaceTool;
+    if (this.workspaceTool === 'settings' && this.showInputSettings && changed) { this.cancelKeyboardWork(); this.showInputSettings = false; this.updateKeyboardContext(); }
+    this.selectScreen('workspace');
+    if (changed) { this.retireSettingsDrafts(); this.workspaceTool = tool; }
+    this.settingsScroller.scrollEdge(Edge.Top);
+  }
+  private visibleLibraryItems(): ResourceLibraryItem[] {
+    const query = this.librarySearch.trim().toLocaleLowerCase();
+    return this.libraryItems.filter(item => item.videos.length > 0 &&
+      (query.length === 0 || item.title.toLocaleLowerCase().indexOf(query) >= 0));
+  }
+  private librarySearchHandler(): (value: string) => void {
+    const owner = this.keyboardOwner; const revision = this.screenRevision;
+    return (value: string): void => {
+      if (this.viewActive && this.foreground && owner === this.keyboardOwner && KeyboardInputSession.ownsListener(owner) && revision === this.screenRevision && this.currentScreen === 'library') {
+        this.librarySearch = value.slice(0, 256); this.libraryLimit = 20;
+      }
+    };
+  }
+  private librarySearchFocusHandler(focused: boolean): () => void {
+    const revision = this.screenRevision; const editor = this.librarySearchEditor; const owner = this.keyboardOwner;
+    return (): void => { if (KeyboardInputSession.ownsListener(owner) && owner === this.keyboardOwner && revision === this.screenRevision && this.currentScreen === 'library' && this.viewActive && this.foreground) { KeyboardInputSession.setEditorFocus(editor, focused); } };
+  }
+  private libraryPlayHandler(item: ResourceLibraryItem, manual: boolean = false, originalSearch: boolean = false): () => void {
+    const request = this.libraryRequest; const revision = this.screenRevision; const epoch = this.settingsDraftEpoch; const owner = this.keyboardOwner;
+    return (): void => {
+      if (request !== this.libraryRequest || revision !== this.screenRevision || epoch !== this.settingsDraftEpoch || owner !== this.keyboardOwner || !KeyboardInputSession.ownsListener(owner) ||
+        this.currentScreen !== 'library' || !this.viewActive || !this.foreground || !this.libraryItems.some(current => current === item)) { return; }
+      if (!manual && item.videos.length > 1) { this.libraryDetailsId = item.id; this.beginMapping(item); }
+      else { void this.playLibraryItem(item, manual, originalSearch); }
+    };
+  }
+  private libraryDetailsHandler(item: ResourceLibraryItem): () => void {
+    const request = this.libraryRequest; const revision = this.screenRevision; const epoch = this.settingsDraftEpoch; const owner = this.keyboardOwner;
+    return (): void => {
+      if (request !== this.libraryRequest || revision !== this.screenRevision || epoch !== this.settingsDraftEpoch || owner !== this.keyboardOwner || !KeyboardInputSession.ownsListener(owner) || this.currentScreen !== 'library' || !this.viewActive || !this.foreground ||
+        this.libraryBusy || this.openingVideo || this.importing || !this.libraryItems.some(current => current === item)) { return; }
+      this.libraryDetailsId = this.libraryDetailsId === item.id ? '' : item.id;
+      if (this.libraryDetailsId.length > 0) { this.beginMapping(item); }
+    };
+  }
+  private librarySelectionHandler(item: ResourceLibraryItem, uri: string, script: boolean): () => void {
+    const request = this.libraryRequest; const revision = this.screenRevision; const epoch = this.settingsDraftEpoch; const owner = this.keyboardOwner;
+    return (): void => {
+      if (request !== this.libraryRequest || revision !== this.screenRevision || epoch !== this.settingsDraftEpoch || owner !== this.keyboardOwner || !KeyboardInputSession.ownsListener(owner) || this.currentScreen !== 'library' || this.libraryDetailsId !== item.id ||
+        this.manualItemId !== item.id || !this.viewActive || !this.foreground || this.libraryBusy || this.openingVideo || this.importing ||
+        !this.libraryItems.some(current => current === item)) { return; }
+      if (script && item.scripts.some(match => match.file.uri === uri)) { this.toggleMappedScript(uri); }
+      else if (!script && item.videos.some(file => file.uri === uri)) { this.manualVideoUri = uri; }
+    };
+  }
+  private async playLibraryItem(item: ResourceLibraryItem, manual: boolean = false, originalSearch: boolean = false): Promise<void> {
+    if (this.currentScreen !== 'library' || this.confirmationCloseUnconfirmed || !this.viewActive || !this.foreground || this.runtimeBusy || this.libraryBusy || this.openingVideo || this.importing ||
+      !this.libraryItems.some(current => current === item)) { return; }
+    const video = manual ? item.videos.find(file => file.uri === this.manualVideoUri) : item.video;
+    if (video === undefined) { this.libraryDetailsId = item.id; this.status = '请选择一个视频'; return; }
+    KeyboardInputSession.setEditorFocus(this.librarySearchEditor, false);
+    this.retireSettingsDrafts(); this.currentScreen = 'player'; const revision = ++this.screenRevision;
+    this.libraryOpeningRevision = revision;
+    const request = await this.openLibraryItem(item, manual, originalSearch);
+    if (revision !== this.screenRevision || this.currentScreen !== 'player' || !this.viewActive || !this.foreground) { return; }
+    if (request < 0 || request !== this.openVideoRequest || !this.videoMode || this.videoState === 'error') { this.libraryOpeningRevision = -1; return; }
+    this.libraryPlayRequest = request; this.startLibraryPlayback();
+  }
+  private cancelLibraryPlayback(): void {
+    this.libraryPlayRequest = -1;
+    if (this.libraryOpeningRevision < 0) { return; }
+    this.libraryOpeningRevision = -1; this.openVideoRequest++; this.pendingVideoUri = '';
+    this.openingVideo = false; this.importing = false; this.pairOpening = false; this.videoReady = false; this.videoMode = false;
+    this.setVideoFullscreen(false); this.video.release(); this.output.stop(); this.engine.stop(); this.engine.clearScripts(); this.engine.useExternalClock(false);
+    this.document = new FunscriptDocument([]); this.status = '已取消视频打开'; this.sync();
+  }
+  private startLibraryPlayback(): void {
+    const request = this.libraryPlayRequest;
+    if (!KeyboardInputSession.isWindowFocused()) { this.screenRevision++; this.cancelLibraryPlayback(); return; }
+    if (request < 0 || request !== this.openVideoRequest || this.currentScreen !== 'player' || !this.viewActive || !this.foreground ||
+      !this.videoMode || !this.videoReady || this.openingVideo || this.importing || this.libraryBusy || this.confirmationCloseUnconfirmed) { return; }
+    this.libraryPlayRequest = -1; this.libraryOpeningRevision = -1;
+    if (this.engine.play()) { this.mediaPlayIntent = true; this.syncOutput(); this.video.play(); }
+  }
+  private outputSummary(): string {
+    const connected = this.outputTargets.filter(target => target.connection === 'connected').length;
+    const armed = this.outputTargets.filter(target => target.armed).length;
+    const pending = this.outputTargets.filter(target => target.armed && target.dispatchSuspended).length;
+    const faults = this.outputTargets.filter(target => target.connection === 'fault').length;
+    return connected + ' 个已连接 · ' + (armed === 0 ? '输出未启用' : armed + ' 个已启用' + (pending > 0 ? ' / ' + pending + ' 个待命' : '')) + (faults > 0 ? ' · ' + faults + ' 个故障' : '');
+  }
+  private wideWorkspace(): boolean {
+    return !this.workspacePreviewCollapsed && this.widthVp >= 900 && horizontalWorkspace(this.widthVp, this.heightVp, this.generalConfiguration.appOrientation);
+  }
+  private toggleWorkspacePreview(): void {
+    this.retireSettingsDrafts(); this.workspacePreviewCollapsed = !this.workspacePreviewCollapsed;
+  }
+  private inspectorWidth(): number {
+    const available = this.workspaceLayout().settings.width;
+    return !this.workspaceLayout().sideBySide && this.wideWorkspace()
+      ? Math.min(480, Math.max(320, available * 0.34)) : available;
+  }
+  private inspectorHeight(): number {
+    const available = this.workspaceLayout().settings.height;
+    if (this.workspaceLayout().sideBySide) { return available; }
+    return Math.max(0, available - (this.wideWorkspace() ? 32 : UiStyle.control + 36));
+  }
+  private outputChoiceHandler(): (value: string) => void {
+    const ids: string[] = this.outputTargets.map(target => target.id);
+    const generations: number[] = this.outputTargets.map(target => target.generation);
+    const epoch = this.settingsDraftEpoch;
+    return (value: string): void => {
+      const index: number = ids.indexOf(value);
+      if (this.viewActive && this.foreground && epoch === this.settingsDraftEpoch && index >= 0) { this.selectOutputTarget(ids[index], generations[index]); }
+    };
+  }
+
+  private axisScaleHandler(): (value: number) => void {
+    const axisName: string = this.axisNames[this.selectedAxis];
+    const scope: string = this.settingsScope('axis');
+    const epoch: number = this.settingsDraftEpoch;
+    const source: string = JSON.stringify([scope, epoch]);
+    const token: number = this.settingsDraftOwner.open(scope, '$scaleSlider', source, '').token;
+    return (value: number): void => {
+      if (axisName === undefined || !this.viewActive || !this.foreground || this.settingsReadOnly || this.recoveryRequired ||
+        scope !== this.settingsScope('axis') || epoch !== this.settingsDraftEpoch ||
+        !this.settingsDraftOwner.isCurrent(token, source) || !Number.isFinite(value)) { return; }
+      const configuration = this.engine.getAxisConfiguration(axisName);
+      configuration.scriptScale = value; this.applyAxisSettings(configuration);
+    };
+  }
+  private retireSettingsDrafts(): void { this.cancelContinuousInput('布局或编辑上下文已变化'); this.closeConfirmation(); this.settingsDraftOwner.invalidate(); this.settingsDraftEpoch++; }
+  private settingsScope(kind: string): string {
+    const registry = this.engine.activeRegistry();
+    const profile = registry.profile.id + ':' + registry.revision;
+    if (kind === 'axis' || kind === 'motion') { return kind + ':' + profile + ':' + (this.axisNames[this.selectedAxis] || '') + (kind === 'motion' ? ':' + this.motionEditorId : ''); }
+    if (kind === 'device') { return kind + ':' + this.selectedProfileId; }
+    if (kind === 'output') { return kind + ':' + profile + ':' + this.outputDraft.targetId + ':' + this.outputDraft.targetGeneration; }
+    if (kind === 'source') { return kind + ':' + this.mediaSourceConfiguration.selectedSource; }
+    return kind + ':' + profile;
+  }
+  private syncSettingsDraftContext(): void {
+    const context = JSON.stringify([this.settingsScope('axis'), this.settingsScope('motion'), this.settingsScope('device'),
+      this.settingsScope('output'), this.settingsScope('source'), this.videoMode,
+      horizontalWorkspace(this.widthVp, this.heightVp, this.generalConfiguration.appOrientation), this.settingsReadOnly, this.recoveryRequired]);
+    if (context !== this.settingsDraftContext) { this.retireSettingsDrafts(); this.settingsDraftContext = context; }
+  }
   private viewActive: boolean = false;
   @State keyboardConfiguration: KeyboardShortcutConfiguration = new KeyboardShortcutConfiguration();
   @State generalConfiguration: GeneralConfiguration = new GeneralConfiguration();
@@ -288,6 +474,24 @@ struct Index {
   @State keyboardCaptureRevision: number = 0;
   @State keyboardCaptureKeys: number[] = [];
   @State inputMessage: string = '';
+  @State inputFocusMessage: string = '';
+  @State continuousConfiguration: ContinuousInputConfiguration = new ContinuousInputConfiguration();
+  @State continuousMappingId: string = '';
+  @State showContinuousInput: boolean = false;
+  @State continuousReceiving: boolean = false;
+  @State continuousContact: boolean = false;
+  @State continuousReceptionRevision: number = 0;
+  @State continuousStatus: string = '尚未接收；配置不会连接或 Arm';
+  @State continuousLatestValue: number = 0.5;
+  @State continuousLatestDelta: number = 0;
+  @State continuousLastAction: string = '';
+  private continuous: ContinuousDriveEngine = new ContinuousDriveEngine();
+  private continuousPointer: LocalDrivePointer = new LocalDrivePointer();
+  private continuousCapture: ContinuousCapture | null = null;
+  private continuousContactSerial: number = -1;
+  private continuousControlRevision: number = 0;
+  private continuousTimer: number = -1;
+  private continuousExpectedTargets: string = '';
   private keyboard: LocalShortcutEngine = new LocalShortcutEngine();
   private shortcutQueue: Promise<void> = Promise.resolve();
   private shortcutQueueToken: number = -1;
@@ -319,7 +523,10 @@ struct Index {
   private canvas: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
 
   aboutToAppear(): void {
+    this.librarySearchEditor = KeyboardInputSession.renewEditor(this.librarySearchEditor);
+    void ImmersiveMaterialManager.initialize();
     this.viewActive = true;
+    this.settingsDraftOwner = new SettingsDraftOwner(); this.settingsDraftOwner.setAvailable(this.foreground); this.settingsDraftEpoch++;
     this.diagnosticOwner = SocketDiagnosticSession.claimOwner();
     this.serialProbeOwner = SerialDiagnosticSession.claimOwner();
     this.mediaSourceConfiguration = this.engine.mediaSourceConfiguration();
@@ -330,8 +537,10 @@ struct Index {
     this.deoVrSnapshot(this.remoteSource().snapshot(), [], this.remoteKind);
     this.keyboardConfiguration = this.engine.keyboardConfiguration(); this.generalConfiguration = this.engine.generalConfiguration();
     this.keyboard.setConfiguration(this.keyboardConfiguration);
+    this.continuousConfiguration = this.engine.continuousInputConfiguration(); this.continuous.setConfiguration(this.continuousConfiguration);
     this.keyboardOwner = KeyboardInputSession.setListener((_editing: boolean): void => this.updateKeyboardContext(),
-      (keyCode: number, pressed: boolean): boolean => this.handleKeyboardKey(keyCode, pressed));
+      (keyCode: number, pressed: boolean): boolean => this.handleKeyboardKey(keyCode, pressed),
+      (): void => this.cancelKeyboardWork());
     this.presentationOwner = NativeWindowPresentation.setListener((result: WindowPresentationResult): void => this.presentationChanged(result));
     this.engine.setForeground(this.foreground);
     NativeOutputSession.setForeground(this.foreground);
@@ -355,6 +564,9 @@ struct Index {
     this.scanDownloads();
   }
   aboutToDisappear(): void {
+    this.libraryPlayRequest = -1; this.libraryOpeningRevision = -1; this.screenRevision++; KeyboardInputSession.releaseEditor(this.librarySearchEditor);
+    this.closeConfirmation();
+    this.settingsDraftOwner.dispose(); this.settingsDraftEpoch++;
     this.serialDiscovery.cancel();
     SerialDiagnosticSession.releaseOwner(this.serialProbeOwner); this.serialProbeOwner = 0;
     SocketDiagnosticSession.releaseOwner(this.diagnosticOwner); this.diagnosticOwner = 0;
@@ -371,6 +583,9 @@ struct Index {
     this.engine.stop(); this.engine.flush();
   }
   foregroundChanged(): void {
+    if (!this.foreground) { this.cancelLibraryPlayback(); this.screenRevision++; KeyboardInputSession.setEditorFocus(this.librarySearchEditor, false); }
+    this.closeConfirmation();
+    this.settingsDraftOwner.setAvailable(this.foreground); this.settingsDraftEpoch++;
     if (!this.foreground) { this.serialDiscovery.cancel(); }
     if (!this.foreground) { this.mediaSettingsRequest++; this.disconnectDeoVr(); this.cancelKeyboardWork(); this.errors.cancel(); }
     this.updateKeyboardContext();
@@ -482,15 +697,191 @@ struct Index {
     this.drawTrace();
     this.syncErrorPresentation();
   }
+  private continuousOwnerKey(): string {
+    return this.keyboardOwner + ':' + this.engine.activeRegistry().revision + ':' + this.continuousMappingId + ':' + this.continuousControlRevision;
+  }
+  private continuousTargetStamp(): string {
+    const mapping = this.continuousConfiguration.mappings.find(item => item.id === this.continuousMappingId);
+    if (mapping === undefined) { return ''; }
+    return JSON.stringify(mapping.actions.filter(action => action.outputTargetId.length > 0).map(action => {
+      const draft = NativeOutputSession.draftSnapshot(action.outputTargetId);
+      const summary = NativeOutputSession.summaries().find(item => item.id === action.outputTargetId);
+      return [action.outputTargetId, draft, summary === undefined ? null : [summary.connection, summary.removing]];
+    }));
+  }
+  private updateContinuousContext(): void {
+    const context = new ContinuousInputContext(); const registry = this.engine.activeRegistry();
+    context.foreground = this.foreground; context.focused = this.viewActive && KeyboardInputSession.ownsListener(this.keyboardOwner) && KeyboardInputSession.isWindowFocused();
+    context.textInput = KeyboardInputSession.isEditing(); context.ime = context.textInput;
+    context.modal = this.confirmationCloseUnconfirmed || this.errorNoticeMode === 'dialog' || (this.confirmationOwner !== null && this.confirmationOwner.hasPending());
+    context.readOnly = this.settingsReadOnly || this.recoveryRequired || this.runtimeBusy || this.engine.fault().length > 0 || this.engine.hasPendingProfileChanges();
+    context.surfaceVisible = this.workspaceTool === 'settings' && this.showInputSettings && this.showContinuousInput;
+    context.ownerId = this.keyboardOwner; context.profileRevision = registry.revision; context.controlRevision = this.continuousControlRevision;
+    context.enabledAxes = registry.axes.map(axis => axis.name);
+    context.outputTargets = NativeOutputSession.summaries().filter(target => !target.removing && target.kind !== 'serial')
+      .map(target => new ContinuousOutputIdentity(target.id, target.generation));
+    const token = this.continuous.cancellationToken(); this.continuous.setContext(context);
+    if (token !== this.continuous.cancellationToken() || (this.continuous.isReceiving() && this.continuousExpectedTargets !== this.continuousTargetStamp())) {
+      this.cancelContinuousInput('上下文或输出目标已变化，请重新接收');
+    }
+    this.syncContinuousState();
+  }
+  private syncContinuousState(): void {
+    this.continuousReceiving = this.continuous.isReceiving() && this.continuousPointer.isReceiving();
+    this.continuousContact = this.continuous.isContactActive() && this.continuousPointer.isContactActive();
+  }
+  private clearContinuousTimer(): void { if (this.continuousTimer !== -1) { clearTimeout(this.continuousTimer); this.continuousTimer = -1; } }
+  private cancelContinuousInput(reason: string): void {
+    const hadWork = this.continuous.isReceiving() || this.continuousPointer.isReceiving() || this.continuousCapture !== null || this.continuousTimer !== -1;
+    this.clearContinuousTimer(); this.continuous.cancel(reason); this.continuousPointer.cancel(reason);
+    this.continuousCapture = null; this.continuousContactSerial = -1;
+    if (hadWork) { this.continuousReceptionRevision++; this.continuousStatus = reason + '；尚未接收'; }
+    this.syncContinuousState();
+  }
+  private toggleContinuousInput(): void {
+    this.cancelContinuousInput('已折叠或重新打开'); this.showContinuousInput = !this.showContinuousInput; this.updateContinuousContext();
+  }
+  private applyContinuousConfiguration(configuration: ContinuousInputConfiguration): void {
+    if (!this.viewActive || !this.foreground || this.settingsReadOnly || this.recoveryRequired) { return; }
+    this.cancelContinuousInput('映射已修改'); this.continuousControlRevision++;
+    try {
+      this.engine.changeContinuousInputConfiguration(configuration);
+      this.continuousConfiguration = this.engine.continuousInputConfiguration();
+      this.continuous.setConfiguration(this.continuousConfiguration);
+      if (!this.continuousConfiguration.mappings.some(mapping => mapping.id === this.continuousMappingId)) { this.continuousMappingId = ''; }
+      this.continuousStatus = '配置已保存；需显式接收，设备仍需独立 Arm';
+    } catch (error) { this.continuousStatus = '未保存：' + (error as Error).message; }
+    this.updateContinuousContext();
+  }
+  private selectContinuousMapping(id: string): void {
+    if (!this.continuousConfiguration.mappings.some(mapping => mapping.id === id)) { return; }
+    this.cancelContinuousInput('已切换映射'); this.continuousMappingId = id; this.continuousControlRevision++; this.updateContinuousContext();
+  }
+  private enableContinuousInput(id: string): void {
+    if (id !== this.continuousMappingId || this.settingsDraftOwner.hasPending(this.settingsScope('continuous'))) { this.continuousStatus = '请先确认或取消此区未应用的编辑'; return; }
+    this.cancelContinuousInput('重新接收'); this.updateContinuousContext();
+    const mapping = this.continuousConfiguration.mappings.find(item => item.id === id);
+    const now = this.inputNow();
+    if (mapping === undefined || !this.continuous.enableReception(this.keyboardOwner, id)) { this.continuousStatus = '当前焦点、设置、目标或映射不可接收'; return; }
+    this.continuousReceptionRevision++;
+    if (!this.continuousPointer.enable(this.continuousOwnerKey(), this.continuousReceptionRevision, mapping, this.inputNowNs())) {
+      this.cancelContinuousInput('输入区尚未取得有效尺寸'); return;
+    }
+    this.continuousExpectedTargets = this.continuousTargetStamp();
+    this.continuousStatus = '正在接收局部输入；配置与接收均不会连接或 Arm'; this.syncContinuousState();
+  }
+  private continuousScopeCurrent(ownerKey: string, revision: number): boolean {
+    return this.viewActive && this.foreground && KeyboardInputSession.ownsListener(this.keyboardOwner) &&
+      ownerKey === this.continuousOwnerKey() && revision === this.continuousReceptionRevision;
+  }
+  private continuousSurfaceChanged(geometry: LocalSurfaceGeometry, ownerKey: string, revision: number): void {
+    if (!this.continuousScopeCurrent(ownerKey, revision)) { return; }
+    if (this.continuousPointer.setGeometry(geometry)) { this.cancelContinuousInput('输入区尺寸或位置变化'); }
+  }
+  private continuousCancelHandler(reason: string, ownerKey: string, revision: number): void {
+    if (this.continuousScopeCurrent(ownerKey, revision)) { this.cancelContinuousInput(reason); }
+  }
+  private localContinuousTouch(packet: LocalTouchPacket): boolean {
+    if (!this.continuousScopeCurrent(packet.ownerKey, packet.receptionRevision)) { return false; }
+    this.updateContinuousContext(); return this.acceptContinuousPointer(this.continuousPointer.touch(packet, this.inputNowNs()));
+  }
+  private localContinuousMouse(packet: LocalMousePacket): boolean {
+    if (!this.continuousScopeCurrent(packet.ownerKey, packet.receptionRevision)) { return false; }
+    this.updateContinuousContext(); return this.acceptContinuousPointer(this.continuousPointer.mouse(packet, this.inputNowNs()));
+  }
+  private localContinuousWheel(packet: LocalWheelPacket): boolean {
+    if (!this.continuousScopeCurrent(packet.ownerKey, packet.receptionRevision)) { return false; }
+    this.updateContinuousContext(); return this.acceptContinuousPointer(this.continuousPointer.wheel(packet, this.inputNowNs()));
+  }
+  private acceptContinuousPointer(result: LocalPointerResult): boolean {
+    if (result.receptionCancelled) { this.cancelContinuousInput(result.reason); return result.handled; }
+    if (result.contactEnded) {
+      if (this.continuousCapture !== null) { this.continuous.releaseCapture(this.continuousCapture); }
+      this.continuousCapture = null; this.continuousContactSerial = -1; this.clearContinuousTimer(); this.syncContinuousState(); return result.handled;
+    }
+    const gesture = result.gesture;
+    if (!result.handled || gesture === null || !this.continuous.isReceiving()) { return false; }
+    const now = this.inputNow();
+    // An in-flight wheel dispatch is dropped per the original busy rule;
+    // it does not fabricate a new hold or retire otherwise valid reception.
+    if (gesture.source === 'wheel' && this.continuousCapture !== null) { return true; }
+    if (this.continuousCapture === null) {
+      this.continuousCapture = this.continuous.beginCapture(gesture.pointerId, gesture.source, this.keyboardOwner, now, gesture.contactActive);
+      this.continuousContactSerial = result.contactSerial;
+    }
+    if (this.continuousCapture === null || result.contactSerial !== this.continuousContactSerial) { this.cancelContinuousInput('输入所有权不明确'); return false; }
+    const capture = this.continuousCapture;
+    const dispatches = this.continuous.gesture(capture, gesture, now);
+    this.continuousLatestValue = gesture.value; this.continuousLatestDelta = gesture.delta;
+    if (gesture.source === 'wheel') {
+      // Immediate wheel data has no periodic hold. Release only after its one
+      // ordered dispatch settles; an earlier cancelled capture cannot revive it.
+      const work = Promise.all(dispatches.map(dispatch => this.enqueueContinuousDispatch(dispatch)));
+      work.finally((): void => { if (this.continuousCapture === capture) { this.continuous.releaseCapture(capture); this.continuousCapture = null; this.continuousContactSerial = -1; this.syncContinuousState(); } });
+    } else { for (const dispatch of dispatches) { this.enqueueContinuousDispatch(dispatch); } }
+    this.scheduleContinuousTick(); this.syncContinuousState(); return true;
+  }
+  private scheduleContinuousTick(): void {
+    this.clearContinuousTimer(); const deadline = this.continuous.nextDeadlineMs();
+    if (deadline === null) { return; }
+    const token = this.continuous.cancellationToken(); const owner = this.keyboardOwner;
+    this.continuousTimer = setTimeout((): void => {
+      this.continuousTimer = -1;
+      if (token !== this.continuous.cancellationToken() || owner !== this.keyboardOwner || !KeyboardInputSession.ownsListener(owner)) { return; }
+      this.updateContinuousContext();
+      for (const dispatch of this.continuous.advance(this.inputNow(), token)) { this.enqueueContinuousDispatch(dispatch); }
+      this.scheduleContinuousTick();
+    }, Math.max(0, deadline - this.inputNow()));
+  }
+  private async enqueueContinuousDispatch(dispatch: ContinuousDispatch): Promise<void> {
+    const work = this.shortcutQueue.then(async (): Promise<void> => {
+      try {
+        for (const action of dispatch.actions) {
+          this.updateContinuousContext();
+          if (!this.continuous.isDispatchCurrent(dispatch)) { return; }
+          this.continuousLastAction = this.executeContinuousAction(action, dispatch.data, dispatch);
+          this.sync();
+        }
+      } catch (error) { this.continuousStatus = '未执行：' + (error as Error).message; this.cancelContinuousInput('动作失效或失败'); }
+      finally { this.continuous.completeDispatch(dispatch); }
+    });
+    this.shortcutQueue = work.catch((): void => {}); await work;
+  }
+  private executeContinuousAction(action: ContinuousInputAction, data: ContinuousGestureData, dispatch: ContinuousDispatch): string {
+    if (!this.continuous.isDispatchCurrent(dispatch) || this.confirmationCloseUnconfirmed || this.settingsReadOnly || this.recoveryRequired ||
+      this.runtimeBusy || !this.viewActive || !this.foreground || dispatch.context.profileRevision !== this.engine.activeRegistry().revision) { throw new Error('连续动作上下文已撤销'); }
+    if (!action.id.startsWith('OutputTarget::')) { this.engine.applyContinuousAxisAction(action, data); return action.id + ' · ' + action.targetAxis; }
+    const identity = dispatch.context.outputTargets.find(target => target.id === action.outputTargetId);
+    if (identity === undefined || !NativeOutputSession.matchesTarget(identity.id, identity.generation) || this.output.isRemoving(identity.id)) { throw new Error('原输出目标已失效'); }
+    const draft = NativeOutputSession.draftSnapshot(identity.id);
+    const range = draft.model.ranges.find(item => item.axisId === action.targetAxis);
+    if (range === undefined) { throw new Error('输出目标不存在该轴'); }
+    const result = applyContinuousRange(range, action, data);
+    if (result === null) { throw new Error('原范围 Drive 结果无效；未修改配置'); }
+    if (result.changed) {
+      draft.model.ranges = draft.model.ranges.map(item => item.axisId === action.targetAxis ? result.range : item); draft.editRevision++;
+      if (!NativeOutputSession.updateRanges(draft)) { throw new Error('目标草稿或连接已变化，范围未应用'); }
+      // A legitimate current Drive commit advances only its own expected source.
+      // External edits/disconnect/replacement still retire reception immediately.
+      this.continuousExpectedTargets = this.continuousTargetStamp(); this.persistOutputPreferences(); this.syncOutput();
+      if (this.outputSaveDiagnostic.length > 0) { throw new Error(this.outputSaveDiagnostic); }
+    }
+    return identity.id + ' · ' + action.targetAxis + '：' + result.range.minimum + ' → ' + result.range.maximum + (range.enabled ? '' : '（此轴输出仍禁用）');
+  }
+
+  private inputNowNs(): number { return systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, true); }
   private inputNow(): number {
     return systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, false);
   }
   updateKeyboardContext(): void {
+    if (!KeyboardInputSession.isWindowFocused() && this.libraryOpeningRevision >= 0) { this.screenRevision++; this.cancelLibraryPlayback(); }
     const token = this.keyboard.cancellationToken();
-    this.keyboard.setContext({ foreground: this.foreground, focused: this.viewActive,
+    this.inputFocusMessage = KeyboardInputSession.windowFocusMessage();
+    this.keyboard.setContext({ foreground: this.foreground, focused: this.viewActive && KeyboardInputSession.isWindowFocused(),
       textInput: KeyboardInputSession.isEditing(), ime: KeyboardInputSession.isEditing(),
-      capturing: this.showInputSettings || this.keyboardCaptureId.length > 0 || this.errorNoticeMode === 'dialog' });
+      capturing: this.confirmationCloseUnconfirmed || this.showInputSettings || this.keyboardCaptureId.length > 0 || this.errorNoticeMode === 'dialog' || (this.confirmationOwner !== null && this.confirmationOwner.hasPending()) });
     if (token !== this.keyboard.cancellationToken()) { this.retireShortcutWorker(); }
+    this.updateContinuousContext();
   }
   retireShortcutWorker(preserveValid: boolean = false): ShortcutDispatch[] {
     this.cancelManagedReload();
@@ -511,7 +902,25 @@ struct Index {
     return retained;
   }
   cancelKeyboardWork(): void {
+    this.cancelContinuousInput('输入已取消');
     this.keyboard.reset('lifecycle'); this.retireShortcutWorker(); this.keyboardCaptureRevision++; this.keyboardCaptureId = ''; this.keyboardCaptureKeys = [];
+  }
+  keyboardPreImeHandler(): (event: KeyEvent) => boolean {
+    const owner = this.keyboardOwner;
+    return (event: KeyEvent): boolean => {
+      if (!this.viewActive || !KeyboardInputSession.ownsListener(owner)) { return false; }
+      if (event.type !== KeyType.Down && event.type !== KeyType.Up) { this.cancelKeyboardWork(); return false; }
+      return event.keyCode === EMERGENCY_STOP_KEY && this.handleKeyboardKey(event.keyCode, event.type === KeyType.Down);
+    };
+  }
+  keyboardDispatchHandler(): (event: KeyEvent) => boolean {
+    const owner = this.keyboardOwner;
+    return (event: KeyEvent): boolean => {
+      if (!this.viewActive || !KeyboardInputSession.ownsListener(owner)) { return false; }
+      if (event.type !== KeyType.Down && event.type !== KeyType.Up) { this.cancelKeyboardWork(); return false; }
+      if (this.handleKeyboardKey(event.keyCode, event.type === KeyType.Down)) { return true; }
+      return KeyboardInputSession.isWindowFocused() && event.type === KeyType.Down && !KeyboardInputSession.isEditing() && this.exitFullscreenWithKey(event.keyCode);
+    };
   }
   handleKeyboardKey(keyCode: number, pressed: boolean): boolean {
     this.updateKeyboardContext();
@@ -522,7 +931,9 @@ struct Index {
       for (const dispatch of stop) { this.runShortcutDispatch(dispatch); }
       return handled;
     }
-    if (!this.foreground || !this.viewActive) { return false; }
+    if (!this.foreground || !this.viewActive || !KeyboardInputSession.isWindowFocused()) {
+      this.keyboard.keyEvent(new ShortcutKeyEvent(keyCode, pressed), now); return false;
+    }
     if (this.errorNoticeMode === 'dialog') {
       this.keyboard.keyEvent(new ShortcutKeyEvent(keyCode, pressed), now);
       // The overlay owns keyboard activation; never activate a previously focused background control.
@@ -566,7 +977,7 @@ struct Index {
   applyGeneralSettings(configuration: GeneralConfiguration): void {
     this.cancelKeyboardWork();
     if (this.settingsReadOnly || this.recoveryRequired || !this.foreground || !this.viewActive) { return; }
-    try { this.engine.changeGeneralConfiguration(configuration); this.generalConfiguration = this.engine.generalConfiguration(); this.syncErrorPresentation(); }
+    try { this.engine.changeGeneralConfiguration(configuration); this.generalConfiguration = this.engine.generalConfiguration(); this.syncSettingsDraftContext(); this.syncErrorPresentation(); }
     catch { this.inputMessage = '通用设置无效或不可写；未应用。'; }
   }
   async touchShortcut(action: ShortcutAction): Promise<void> {
@@ -637,6 +1048,7 @@ struct Index {
     }
   }
   async executeShortcutAction(rawAction: ShortcutAction, selectedAxis: string, dispatch: ShortcutDispatch | null = null): Promise<string> {
+    if (this.confirmationCloseUnconfirmed) { throw new Error('对话框关闭未确认；输入与启动保持禁用，请重启应用。'); }
     const action = cloneShortcutAction(rawAction);
     const spec = shortcutActionCatalog().find(item => item.id === action.id)!;
     const registry = this.engine.activeRegistry();
@@ -983,12 +1395,17 @@ struct Index {
     if (notice === null) { this.errorNoticeId = 0; this.errorNoticeMode = ''; this.errorNoticeMessage = ''; }
     else if (notice.id !== this.errorNoticeId) {
       this.errorNoticeId = notice.id; this.errorNoticeMode = notice.mode; this.errorNoticeMessage = notice.message;
-      if (notice.mode === 'dialog') { this.cancelKeyboardWork(); }
+      if (notice.mode === 'dialog') {
+        this.cancelKeyboardWork();
+        const id: number = notice.id;
+        this.openConfirmation(new ConfirmationRequest('错误提示', notice.message, '知道了', false,
+          (): boolean => this.errorNoticeId === id && this.errorNoticeMode === 'dialog', (): void => this.dismissErrorNotice(id)), id);
+      }
     }
     this.updateKeyboardContext();
   }
   errorDismissHandler(id: number): () => void { return (): void => this.dismissErrorNotice(id); }
-  dismissErrorNotice(id: number): void { if (this.errors.dismiss(id)) { this.errorNoticeId = 0; this.errorNoticeMode = ''; this.errorNoticeMessage = ''; this.syncErrorPresentation(); } }
+  dismissErrorNotice(id: number): void { if (this.confirmationErrorId === id) { this.closeConfirmation(); this.errorNoticeId = 0; this.errorNoticeMode = ''; this.errorNoticeMessage = ''; this.syncErrorPresentation(); return; } if (this.errors.dismiss(id)) { this.errorNoticeId = 0; this.errorNoticeMode = ''; this.errorNoticeMessage = ''; this.syncErrorPresentation(); } }
   syncSocketDiagnostic(): void {
     const state = SocketDiagnosticSession.snapshot();
     this.diagnosticBusy = state.busy; this.diagnosticBlocked = SocketDiagnosticSession.blocked(); this.diagnosticPhase = state.phase;
@@ -1065,6 +1482,7 @@ struct Index {
     this.outputBusy = this.output.isBusy();
     this.outputWrites = state === null ? 0 : state.completedLocalWrites;
     this.outputBytes = state === null ? 0 : state.locallyAcceptedBytes;
+    this.syncSettingsDraftContext();
     this.syncSerialProbe();
     this.serialDiscovery.synchronize(this.serialDiscoveryContext());
     const serialState = this.serialDiscovery.snapshot();
@@ -1133,7 +1551,7 @@ struct Index {
   }
   addOutputTarget(kind: SavedOutputTargetKind): void {
     if (this.settingsReadOnly || this.recoveryRequired || !this.viewActive) { return; }
-    try { NativeOutputSession.addTarget(kind); this.persistOutputPreferences(); this.syncOutput(); }
+    try { NativeOutputSession.addTarget(kind); this.showAddOutput = false; this.persistOutputPreferences(); this.syncOutput(); }
     catch (error) { this.outputDiagnostic = (error as Error).message; }
   }
   selectOutputTarget(id: string, generation: number = NativeOutputSession.draftSnapshot(id).targetGeneration): void {
@@ -1167,6 +1585,7 @@ struct Index {
     return current.applicationId;
   }
   async connectOutput(configuration: OutputTargetConfig, endpoint: OutputEndpoint, generation: number = NativeOutputSession.draftSnapshot(configuration.targetId).targetGeneration): Promise<boolean> {
+    if (this.confirmationCloseUnconfirmed) { return false; }
     if (!NativeOutputSession.matchesTarget(configuration.targetId, generation)) { return false; }
     if (!this.viewActive || !this.foreground || this.runtimeBusy || this.settingsReadOnly || this.recoveryRequired ||
       NativeOutputSession.draftDiagnostic(configuration.targetId).length > 0 ||
@@ -1177,6 +1596,7 @@ struct Index {
     return connected;
   }
   armOutput(targetId: string = NativeOutputSession.selectedId() || '', generation: number = NativeOutputSession.draftSnapshot(targetId).targetGeneration): void {
+    if (this.confirmationCloseUnconfirmed) { return; }
     if (!NativeOutputSession.matchesTarget(targetId, generation)) { return; }
     const target = this.output.get(targetId);
     if (target === null) { return; }
@@ -1250,6 +1670,7 @@ struct Index {
     this.status = '媒体源配置已保存；未连接、未启用输出。'; this.sync(); return true;
   }
   async connectDeoVr(kind: RemoteSourceKind = 'deovr'): Promise<void> {
+    if (this.confirmationCloseUnconfirmed) { return; }
     if (!this.viewActive || !this.foreground || this.runtimeBusy || this.libraryBusy || this.importing || this.openingVideo ||
       this.deoVrBusy || this.settingsReadOnly || this.recoveryRequired || !this.libraryLoaded || this.libraryRoot.length === 0) { return; }
     const intent = ++this.mediaSettingsRequest;
@@ -1407,6 +1828,7 @@ struct Index {
     this.engine.clearScripts(); this.engine.useExternalClock(false); this.document = new FunscriptDocument([]); this.fileName = 'No script selected';
   }
   async connectInternal(): Promise<void> {
+    if (this.confirmationCloseUnconfirmed) { return; }
     this.cancelKeyboardWork();
     if (!this.viewActive || !this.foreground || this.runtimeBusy || this.libraryBusy || this.internalBusy || this.importing || this.openingVideo ||
       this.settingsReadOnly || this.recoveryRequired) { return; }
@@ -1759,6 +2181,7 @@ struct Index {
     this.sync();
   }
   async playPause(shortcut: ShortcutDispatch | null = null): Promise<void> {
+    if (this.confirmationCloseUnconfirmed) { return; }
     if (shortcut === null) { this.cancelKeyboardWork(); }
     else if (!this.keyboard.isDispatchCurrent(shortcut)) { return; }
     if (this.runtimeBusy || this.importing || this.openingVideo || this.libraryBusy || this.internalBusy || this.internalLoading) { return; }
@@ -1789,6 +2212,8 @@ struct Index {
     this.sync();
   }
   stop(): void {
+    this.libraryPlayRequest = -1; this.libraryOpeningRevision = -1; this.screenRevision++;
+    this.closeConfirmation();
     this.serialDiscovery.cancel();
     SerialDiagnosticSession.cancel(this.serialProbeOwner);
     SocketDiagnosticSession.cancel(this.diagnosticOwner);
@@ -1842,6 +2267,7 @@ struct Index {
     }
   }
   private async runRuntimeControl(startMotion: boolean, startManual: boolean = false): Promise<void> {
+    if (this.confirmationCloseUnconfirmed) { return; }
     this.cancelKeyboardWork();
     if (this.runtimeBusy || !this.viewActive || !this.foreground) { return; }
     if (startMotion && (this.settingsReadOnly || this.recoveryRequired || this.engine.standaloneMotionAxes().length === 0)) {
@@ -1959,10 +2385,9 @@ struct Index {
   }
   async refreshLibrary(): Promise<void> { await this.scanDownloads(); }
   showLibrary(): void {
-    this.setVideoFullscreen(false); this.showResources = true; this.resourceFocus = true;
-    if (!this.videoMode && horizontalWorkspace(this.widthVp, this.heightVp, this.generalConfiguration.appOrientation)) {
-      this.sourceScroller.scrollEdge(Edge.Top);
-    } else { this.settingsScroller.scrollEdge(Edge.Top); }
+    this.selectScreen('library');
+    this.setVideoFullscreen(false); this.showResources = true; this.resourceFocus = true; this.sourceScroller.scrollEdge(Edge.Top);
+    if (this.workspaceTool === 'media') { this.settingsScroller.scrollEdge(Edge.Top); } else {  }
     if (!this.libraryLoaded) { this.scanDownloads(); }
   }
   async refreshScriptLibrary(index: number): Promise<void> {
@@ -2010,15 +2435,15 @@ struct Index {
     this.manualScriptUris = this.manualScriptUris.indexOf(uri) >= 0 ?
       this.manualScriptUris.filter((value: string) => value !== uri) : this.manualScriptUris.concat([uri]);
   }
-  async openLibraryItem(item: ResourceLibraryItem, manual: boolean = false, originalSearch: boolean = false): Promise<void> {
-    if (this.runtimeBusy || this.libraryBusy || this.openingVideo || this.importing) { return; }
+  async openLibraryItem(item: ResourceLibraryItem, manual: boolean = false, originalSearch: boolean = false): Promise<number> {
+    if (this.runtimeBusy || this.libraryBusy || this.openingVideo || this.importing) { return -1; }
     const video = manual ? item.videos.find((value: ResourceFileEntry) => value.uri === this.manualVideoUri) : item.video;
-    if (video === undefined) { this.libraryMessage = 'Choose one video explicitly.'; return; }
+    if (video === undefined) { this.libraryMessage = 'Choose one video explicitly.'; return -1; }
     const retiringRequest = ++this.openVideoRequest; this.openingVideo = true;
     if (this.deoVrActive || !RemoteMediaSession.allClosed()) {
       const closed = await this.disconnectDeoVr();
-      if (retiringRequest !== this.openVideoRequest) { return; }
-      if (!closed || !this.viewActive || !this.foreground) { this.openingVideo = false; this.status = this.deoVrError; return; }
+      if (retiringRequest !== this.openVideoRequest) { return -1; }
+      if (!closed || !this.viewActive || !this.foreground) { this.openingVideo = false; this.status = this.deoVrError; return -1; }
     }
     this.rememberLocalSource();
     // A valid selection owns the next source immediately. Any matching/read error
@@ -2031,7 +2456,7 @@ struct Index {
     const current = (): boolean => request === this.openVideoRequest && this.viewActive && this.foreground;
     try {
       await this.video.release();
-      if (!current()) { return; }
+      if (!current()) { return -1; }
       const cleanupFailure = this.video.snapshot().failure;
       if (cleanupFailure.length > 0) { throw new Error(cleanupFailure); }
       const scripts = manual ? item.scripts.filter((value: ResourceScriptMatch) => this.manualScriptUris.indexOf(value.file.uri) >= 0) : item.scripts;
@@ -2055,9 +2480,9 @@ struct Index {
             new ResourceFileEntry(entry.sourceUri, entry.name, 'archive/' + index + '/' + entry.name), entry.contents));
         } else {
           try { inputs = [new LoadedScriptInput(step.file, await LibraryFiles.readScript(step.file.uri, current))]; }
-          catch (error) { if (!current()) { return; } rejected++; continue; }
+          catch (error) { if (!current()) { return -1; } rejected++; continue; }
         }
-        if (!current()) { return; }
+        if (!current()) { return -1; }
         if (candidates.length + inputs.length > 64) { throw new Error('More than 64 archive/script candidates. Narrow the selection.'); }
         for (const input of inputs) {
           textBudget += input.contents.length * 2;
@@ -2079,7 +2504,7 @@ struct Index {
         const selection = ResourceLibrary.selectDocuments(video.name, candidates, this.engine.activeRegistry().profile);
         const parsed = selection.document;
         if (parsed === undefined) { throw new Error('No readable matching script. Check the files or choose mapping.'); }
-        if (!current()) { return; }
+        if (!current()) { return -1; }
         this.document = parsed;
         let bindings: AxisScriptBinding[] = [];
         for (const source of selection.axisSources) { bindings = bindings.concat(this.engine.resources(source.document, source.file.uri, source.file.name)); }
@@ -2091,7 +2516,7 @@ struct Index {
       this.videoMode = true; this.videoReady = false; this.videoName = video.name;
       this.pendingVideoUri = video.uri; this.status = this.videoOnly ? 'Video only · no matching script · press Play' :
         'Pair loaded · press Play' + (rejected > 0 ? ' · ' + rejected + ' unreadable/invalid scripts skipped' : '');
-      this.openPendingVideo(); this.sync();
+      this.openPendingVideo(); this.sync(); return request;
     } catch (error) {
       if (current()) {
         this.pendingVideoUri = ''; this.videoReady = false; this.videoState = 'error';
@@ -2100,6 +2525,7 @@ struct Index {
         this.sync();
         this.status = 'Pair could not open: ' + (error as Error).message + ' Check the files and refresh.';
       }
+      return -1;
     } finally { if (request === this.openVideoRequest) { this.openingVideo = false; this.importing = false; this.pairOpening = false; } }
   }
 
@@ -2153,9 +2579,9 @@ struct Index {
     this.finishMediaSeek();
     if (snapshot.rate >= 0.125 && snapshot.rate <= 4) { this.engine.setSpeed(snapshot.rate); }
     if (this.videoReady && !wasReady) { this.video.setVolume(this.volume); }
-    if (snapshot.failure.length > 0) { this.status = snapshot.failure; }
+    if (snapshot.failure.length > 0) { this.libraryPlayRequest = -1; this.status = snapshot.failure; }
     else if (this.videoReady && !wasReady) { this.status = this.videoOnly ? 'Video only · no matching script · press Play' : 'Video ready · press Play'; }
-    this.sync();
+    this.sync(); this.startLibraryPlayback();
   }
   surfaceChanged(id: string, available: boolean): void {
     if (available) {
@@ -2179,6 +2605,7 @@ struct Index {
     }
   }
   closeVideo(): void {
+    this.libraryPlayRequest = -1; this.libraryOpeningRevision = -1; this.screenRevision++; this.currentScreen = 'library';
     this.cancelKeyboardWork();
     this.cancelMediaSeek(); this.output.stop();
     this.openVideoRequest++; this.pendingVideoUri = ''; this.videoMode = false; this.videoReady = false; this.setVideoFullscreen(false); this.videoOnly = false;
@@ -2187,13 +2614,11 @@ struct Index {
     this.status = 'Local video closed · connect Internal for script playback'; this.sync();
   }
   workspaceLayout(): VideoWorkspaceLayout {
-    return videoWorkspaceLayout(this.widthVp, this.heightVp, this.videoMode, this.videoFullscreen, this.generalConfiguration.appOrientation);
+    return applicationWorkspaceLayout(this.widthVp, this.heightVp, this.currentScreen, this.videoMode && (this.currentScreen !== 'workspace' || !this.workspacePreviewCollapsed), this.videoFullscreen, this.generalConfiguration.appOrientation);
   }
-  contentPadding(): number { return UiStyle.contentInset(this.workspaceLayout().settings.width); }
+  contentPadding(): number { return UiStyle.contentInset(this.widthVp); }
   scriptPaneWidth(): number {
-    const width: number = Math.max(1, this.workspaceLayout().settings.width - 2 * this.contentPadding());
-    return !this.videoMode && horizontalWorkspace(this.widthVp, this.heightVp, this.generalConfiguration.appOrientation)
-      ? Math.max(1, (width - UiStyle.paneGap) / 2) : width;
+    return Math.max(1, this.inspectorWidth() - 2 * this.contentPadding());
   }
   mediaToolWidth(): string { return UiStyle.toolbarItemWidth(this.scriptPaneWidth(), 6); }
   axisToolWidth(): string { return UiStyle.toolbarItemWidth(this.scriptPaneWidth(), 9); }
@@ -2201,7 +2626,9 @@ struct Index {
     return this.generalConfiguration.uiDensity === 'compact';
   }
   resizeWorkspace(width: number, height: number): void {
-    // Geometry only. Do not seek, release, re-open a source or reload its script.
+    // Geometry retires callbacks, never commits drafts, seeks or reopens a source.
+    if ((Number.isFinite(width) && width > 0 && width !== this.widthVp) ||
+      (Number.isFinite(height) && height > 0 && height !== this.heightVp)) { this.retireSettingsDrafts(); }
     if (Number.isFinite(width) && width > 0) { this.widthVp = width; }
     if (Number.isFinite(height) && height > 0) { this.heightVp = height; }
   }
@@ -2211,14 +2638,16 @@ struct Index {
     this.presentationRestorePending = result.restorationPending;
   }
   setVideoFullscreen(value: boolean): void {
+    if (value && this.videoMode) { this.selectScreen('player'); }
     this.videoFullscreen = value && this.videoMode && this.foreground && this.viewActive;
     // The listener owns observed diagnostics. Never let a late promise rewrite
     // the current page-layout intent or media state.
     NativeWindowPresentation.requestForOwner(this.presentationOwner, this.videoFullscreen);
   }
   onBackPress(): boolean {
-    if (!this.videoFullscreen && !this.presentationRestorePending) { return false; }
-    this.setVideoFullscreen(false); return true;
+    if (this.videoFullscreen || this.presentationRestorePending) { this.setVideoFullscreen(false); return true; }
+    if (this.currentScreen !== 'library') { this.showLibrary(); return true; }
+    return false;
   }
   exitFullscreenWithKey(keyCode: number): boolean {
     if (keyCode !== KeyCode.KEYCODE_ESCAPE || (!this.videoFullscreen && !this.presentationRestorePending)) { return false; }
@@ -2235,6 +2664,100 @@ struct Index {
   shortcutActionContextKey(): string {
     return this.libraryRequest + ':' + this.engine.activeRegistry().revision + ':' +
       this.outputTargets.map(target => target.id + ':' + target.generation + ':' + target.removing).join('|');
+  }
+  private materialStatusLabel(): string {
+    if (this.materialRevision < 0) { return '标准清晰样式'; }
+    const status = ImmersiveMaterialManager.status();
+    if (status.state === 'available') { return '系统沉浸材质已请求 · 控件/菜单/弹窗 · 实际效果由设备和系统档位决定'; }
+    if (status.state === 'visual-unconfirmed') { return '材质清理未确认 · 控件保留当前外观，尚未验证设备显示效果'; }
+    if (status.state === 'loading' || status.state === 'uninitialized') { return '正在检查系统材质能力'; }
+    return '标准清晰样式 · 当前系统未提供可用的沉浸材质';
+  }
+  private closeConfirmation(): void {
+    const errorId: number = this.confirmationErrorId; this.confirmationErrorId = 0;
+    if (this.confirmationOwner !== null) { this.confirmationOwner.close(); }
+    this.confirmationController = undefined;
+    if (errorId > 0) { this.errors.dismiss(errorId); }
+  }
+  private openConfirmation(request: ConfirmationRequest, errorId: number = 0): void {
+    if (this.confirmationCloseUnconfirmed || !this.viewActive || !this.foreground || !request.isCurrent()) { return; }
+    this.closeConfirmation();
+    if (this.confirmationCloseUnconfirmed) { return; }
+    this.cancelKeyboardWork();
+    if (this.confirmationOwner === null) { this.confirmationOwner = new ConfirmationOwner(); }
+    const pageOwner: number = this.keyboardOwner;
+    const epoch: number = this.settingsDraftEpoch;
+    const pageCurrent = (): boolean => this.viewActive && this.foreground && this.keyboardOwner === pageOwner && KeyboardInputSession.ownsListener(pageOwner);
+    const current = (): boolean => pageCurrent() && epoch === this.settingsDraftEpoch && request.isCurrent();
+    let controller: CustomDialogController | undefined = undefined;
+    let closeUnconfirmed: boolean = false;
+    const actions: ConfirmationActions = this.confirmationOwner.begin(current, request.onConfirm,
+      (): void => this.stop(), pageCurrent, (): void => {
+        if (this.confirmationController === controller) { this.confirmationController = undefined; }
+        if (errorId > 0 && this.confirmationErrorId === errorId) {
+          this.confirmationErrorId = 0; this.errors.dismiss(errorId);
+          if (this.errorNoticeId === errorId) { this.errorNoticeId = 0; this.errorNoticeMode = ''; this.errorNoticeMessage = ''; }
+        }
+        if (controller !== undefined) {
+          try { controller.close(); }
+          catch (_) {
+            closeUnconfirmed = true;
+            // The native modal may still cover the page. Retire confirmation,
+            // hard-stop now, and keep only this page's emergency action alive.
+            if (pageCurrent()) {
+              this.confirmationCloseUnconfirmed = true;
+              this.stop(); this.updateKeyboardContext();
+              this.status = '对话框关闭未确认；播放与发送已停止。请重启应用后再操作。';
+            }
+          }
+        }
+      });
+    const displayedActions = new ConfirmationActions(actions.accept, actions.cancel, (): void => {
+      if (closeUnconfirmed) { if (pageCurrent()) { this.stop(); } }
+      else { actions.stop(); }
+    });
+    const width: number = this.widthVp; const height: number = this.heightVp;
+    const options: CustomDialogControllerOptions = {
+      builder: (): void => { this.confirmationContent(request, displayedActions, width, height); },
+      cancel: (): void => { actions.cancel(); if (errorId > 0) { this.dismissErrorNotice(errorId); } },
+      autoCancel: true, alignment: DialogAlignment.Center,
+      width: ConfirmationDialogGeometry.width(width), customStyle: false,
+      onWillDismiss: (action: DismissDialogAction): void => { actions.cancel(); action.dismiss(); if (errorId > 0) { this.dismissErrorNotice(errorId); } }
+    };
+    try {
+      controller = new CustomDialogController(ImmersiveMaterialManager.decorateCustomDialog(options));
+      this.confirmationController = controller; this.confirmationErrorId = errorId;
+      controller.open();
+    } catch (error) {
+      this.closeConfirmation();
+      this.status = '确认对话框无法打开，未执行操作。';
+    }
+  }
+  private runtimeResetConfirmationHandler(): () => void {
+    const epoch: number = this.settingsDraftEpoch;
+    const current = (): boolean => this.viewActive && this.foreground && epoch === this.settingsDraftEpoch && !this.runtimeBusy;
+    return (): void => { if (current()) { this.openConfirmation(new ConfirmationRequest('停止并重建运行状态？',
+      '将关闭输出、清除当前媒体与Motion运行历史。保存参数不变，不会自动播放或Arm；之后需重新选择源或明确启动。',
+      '停止并重建', true, current, (): void => { void this.resetRuntimeSafely(); })); } };
+  }
+  private settingsRecoveryConfirmationHandler(): () => void {
+    const epoch: number = this.settingsDraftEpoch; const message: string = this.settingsMessage;
+    const current = (): boolean => this.viewActive && this.foreground && epoch === this.settingsDraftEpoch &&
+      this.recoveryRequired && !this.settingsReadOnly && this.settingsMessage === message;
+    return (): void => { if (current()) { this.openConfirmation(new ConfirmationRequest('保留恢复后的设置？',
+      message + '\n此操作允许保存恢复后的配置。取消会保留原文件和当前只读状态。', '使用恢复设置', true,
+      current, (): void => { this.engine.acceptSettingsRecovery(); this.sync(); })); } };
+  }
+  private removeOutputConfirmationHandler(id: string, generation: number): () => void {
+    const epoch: number = this.settingsDraftEpoch;
+    const current = (): boolean => this.viewActive && this.foreground && !this.settingsReadOnly && !this.recoveryRequired &&
+      epoch === this.settingsDraftEpoch && this.selectedOutputId === id &&
+      this.outputTargets.some(target => target.id === id && target.generation === generation);
+    return (): void => { if (current()) {
+      this.openConfirmation(new ConfirmationRequest('停止并删除此输出？',
+        '仅在原连接确认关闭后删除保存的配置。关闭失败会保留此目标，不能绕过隔离。', '停止并删除', true,
+        current, (): void => { void this.removeOutputTarget(id, generation); }));
+    } };
   }
   drawTrace(): void {
     const w = this.canvas.width; const h = this.canvas.height;
@@ -2271,7 +2794,7 @@ struct Index {
       this.canvas.restore();
     }
     const cursor = this.positionMs / Math.max(1, this.durationMs) * w;
-    this.canvas.strokeStyle = '#455A64'; this.canvas.lineWidth = 1;
+    this.canvas.strokeStyle = UiStyle.ink; this.canvas.lineWidth = 1;
     this.canvas.beginPath(); this.canvas.moveTo(cursor, 0); this.canvas.lineTo(cursor, h); this.canvas.stroke();
   }
   @Builder
@@ -2280,6 +2803,11 @@ struct Index {
       Text(t(title)).fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).width('100%')
       Text(t(detail)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
     }.width('100%').margin({ bottom: 12 })
+  }
+  @Builder
+  confirmationContent(request: ConfirmationRequest, actions: ConfirmationActions, width: number, height: number) {
+    OwnedConfirmationDialog({ title: request.title, message: request.message, confirmLabel: request.confirmLabel, danger: request.danger,
+      viewportWidth: width, viewportHeight: height, onConfirm: actions.accept, onCancel: actions.cancel, onStop: actions.stop })
   }
   @Builder
   mediaToolbar() {
@@ -2291,7 +2819,7 @@ struct Index {
         .width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontColor(UiStyle.success).fontSize(22).accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
         .enabled(this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds))).onClick(() => this.playPause())
       Button('■').flatButton().backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontSize(20).accessibilityText(t('Stop output')).onClick(() => this.stop())
-      Button(this.showMediaSettings ? '⌃' : '⌄').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).accessibilityText(t('Media timing settings')).onClick(() => { this.showMediaSettings = !this.showMediaSettings; })
+      Button('同步').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).accessibilityText(t('Media timing settings')).onClick(() => { this.showMediaSettings = true; this.selectWorkspaceTool('script'); })
     }.width('100%').backgroundColor(UiStyle.card).borderRadius(UiStyle.radius)
   }
   @Builder
@@ -2300,8 +2828,8 @@ struct Index {
       Canvas(this.canvas).width('100%').height(this.compactControls() ? 64 : 72)
         .onReady(() => this.drawTrace())
         .onClick((event: ClickEvent) => this.seekTransport(Math.max(0, Math.min(1, event.x / Math.max(1, this.canvas.width))) * this.durationMs))
-      Slider({ value: this.positionMs, min: 0, max: Math.max(1, this.durationMs), step: 1 })
-        .height(UiStyle.control).selectedColor(UiStyle.muted).trackColor('#D8DFE3').blockColor(UiStyle.ink)
+      Slider({ value: this.positionMs, min: 0, max: Math.max(1, this.durationMs), step: 1 }).attributeModifier(new MfpSliderMaterialModifier(this.materialRevision))
+        .height(UiStyle.control).selectedColor(UiStyle.muted).trackColor(UiStyle.edge).blockColor(UiStyle.ink)
         .onChange((value: number) => this.seekTransport(value))
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
         Text((this.positionMs / 1000).toFixed(2) + ' / ' + (this.durationMs / 1000).toFixed(2) + ' s').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
@@ -2318,16 +2846,13 @@ struct Index {
   @Builder
   axes() {
     Column({ space: 0 }) {
-      Button((this.showAxisValues ? '⌃  ' : '⌄  ') + t('AXIS VALUES')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').fontSize(UiStyle.body(this.compactControls())).onClick(() => { this.showAxisValues = !this.showAxisValues; })
-      if (this.showAxisValues) {
         ForEach(this.axisNames, (name: string, index: number) => {
           Row({ space: 10 }) {
             Text(name).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).fontWeight(FontWeight.Bold).width(38)
-            Progress({ value: Number.isFinite(this.axisValues[index]) ? this.axisValues[index] : 0, total: 100, type: ProgressType.Linear }).color(UiStyle.muted).backgroundColor('#CFD8DC').layoutWeight(1)
+            Progress({ value: Number.isFinite(this.axisValues[index]) ? this.axisValues[index] : 0, total: 100, type: ProgressType.Linear }).color(UiStyle.muted).backgroundColor(UiStyle.edge).layoutWeight(1)
             Text(Number.isFinite(this.axisValues[index]) ? this.axisValues[index].toFixed(1) : '—').fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).width(64).textAlign(TextAlign.End)
           }.constraintSize({ minHeight: UiStyle.control }).padding({ left: 12, right: 12 })
         })
-      }
     }.backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).width('100%')
   }
   @Builder
@@ -2339,53 +2864,146 @@ struct Index {
             Column({ space: 0 }) {
               Text(name).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold).fontColor(index === this.selectedAxis ? UiStyle.ink : UiStyle.muted)
               Text(this.axisIndicators[index] || '· · · ·').fontSize(UiStyle.helper).fontColor(UiStyle.muted).accessibilityText(t('Script, motion, home and limit state'))
-            }.width(76).height(60).justifyContent(FlexAlign.Center).backgroundColor(index === this.selectedAxis ? UiStyle.accentSoft : UiStyle.card)
+            }.width(64).height(52).justifyContent(FlexAlign.Center).backgroundColor(index === this.selectedAxis ? UiStyle.accentSoft : UiStyle.card)
               .onClick(() => { this.selectedAxis = index; this.sync(); })
           })
         }
       }.width('100%').scrollable(ScrollDirection.Horizontal)
-      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
-          Button('▣').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Script settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('↕').flatButton().width(this.axisToolWidth()).height(UiStyle.control).enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy && !this.settingsReadOnly && !this.recoveryRequired).backgroundColor(this.axisInverted ? '#CFD8DC' : UiStyle.card).accessibilityText(t('Invert selected script')).onClick(() => { const configuration = this.engine.getAxisConfiguration(this.axisNames[this.selectedAxis]); configuration.invertScript = !this.axisInverted; this.applyAxisSettings(configuration); })
-          Button('Ⅱ').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Axis bypass and transitions')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('↗').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Axis script links')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('≋').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Motion provider settings')).onClick(() => { this.showMotionSettings = !this.showMotionSettings; this.sync(); })
-          Button('⌁').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Smart limit settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('◴').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Speed limit settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('∿').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Interpolation settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('⌂').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Auto home settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-      }.width('100%')
+      Row({ space: 8 }) {
+        Text((this.axisNames[this.selectedAxis] || '轴') + ' · ' + (this.selectedAxisDefinition.friendlyName || '轴控制')).fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).layoutWeight(1)
+        Button(this.showAxisSettings ? '收起参数' : '轴参数').flatButton().constraintSize({ minHeight: UiStyle.control }).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+      }.width('100%').margin({ top: 12, bottom: 8 })
       if (this.showAxisSettings) {
-        Text(t(this.fileName)).fontSize(UiStyle.helper).fontColor(UiStyle.ink).width('100%').padding(10)
         if (this.axisNames.length > 0) {
+          AxisSettingsPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('axis'), draftEpoch: this.settingsDraftEpoch, configuration: this.selectedAxisConfiguration, axis: this.selectedAxisDefinition,
+            availableAxes: this.engine.activeRegistry().profile.axes.slice(), showTitle: false, compact: this.compactControls(), readOnly: this.settingsReadOnly || this.recoveryRequired,
+            onChange: (configuration: AxisConfiguration) => this.applyAxisSettings(configuration) })
+          Button(this.showScriptResourceDetails ? '脚本资源详情  ▴' : '脚本资源详情  ▾').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showScriptResourceDetails = !this.showScriptResourceDetails; })
+          if (this.showScriptResourceDetails || this.scriptReloadBusy) {
+            Text(t(this.fileName)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
           Button(this.scriptReloadBusy ? '取消当前资源重载' : '重新读取当前轴脚本').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
             .enabled(this.scriptReloadBusy || (!this.settingsReadOnly && !this.recoveryRequired && !this.libraryBusy && !this.openingVideo && !this.importing && !this.runtimeBusy))
             .onClick(() => { if (this.scriptReloadBusy) { this.cancelKeyboardWork(); this.cancelManagedReload(); this.syncOutput(); } else { this.touchShortcut(new ShortcutAction('Axis::ReloadScript', 0, this.axisNames[this.selectedAxis])); } })
           if (this.scriptReloadStatus.length > 0) { Text(this.scriptReloadStatus).fontSize(UiStyle.helper).fontColor(UiStyle.ink).width('100%') }
-          AxisSettingsPanel({ configuration: this.selectedAxisConfiguration, axis: this.selectedAxisDefinition,
-            availableAxes: this.engine.activeRegistry().profile.axes.slice(), compact: this.compactControls(), readOnly: this.settingsReadOnly || this.recoveryRequired,
-            onChange: (configuration: AxisConfiguration) => this.applyAxisSettings(configuration) })
+          }
+
         }
       }
-      if (this.showMotionSettings && this.axisNames.length > 0) { this.motionPanel() }
     }.width('100%').backgroundColor(UiStyle.card).borderRadius(UiStyle.radius)
   }
   @Builder
   scriptArea() {
-    Column({ space: 10 }) {
-      this.mediaToolbar()
-      if (this.showMediaSettings) { this.syncPanel() }
-      this.timeline()
-      Row() {
-        Text(t(this.chapterLabel)).fontSize(UiStyle.helper).fontColor(UiStyle.ink).layoutWeight(1).maxLines(1)
-        Button(this.showMarkerDetails ? t('Markers ⌃') : t('Markers ⌄')).flatButton().constraintSize({ minHeight: UiStyle.control }).fontSize(UiStyle.body(this.compactControls())).onClick(() => { this.showMarkerDetails = !this.showMarkerDetails; })
-      }.width('100%')
-      if (this.showMarkerDetails) { this.markerPanel() }
+    Column({ space: 8 }) {
       this.axisToolbar()
-      this.axes()
+      Button(this.showMotionSettings ? '运动与曲线  ▴' : '运动与曲线  ▾').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
+        .onClick(() => { this.showMotionSettings = !this.showMotionSettings; this.sync(); })
+      if (this.showMotionSettings && this.axisNames.length > 0) { this.motionPanel() }
+      Button(this.showMediaSettings ? '同步与时间偏移  ▴' : '同步与时间偏移  ▾').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
+        .onClick(() => { this.showMediaSettings = !this.showMediaSettings; })
+      if (this.showMediaSettings) { this.syncPanel() }
+      Button(this.showAxisValues ? '收起全部轴值' : '查看全部轴值').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showAxisValues = !this.showAxisValues; })
+      if (this.showAxisValues) { this.axes() }
+      if (this.workspaceLayout().trace.height === 0 && this.videoMode) {
+        Button(this.showTrace ? '收起脚本轨迹与标记' : '脚本轨迹与章节 / 书签').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showTrace = !this.showTrace; })
+        if (this.showTrace) { this.traceArea() }
+      }
     }.width('100%')
   }
-
+  @Builder
+  traceArea() {
+    Column({ space: 12 }) {
+      Row({ space: 8 }) {
+        Text('脚本轨迹').fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).layoutWeight(1)
+        Text(this.axisNames[this.selectedAxis] || '无启用轴').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
+      }.width('100%')
+      this.timeline()
+      Button(this.showMarkerDetails ? '章节 / 书签  ▴' : '章节 / 书签  ▾').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
+        .onClick(() => { this.showMarkerDetails = !this.showMarkerDetails; })
+      if (this.showMarkerDetails) { this.markerPanel() }
+    }.width('100%')
+  }
+  @Builder
+  playerPreview() {
+    Column({ space: 16 }) {
+      Text(this.deoVrActive ? this.remoteName() : this.standaloneMotion ? '独立 Motion 预览' : this.manualPreview ? '手动预览' : '本地脚本播放器').fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).width('100%')
+      Text(t(this.fileName)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+      this.transport()
+      this.traceArea()
+      Button('选择媒体 / 查看 Download').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => this.showLibrary())
+    }.width('100%')
+  }
+  @Builder
+  videoLibraryScreen() {
+    Column({ space: 8 }) {
+      Row({ space: 8 }) {
+        TextInput({ text: this.librarySearch, placeholder: '搜索视频' }).height(48).layoutWeight(1).fontSize(16)
+          .backgroundColor(UiStyle.field).borderRadius(UiStyle.radius).maxLength(256)
+          .onFocus(this.librarySearchFocusHandler(true))
+          .onBlur(this.librarySearchFocusHandler(false))
+          .onKeyPreIme(KeyboardInputSession.emergencyHandler(this.librarySearchEditor))
+          .onChange(KeyboardInputSession.changeHandler(this.librarySearchEditor, this.librarySearchHandler()))
+        Button(this.libraryBusy ? '取消' : '刷新').flatButton().height(48).padding({ left: 12, right: 12 })
+          .enabled(this.libraryBusy || (!this.importing && !this.openingVideo))
+          .onClick(() => { if (this.libraryBusy) { this.cancelLibrary(); } else { this.refreshLibrary(); } })
+      }.width('100%')
+      if (this.libraryBusy || this.libraryItems.length === 0) {
+        Text(t(this.libraryMessage)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
+      }
+      Scroll(this.sourceScroller) {
+        Column({ space: 0 }) {
+          if (!this.libraryBusy && this.visibleLibraryItems().length === 0) {
+            Text(this.librarySearch.length > 0 ? '没有找到匹配的视频' : '将视频和同名脚本放入 Download/com.multifunplayer.ohos，然后刷新。')
+              .fontSize(16).fontColor(UiStyle.muted).width('100%').padding({ top: 32, bottom: 32 })
+          }
+          ForEach(this.visibleLibraryItems().slice(0, this.libraryLimit), (item: ResourceLibraryItem) => {
+            Column({ space: 0 }) {
+              Row({ space: 8 }) {
+                Button() {
+                  Row({ space: 12 }) {
+                    Text('▶').fontSize(20).fontColor(UiStyle.accent).width(32)
+                    Column({ space: 4 }) {
+                      Text(item.title).fontSize(16).fontColor(UiStyle.ink).fontWeight(FontWeight.Medium).maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis }).width('100%')
+                      Text(item.videos.length > 1 ? '多个视频 · 选择后播放' : item.scripts.length + item.archives.length > 0 ? '已找到配套脚本' : '仅视频').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
+                    }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+                  }.width('100%')
+                }.flatButton().backgroundColor(UiStyle.page).border({ width: 0 }).borderRadius(0).layoutWeight(1)
+                  .constraintSize({ minHeight: 76 }).padding({ left: 0, right: 0, top: 8, bottom: 8 })
+                  .enabled(!this.libraryBusy && !this.importing && !this.openingVideo)
+                  .onClick(this.libraryPlayHandler(item))
+                Button(this.libraryDetailsId === item.id ? '⌃' : '•••').flatButton().width(48).height(48)
+                  .accessibilityText('视频详情与脚本配对').onClick(this.libraryDetailsHandler(item))
+              }.width('100%')
+              if (this.libraryDetailsId === item.id) { this.libraryItemDetails(item) }
+            }.width('100%').border({ width: { bottom: 1 }, color: UiStyle.edge })
+          }, (item: ResourceLibraryItem) => item.id)
+          if (this.visibleLibraryItems().length > this.libraryLimit) {
+            Button('显示更多').flatButton().height(48).width('100%').onClick(() => { this.libraryLimit += 20; })
+          }
+        }.width('100%')
+      }.layoutWeight(1).width('100%').align(Alignment.Top)
+    }.padding({ left: this.contentPadding(), right: this.contentPadding(), top: 8, bottom: 8 })
+      .width(this.widthVp).height(this.workspaceLayout().settings.height)
+      .position({ x: 0, y: this.workspaceLayout().headerHeight })
+  }
+  @Builder
+  libraryItemDetails(item: ResourceLibraryItem) {
+    Column({ space: 8 }) {
+      Text(t(item.status) + (item.reasons.length > 0 ? ' · ' + item.reasons.join('; ') : '')).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
+      ForEach(item.videos, (file: ResourceFileEntry) => {
+        Button((this.manualVideoUri === file.uri ? '● ' : '○ ') + file.name).flatButton().constraintSize({ minHeight: 48 }).width('100%')
+          .onClick(this.librarySelectionHandler(item, file.uri, false))
+      }, (file: ResourceFileEntry) => file.uri)
+      if (item.scripts.length > 0) { Text('脚本配对').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
+      ForEach(item.scripts, (match: ResourceScriptMatch) => {
+        Button((this.manualScriptUris.indexOf(match.file.uri) >= 0 ? '☑ ' : '☐ ') + match.file.name).flatButton().constraintSize({ minHeight: 48 }).width('100%')
+          .onClick(this.librarySelectionHandler(item, match.file.uri, true))
+      }, (match: ResourceScriptMatch) => match.file.uri)
+      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
+        Button('自动配对播放').flatButton().constraintSize({ minHeight: 48 }).layoutWeight(1).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(this.libraryPlayHandler(item, true, true))
+        Button('按所选配对播放').flatButton().constraintSize({ minHeight: 48 }).layoutWeight(1).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(this.libraryPlayHandler(item, true))
+      }.width('100%')
+    }.padding({ top: 8, bottom: 12 }).width('100%')
+  }
   @Builder
   libraryPanel() {
     Column({ space: 10 }) {
@@ -2403,7 +3021,7 @@ struct Index {
         Column({ space: 8 }) {
           Text(item.title).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
           Text(t(item.status) + ' · ' + item.videos.length + t(' video / ') + item.scripts.length + t(' scripts / ') + item.archives.length + t(' ZIP')).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
-          if (item.reasons.length > 0) { Text(item.reasons.join('; ')).fontSize(UiStyle.helper).fontColor('#795548').width('100%') }
+          if (item.reasons.length > 0) { Text(item.reasons.join('; ')).fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%') }
           if (item.videos.length === 1) {
             Button(t('Play video')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item))
           }
@@ -2411,7 +3029,7 @@ struct Index {
             Button(t('Choose mapping')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.beginMapping(item))
           }
           if (this.manualItemId === item.id) {
-            Text(t('Select one video and candidate scripts. Original matcher priority chooses each axis.')).fontSize(UiStyle.helper).fontColor('#795548')
+            Text(t('Select one video and candidate scripts. Original matcher priority chooses each axis.')).fontSize(UiStyle.helper).fontColor(UiStyle.warning)
             ForEach(item.videos, (file: ResourceFileEntry) => {
               Text(file.name).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
               Button((this.manualVideoUri === file.uri ? '● ' : '○ ') + file.name).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.manualVideoUri = file.uri; })
@@ -2442,20 +3060,22 @@ struct Index {
           .onClick(() => { this.showSourceSettings = true; if (!this.internalConnected) { this.connectInternal(); } })
         Column({ space: 2 }) {
           Text(t('Local video')).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold)
-          Text(t(this.videoMode ? this.videoState : t('Disconnected'))).fontSize(UiStyle.helper).fontColor(this.videoReady ? UiStyle.success : '#D32F2F')
+          Text(t(this.videoMode ? this.videoState : 'Disconnected')).fontSize(UiStyle.helper).fontColor(this.videoReady ? UiStyle.success : UiStyle.danger)
         }.width('50%').constraintSize({ minHeight: UiStyle.control }).justifyContent(FlexAlign.Center).backgroundColor(this.videoMode ? UiStyle.accentSoft : UiStyle.card)
           .onClick(() => { this.showLibrary(); })
         Button(this.remoteName() + ' · ' + t(this.deoVrStatus)).flatButton().constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').onClick(() => { this.showSourceSettings = true; })
         Button('⌕').flatButton().constraintSize({ minHeight: UiStyle.control }).width('50%').accessibilityText(t('Resources and script libraries')).onClick(() => this.showLibrary())
         Button(this.showSourceSettings ? '⌃' : '⚙').flatButton().constraintSize({ minHeight: UiStyle.control }).width('50%').accessibilityText(t('Source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
       }.width('100%')
-      Divider().color('#B0BEC5')
+      Divider().color(UiStyle.edge)
       Row() {
         Button(this.videoMode ? '■' : '⌕').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText(this.videoMode ? t('Close local video') : t('Resources and script libraries')).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
           .onClick(() => { if (this.videoMode) { this.closeVideo(); } else { this.showLibrary(); } })
         Text(t(this.videoMode ? this.videoName : this.fileName)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).layoutWeight(1).wordBreak(WordBreak.BREAK_ALL)
         Button(this.showSourceSettings ? '⌃' : '⌄').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText(t('Expand source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
       }
+      Button(this.showMediaAdvanced ? '独立预览与运行恢复  ▴' : '独立预览与运行恢复  ▾').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showMediaAdvanced = !this.showMediaAdvanced; })
+      if (this.showMediaAdvanced) {
       Column({ space: 6 }) {
         Button(this.standaloneMotion ? '停止独立Motion' : '关闭媒体并启动独立Motion').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
           .enabled(this.standaloneMotion || (!this.runtimeBusy && this.foreground && !this.settingsReadOnly && !this.recoveryRequired))
@@ -2465,24 +3085,24 @@ struct Index {
           .onClick(() => { if (this.manualPreview) { this.stop(); } else { this.startManualPreview(); } })
         Text('手动动作：在“输入 / 触控动作 → 轴 · 脚本与插值”选择 Value Set / Offset。编辑参数不执行；停止后不能仅靠 Set 恢复发送。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
         Button('安全重建运行状态').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').enabled(!this.runtimeBusy && this.foreground)
-          .onClick(() => { AlertDialog.show({ title: '停止并重建运行状态？', message: '将关闭输出、清除当前媒体与Motion运行历史。保存的参数不变，不会自动播放或Arm；之后需重新选择源或明确启动。',
-            primaryButton: { value: '取消', action: () => {} }, secondaryButton: { value: '停止并重建', action: () => { this.resetRuntimeSafely(); } } }); })
+          .onClick(this.runtimeResetConfirmationHandler())
         Text(this.runtimeMessage || '独立Motion需要启用轴的“暂停更新”和“无脚本更新”；预览不会自动连接/启用设备。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
       }.padding({ top: 8, bottom: 8 }).width('100%')
+      }
       if (this.showSourceSettings) {
         if (this.presentationReason.length > 0) { Text('窗口呈现：' + this.presentationMode + ' · ' + this.presentationReason).fontSize(UiStyle.helper).fontColor(UiStyle.muted).padding(8) }
-        DeoVrSourcePanel({ configuration: this.mediaSourceConfiguration, readOnly: this.settingsReadOnly || this.recoveryRequired, compact: this.compactControls(),
+        DeoVrSourcePanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('source'), draftEpoch: this.settingsDraftEpoch, configuration: this.mediaSourceConfiguration, readOnly: this.settingsReadOnly || this.recoveryRequired, compact: this.compactControls(),
           connected: this.deoVrConnected, busy: this.deoVrBusy, closeConfirmed: this.deoVrCloseConfirmed, status: this.deoVrStatus, error: this.deoVrError,
           mediaPath: this.deoVrPath, positionSeconds: this.deoVrPosition, durationSeconds: this.deoVrDuration, playing: this.deoVrPlaying, stale: this.deoVrStale,
           onChange: (configuration: MediaSourceConfiguration) => { this.applyMediaSourceSettings(configuration); },
           onConnect: () => { this.connectDeoVr(this.mediaSourceConfiguration.selectedSource === 'heresphere' ? 'heresphere' : 'deovr'); }, onDisconnect: () => { this.disconnectDeoVr(); } })
-        Text('Internal 是独立脚本时钟；本地视频使用原生媒体时钟。DeoVR / HereSphere 仅按接收时间驱动，远端路径只匹配 Download 脚本。连接媒体源不会连接或启用设备输出。').fontSize(UiStyle.helper).fontColor('#795548').padding(10)
-        InternalPlaylistPanel({ snapshot: this.playlistView, compact: this.compactControls(),
+        Text('Internal 是独立脚本时钟；本地视频使用原生媒体时钟。DeoVR / HereSphere 仅按接收时间驱动，远端路径只匹配 Download 脚本。连接媒体源不会连接或启用设备输出。').fontSize(UiStyle.helper).fontColor(UiStyle.warning).padding(10)
+        InternalPlaylistPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('playlist'), draftEpoch: this.settingsDraftEpoch, snapshot: this.playlistView, compact: this.compactControls(),
           onAction: (action: PlaylistPanelAction) => { this.playlistAction(action); } })
         if (this.videoMode) {
           Row() {
             Text(t('Volume')).fontSize(UiStyle.helper).width(64)
-            Slider({ value: this.volume, min: 0, max: 1, step: 0.01 }).height(UiStyle.control).layoutWeight(1).enabled(this.videoReady)
+            Slider({ value: this.volume, min: 0, max: 1, step: 0.01 }).attributeModifier(new MfpSliderMaterialModifier(this.materialRevision)).height(UiStyle.control).layoutWeight(1).enabled(this.videoReady)
               .onChange((value: number) => { this.volume = value; this.video.setVolume(value); })
           }.padding({ top: 10, bottom: 10 })
         }
@@ -2497,16 +3117,38 @@ struct Index {
         Button(this.showInputSettings ? '结束编辑快捷键' : '键盘映射 / 触摸命令').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).onClick(() => this.toggleInputSettings())
         Button('停止 · F12').flatButton().backgroundColor(UiStyle.danger).fontColor('#FFFFFF').height(UiStyle.control).margin(4).onClick(() => this.stop())
       }.width('100%')
+      if (this.inputFocusMessage.length > 0) { Text(this.inputFocusMessage).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
       if (this.inputMessage.length > 0) { Text(this.inputMessage).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
-      if (this.showGeneralSettings) { GeneralSettingsPanel({ compact: this.compactControls(), configuration: this.generalConfiguration, readOnly: this.settingsReadOnly || this.recoveryRequired,
+      if (this.showGeneralSettings) { GeneralSettingsPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('general'), draftEpoch: this.settingsDraftEpoch, compact: this.compactControls(), configuration: this.generalConfiguration, readOnly: this.settingsReadOnly || this.recoveryRequired,
         onChange: (configuration: GeneralConfiguration): void => this.applyGeneralSettings(configuration) }) }
-      if (this.showInputSettings) { InputSettingsPanel({ compact: this.compactControls(), configuration: this.keyboardConfiguration, readOnly: this.settingsReadOnly || this.recoveryRequired,
+      if (this.showInputSettings) { InputSettingsPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('input'), draftEpoch: this.settingsDraftEpoch, compact: this.compactControls(), configuration: this.keyboardConfiguration, readOnly: this.settingsReadOnly || this.recoveryRequired,
         axisNames: this.engine.activeRegistry().profile.axes.map(axis => axis.name), enabledAxisNames: this.axisNames, selectedAxisName: this.axisNames[this.selectedAxis] || '', actionStatus: this.inputMessage,
         outputOptions: this.shortcutOutputOptions(), managedScriptOptions: this.shortcutScriptOptions(), actionContextKey: this.shortcutActionContextKey(),
         captureId: this.keyboardCaptureId, captureKeys: this.keyboardCaptureKeys, captureRevision: this.keyboardCaptureRevision,
         onChange: (configuration: KeyboardShortcutConfiguration, captureRevision?: number): void => this.applyKeyboardSettings(configuration, captureRevision),
         onCapture: (id: string): void => this.captureKeyboard(id), onCancelCapture: (captureRevision: number): void => this.cancelKeyboardCapture(captureRevision),
         onAction: (action: ShortcutAction): void => { this.touchShortcut(action); }, onStop: (): void => this.stop() }) }
+      if (this.showInputSettings) {
+        Button(this.showContinuousInput ? '收起高级局部连续输入' : '高级 · 局部连续输入').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
+          .onClick(() => this.toggleContinuousInput())
+        if (this.showContinuousInput) {
+          ContinuousInputPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('continuous'), draftEpoch: this.settingsDraftEpoch,
+            compact: this.compactControls(), configuration: this.continuousConfiguration, selectedMappingId: this.continuousMappingId,
+            readOnly: this.settingsReadOnly || this.recoveryRequired, ownerKey: this.continuousOwnerKey(), receptionRevision: this.continuousReceptionRevision,
+            receiving: this.continuousReceiving, contactActive: this.continuousContact,
+            canReceive: this.viewActive && this.foreground && KeyboardInputSession.isWindowFocused() && !this.runtimeBusy && !this.confirmationCloseUnconfirmed,
+            status: this.continuousStatus, latestValue: this.continuousLatestValue, latestDelta: this.continuousLatestDelta, lastAction: this.continuousLastAction,
+            axisOptions: this.engine.activeRegistry().profile.axes.map(axis => new SettingsOption(axis.name, axis.name + (axis.enabled ? '' : '（已禁用）'))),
+            outputOptions: this.shortcutOutputOptions(),
+            onChange: (configuration: ContinuousInputConfiguration): void => this.applyContinuousConfiguration(configuration),
+            onSelectMapping: (id: string): void => this.selectContinuousMapping(id), onEnable: (id: string): void => this.enableContinuousInput(id),
+            onCancel: (reason: string, ownerKey: string, revision: number): void => this.continuousCancelHandler(reason, ownerKey, revision),
+            onLocalTouch: (packet: LocalTouchPacket): boolean => this.localContinuousTouch(packet),
+            onLocalMouse: (packet: LocalMousePacket): boolean => this.localContinuousMouse(packet),
+            onLocalWheel: (packet: LocalWheelPacket): boolean => this.localContinuousWheel(packet),
+            onSurfaceChanged: (geometry: LocalSurfaceGeometry, ownerKey: string, revision: number): void => this.continuousSurfaceChanged(geometry, ownerKey, revision) })
+        }
+      }
     }.width('100%')
   }
   @Builder
@@ -2517,8 +3159,8 @@ struct Index {
       Text('本地开发已验证真实 Linux socket 生产链；此按钮使用 OHOS 原生网络后端，须由你的设备实测。端点不会保存，日志不含随机挑战或接收内容。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
       SettingsChoiceField({ label: '诊断协议', selected: this.diagnosticKind, options: [new SettingsOption('tcp', 'TCP'), new SettingsOption('udp', 'UDP')], compact: this.compactControls(), editable: this.diagnosticEditable(),
         onSelect: (value: string) => { if (this.diagnosticEditable() && (value === 'tcp' || value === 'udp')) { this.diagnosticKind = value; this.diagnosticConfirmed = false; this.diagnosticNotice = '协议已编辑；上次结果不证明本次配置。'; } } })
-      SettingsTextField({ label: '专用接收脚本的主机 / IP', value: this.diagnosticHost, compact: this.compactControls(), editable: this.diagnosticEditable(), onEdit: (): void => this.invalidateDiagnosticConfirmation(), onCommit: (value: string): boolean => this.editDiagnosticHost(value) })
-      SettingsNumberField({ label: '接收脚本端口', value: this.diagnosticPort, minimum: 1, maximum: 65535, integer: true, compact: this.compactControls(), editable: this.diagnosticEditable(), onEdit: (): void => this.invalidateDiagnosticConfirmation(), onCommit: (value: number): boolean => this.editDiagnosticPort(value) })
+      SettingsTextField({ draftOwner: this.settingsDraftOwner, draftScope: 'diagnostic', draftKey: 'host', draftEpoch: this.settingsDraftEpoch, label: '专用接收脚本的主机 / IP', value: this.diagnosticHost, compact: this.compactControls(), editable: this.diagnosticEditable(), onEdit: (): void => this.invalidateDiagnosticConfirmation(), onCommit: (value: string): boolean => this.editDiagnosticHost(value) })
+      SettingsNumberField({ draftOwner: this.settingsDraftOwner, draftScope: 'diagnostic', draftKey: 'port', draftEpoch: this.settingsDraftEpoch, label: '接收脚本端口', value: this.diagnosticPort, minimum: 1, maximum: 65535, integer: true, compact: this.compactControls(), editable: this.diagnosticEditable(), onEdit: (): void => this.invalidateDiagnosticConfirmation(), onCommit: (value: number): boolean => this.editDiagnosticPort(value) })
       SettingsSwitchField({ label: '我确认这是专用诊断接收脚本，不是设备控制端口', value: this.diagnosticConfirmed, compact: this.compactControls(), editable: this.diagnosticEditable(),
         onChange: (value: boolean) => { if (this.diagnosticEditable()) { this.diagnosticConfirmed = value; } } })
       Button('开始一次往返诊断').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
@@ -2539,26 +3181,23 @@ struct Index {
           .onClick(() => { this.showOutputSettings = !this.showOutputSettings; })
       }.width('100%')
       Text(this.outputSeeking ? '同源跳转等待确认 · 保留已有启用意图，发送门暂时关闭' : this.outputArmed ? (this.outputSuspended ? '待命，无输出 · 等待真实合法当前帧' : '已明确启用发送 · 每帧仍须通过来源与时钟检查') : '未启用发送 · 媒体播放与预览独立运行').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
+      SettingsChoiceField({ label: '当前目标', selected: this.selectedOutputId, compact: this.compactControls(),
+        options: this.outputTargets.map(target => new SettingsOption(target.id, target.name + ' · ' + t(target.connection) + (target.armed ? (target.dispatchSuspended ? ' · 待命，无输出' : ' · 已启用') : ' · 未启用'))), onSelect: this.outputChoiceHandler() })
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
-        Button('+ 串口 / USB').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('serial'))
-        Button('+ TCP').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('tcp'))
-        Button('+ UDP').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('udp'))
-        Button('+ WebSocket').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('webSocket'))
-        Button('停止全部输出').flatButton().backgroundColor(UiStyle.danger).fontColor('#FFFFFF').height(UiStyle.control).margin(4).onClick(() => this.stop())
+        Button(this.showAddOutput ? '收起添加' : '添加输出').flatButton().constraintSize({ minHeight: UiStyle.control }).margin({ right: 8, bottom: 8 }).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => { this.showAddOutput = !this.showAddOutput; })
+        Button('停止全部输出').flatButton().fontColor(UiStyle.danger).constraintSize({ minHeight: UiStyle.control }).onClick(() => this.stop())
       }.width('100%')
-      ForEach(this.outputTargets, (target: OutputTargetSummary) => {
-        Column({ space: 8 }) {
-          Button((target.id === this.selectedOutputId ? '● ' : '') + target.name + ' · ' + t(target.connection) + (target.armed ? (target.dispatchSuspended ? ' · 待命，无输出' : ' · 已启用') : ''))
-            .flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => this.selectOutputTarget(target.id, target.generation))
-          Text(target.id + ' · ' + target.name).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
-          Button(target.removing ? '重试删除' : '删除').flatButton().fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).height(UiStyle.control).width('100%').enabled(!this.settingsReadOnly && !this.recoveryRequired)
-            .onClick(() => { AlertDialog.show({ title: '停止并删除此输出？', message: '仅在原连接确认关闭后删除保存的配置。关闭失败会保留此目标，不能绕过隔离。',
-              primaryButton: { value: '取消', action: () => {} }, secondaryButton: { value: '停止并删除', action: () => { this.removeOutputTarget(target.id, target.generation); } } }); })
-        }.padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).width('100%')
-      }, (target: OutputTargetSummary) => target.id + ':' + target.generation)
+      if (this.showAddOutput) {
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
+          Button('+ 串口 / USB').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('serial'))
+          Button('+ TCP').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('tcp'))
+          Button('+ UDP').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('udp'))
+          Button('+ WebSocket').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('webSocket'))
+        }.width('100%')
+      }
       Text('每类最多10个；切换只选择编辑器，各目标独立发送。恢复配置保持断开，每个目标需明确连接及Arm。').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
       if (this.selectedOutputId.length > 0) {
-        OutputSettingsPanel({ compact: this.compactControls(), profile: this.outputProfile, profileId: this.outputDeviceId, draft: this.outputDraft,
+        OutputSettingsPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('output'), draftEpoch: this.settingsDraftEpoch, compact: this.compactControls(), profile: this.outputProfile, profileId: this.outputDeviceId, draft: this.outputDraft,
           readOnly: this.settingsReadOnly || this.recoveryRequired, appliedConfigurationId: this.outputApplicationId,
           onDraftChange: (draft: OutputSettingsDraft): void => this.updateOutputDraft(draft), connection: this.outputConnection, armed: this.outputArmed, dispatchSuspended: this.outputSuspended,
           busy: this.outputBusy || this.diagnosticBlocked, completedLocalWrites: this.outputWrites, locallyAcceptedBytes: this.outputBytes,
@@ -2573,8 +3212,18 @@ struct Index {
           .visibility(this.showOutputSettings ? Visibility.Visible : Visibility.None)
       }
       if (!this.showOutputSettings && this.outputDiagnostic.length > 0) {
-        Text(this.outputDiagnostic).fontSize(UiStyle.helper).fontColor('#B71C1C')
+        Text(this.outputDiagnostic).fontSize(UiStyle.helper).fontColor(UiStyle.danger)
       }
+      Button(this.showAllOutputStates ? '收起其它目标状态' : '查看全部目标状态（' + this.outputTargets.length + '）').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showAllOutputStates = !this.showAllOutputStates; })
+      ForEach(this.outputTargets.filter(target => this.showAllOutputStates || target.id === this.selectedOutputId), (target: OutputTargetSummary) => {
+        Column({ space: 8 }) {
+          if (this.showAllOutputStates) { Text(target.name + ' · ' + t(target.connection) + (target.armed ? (target.dispatchSuspended ? ' · 待命，无输出' : ' · 已启用') : ' · 未启用')).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL) }
+          if (target.id === this.selectedOutputId) {
+            Button(target.removing ? '重试删除此目标' : '删除当前目标').flatButton().fontColor(UiStyle.danger).constraintSize({ minHeight: UiStyle.control }).enabled(!this.settingsReadOnly && !this.recoveryRequired)
+              .onClick(this.removeOutputConfirmationHandler(target.id, target.generation))
+          }
+        }.width('100%')
+      }, (target: OutputTargetSummary) => target.id + ':' + target.generation)
       Button(this.showSocketDiagnostic ? '收起网络诊断' : 'TCP / UDP 真实往返诊断').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
         .onClick(() => { this.showSocketDiagnostic = !this.showSocketDiagnostic; })
       if (this.showSocketDiagnostic) { this.socketDiagnosticPanel() }
@@ -2653,6 +3302,7 @@ struct Index {
     }
   }
   async applyAxisSettings(configuration: AxisConfiguration): Promise<void> {
+    if (!this.viewActive || !this.foreground || this.settingsReadOnly || this.recoveryRequired) { return; }
     this.cancelKeyboardWork();
     const axis = this.axisNames[this.selectedAxis];
     try {
@@ -2664,6 +3314,7 @@ struct Index {
     this.sync();
   }
   applySyncSettings(configuration: SyncConfiguration): void {
+    if (!this.viewActive || !this.foreground || this.settingsReadOnly || this.recoveryRequired) { return; }
     this.cancelKeyboardWork();
     try { this.engine.changeSync(configuration); } catch (error) { this.status = (error as Error).message; }
     this.sync();
@@ -2684,6 +3335,7 @@ struct Index {
     this.sync();
   }
   editDevice(action: string, profile?: DeviceProfile, id: string = '', name: string = ''): void {
+    if (!this.viewActive || !this.foreground || this.settingsReadOnly || this.recoveryRequired) { return; }
     this.cancelKeyboardWork();
     try {
       if (action === 'select') { this.engine.selectProfile(id); }
@@ -2698,21 +3350,18 @@ struct Index {
     Column({ space: 8 }) {
       Button(this.showDeviceSettings ? t('Device profiles ⌃') : t('Device profiles ⌄')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
         .onClick(() => { this.showDeviceSettings = !this.showDeviceSettings; })
-      Text(this.settingsMessage).fontSize(UiStyle.helper).fontColor(this.settingsReadOnly || this.recoveryRequired ? '#B71C1C' : UiStyle.muted).width('100%')
+      Text(this.settingsMessage).fontSize(UiStyle.helper).fontColor(this.settingsReadOnly || this.recoveryRequired ? UiStyle.danger : UiStyle.muted).width('100%')
       if (this.recoveryRequired && !this.settingsReadOnly) {
-        Button(t('Review recovered settings before saving')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => {
-          AlertDialog.show({ title: 'Replace damaged settings?', message: this.settingsMessage + '\nKeep this recovered configuration and allow saving it?',
-            primaryButton: { value: 'Keep original files', action: () => {} },
-            secondaryButton: { value: 'Use recovered settings', action: () => { this.engine.acceptSettingsRecovery(); this.sync(); } } });
-        })
+        Button(t('Review recovered settings before saving')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(this.settingsRecoveryConfirmationHandler())
       }
       if (this.engine.settingsStatus().lastError !== null && !this.settingsReadOnly && !this.recoveryRequired) {
         Button(t('Retry saving settings')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.engine.retrySettingsSave(); this.sync(); })
       }
       if (this.showDeviceSettings) {
-        Text(t('Active now: ') + this.engine.activeRegistry().profile.name + t(' · profile changes apply after restart')).fontSize(UiStyle.helper).fontColor('#795548')
-        DeviceSettingsPanel({ profiles: this.profiles, selectedProfileId: this.selectedProfileId, activeProfileId: this.engine.activeRegistry().profile.id,
+        Text(t('Active now: ') + this.engine.activeRegistry().profile.name + t(' · profile changes apply after restart')).fontSize(UiStyle.helper).fontColor(UiStyle.warning)
+        DeviceSettingsPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('device'), draftEpoch: this.settingsDraftEpoch, profiles: this.profiles, selectedProfileId: this.selectedProfileId, activeProfileId: this.engine.activeRegistry().profile.id,
           compact: this.compactControls(), readOnly: this.settingsReadOnly || this.recoveryRequired,
+          onRequestConfirmation: (request: ConfirmationRequest): void => this.openConfirmation(request),
           onSelectProfile: (id: string) => this.editDevice('select', undefined, id),
           onChangeProfile: (profile: DeviceProfile) => this.editDevice('change', profile),
           onImportProfile: (profile: DeviceProfile) => { this.engine.importProfile(profile); this.sync(); },
@@ -2728,7 +3377,7 @@ struct Index {
         options: MotionConfigurations.ids().map((id: string): SettingsOption => new SettingsOption(id, id)),
         onSelect: (id: string) => { if (MotionConfigurations.ids().some((value: string): boolean => value === id)) { this.motionEditorId = id; this.sync(); } } })
       ForEach([this.motionBindingKey()], (binding: string) => {
-      MotionSettingsPanel({ configuration: this.motionConfiguration, scriptResources: this.managedMotionScripts,
+      MotionSettingsPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('motion'), draftEpoch: this.settingsDraftEpoch, configuration: this.motionConfiguration, scriptResources: this.managedMotionScripts,
         compact: this.compactControls(), readOnly: this.settingsReadOnly || this.recoveryRequired,
         bindingKey: binding,
         onReset: this.motionResetHandler(this.axisNames[this.selectedAxis], this.engine.activeRegistry().revision, this.motionConfiguration),
@@ -2741,7 +3390,7 @@ struct Index {
   syncPanel() {
     Column({ space: 12 }) {
       this.heading('Synchronization', 'LIVE PIPELINE · OUTPUT PERMISSION IS SEPARATE')
-      SyncSettingsPanel({ configuration: this.syncConfiguration, compact: this.compactControls(), readOnly: this.settingsReadOnly || this.recoveryRequired,
+      SyncSettingsPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('sync'), draftEpoch: this.settingsDraftEpoch, configuration: this.syncConfiguration, compact: this.compactControls(), readOnly: this.settingsReadOnly || this.recoveryRequired,
         onChange: (configuration: SyncConfiguration) => this.applySyncSettings(configuration) })
       SettingsChoiceField({ label: (this.axisNames[this.selectedAxis] || t('Axis')) + t(' curve'), selected: this.interpolationMode,
         options: [new SettingsOption('linear', 'Linear'), new SettingsOption('pchip', 'PCHIP'), new SettingsOption('makima', 'Makima'), new SettingsOption('step', 'Step')], compact: this.compactControls(),
@@ -2753,9 +3402,9 @@ struct Index {
         editable: !this.importing && !this.openingVideo && !this.libraryBusy,
         onSelect: (value: string) => { const speed = Number(value); if ([0.25, 0.5, 1, 1.5, 2, 4].indexOf(speed) >= 0) { this.setPlaybackSpeed(speed); } } })
       Text(t('Script scale: ') + Math.round(this.axisScale * 100) + '%').fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.muted).width('100%')
-      Slider({ value: this.axisScale, min: 0.01, max: 4, step: 0.01 }).height(UiStyle.control).width('100%')
+      Slider({ value: this.axisScale, min: 0.01, max: 4, step: 0.01 }).attributeModifier(new MfpSliderMaterialModifier(this.materialRevision)).height(UiStyle.control).width('100%')
         .enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy && !this.settingsReadOnly && !this.recoveryRequired)
-        .onChange((value: number) => { const configuration = this.engine.getAxisConfiguration(this.axisNames[this.selectedAxis]); configuration.scriptScale = value; this.applyAxisSettings(configuration); })
+        .onChange(this.axisScaleHandler())
       Text(t('Global offset: ') + this.globalOffsetMs + t(' ms')).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.muted).width('100%')
       Row({ space: 8 }) {
         Button('−50').flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(false, -50))
@@ -2797,7 +3446,7 @@ struct Index {
   @Builder
   transport() {
     Row({ space: 12 }) {
-      Button(this.playing ? t('Pause') : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? t('Rewind') : t('Play'))).flatButton().height(52).layoutWeight(1).backgroundColor(UiStyle.muted).fontColor('#FFFFFF')
+      Button(this.playing ? t('Pause') : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? t('Rewind') : t('Play'))).flatButton().height(52).layoutWeight(1).backgroundColor(UiStyle.accent).fontColor('#FFFFFF')
         .enabled(this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds))).onClick(() => this.playPause())
       Button(t('Stop output')).flatButton().height(52).layoutWeight(1).backgroundColor(UiStyle.danger).fontColor('#FFFFFF').onClick(() => this.stop())
     }.width('100%')
@@ -2835,93 +3484,137 @@ struct Index {
       Column({ space: 0 }) {
         Row({ space: 4 }) {
           Button(this.playing ? 'Ⅱ' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? '↶' : '▶'))
-            .flatButton().width(UiStyle.control).height(Math.min(UiStyle.control, this.workspaceLayout().controlsHeight)).fontSize(22).backgroundColor(UiStyle.ink).fontColor('#FFFFFF')
+            .flatButton().width(UiStyle.control).height(Math.min(UiStyle.control, this.workspaceLayout().controlsHeight)).fontSize(22).backgroundColor(UiStyle.accent).fontColor('#FFFFFF')
             .accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
             .enabled(this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && this.videoReady)
             .onClick(() => this.playPause())
-          Button('■').flatButton().width(UiStyle.control).height(Math.min(UiStyle.control, this.workspaceLayout().controlsHeight)).backgroundColor(UiStyle.danger).fontColor('#FFFFFF').accessibilityText(t('Stop output')).onClick(() => this.stop())
-          Text(this.videoName).fontSize(UiStyle.helper).fontColor('#FFFFFF').layoutWeight(1).maxLines(1).visibility(this.workspaceLayout().video.width >= 360 ? Visibility.Visible : Visibility.None)
+          Button('■').flatButton().width(52).height(52).backgroundColor(UiStyle.danger).fontColor('#FFFFFF').accessibilityText(t('Stop output')).visibility(this.videoFullscreen ? Visibility.Visible : Visibility.None).onClick(() => this.stop())
+          Text(this.videoName).fontSize(UiStyle.helper).fontColor(UiStyle.ink).layoutWeight(1).maxLines(1).visibility(this.workspaceLayout().video.width >= 360 ? Visibility.Visible : Visibility.None)
           Button(this.videoFullscreen ? '退出全屏' : '全屏').flatButton().height(Math.min(UiStyle.control, this.workspaceLayout().controlsHeight)).padding({ left: 10, right: 10 })
-            .backgroundColor(UiStyle.ink).fontColor('#FFFFFF').accessibilityText(this.videoFullscreen ? (this.presentationMode === 'native-fullscreen' ? '退出系统全屏' : '退出窗口内全屏') : '全屏').onClick(() => this.setVideoFullscreen(!this.videoFullscreen))
-        }.width('100%').height(Math.min(UiStyle.control, this.workspaceLayout().controlsHeight))
+            .backgroundColor(UiStyle.field).fontColor(UiStyle.ink).accessibilityText(this.videoFullscreen ? (this.presentationMode === 'native-fullscreen' ? '退出系统全屏' : '退出窗口内全屏') : '全屏').onClick(() => this.setVideoFullscreen(!this.videoFullscreen))
+        }.width('100%').height(Math.min(52, this.workspaceLayout().controlsHeight))
         Row({ space: 8 }) {
-          Slider({ value: this.positionMs, min: 0, max: Math.max(1, this.durationMs), step: 1 })
-            .layoutWeight(1).height(UiStyle.control).selectedColor('#B0BEC5').trackColor(UiStyle.muted).blockColor(UiStyle.field)
+          Slider({ value: this.positionMs, min: 0, max: Math.max(1, this.durationMs), step: 1 }).attributeModifier(new MfpSliderMaterialModifier(this.materialRevision))
+            .layoutWeight(1).height(UiStyle.control).selectedColor(UiStyle.accent).trackColor(UiStyle.edge).blockColor(UiStyle.accent)
             .enabled(this.videoReady && !this.importing && !this.openingVideo && !this.libraryBusy)
             .onChange((value: number) => this.seekTransport(value))
           Text((this.positionMs / 1000).toFixed(1) + ' / ' + (this.durationMs / 1000).toFixed(1) + ' s')
-            .fontSize(UiStyle.helper).fontColor('#CFD8DC').maxLines(1)
+            .fontSize(UiStyle.helper).fontColor(UiStyle.muted).maxLines(1)
         }.padding({ left: 8, right: 10 }).width('100%').height(UiStyle.control)
-          .visibility(this.workspaceLayout().controlsHeight >= 104 ? Visibility.Visible : Visibility.None)
-      }.width('100%').height(this.workspaceLayout().controlsHeight).backgroundColor(UiStyle.ink).clip(true)
+          .visibility(this.workspaceLayout().controlsHeight >= 96 ? Visibility.Visible : Visibility.None)
+      }.width('100%').height(this.workspaceLayout().controlsHeight).backgroundColor(UiStyle.page).clip(true)
     }.width(Math.max(1, this.workspaceLayout().video.width)).height(Math.max(1, this.workspaceLayout().video.height))
       .position({ x: this.workspaceLayout().video.x, y: this.workspaceLayout().video.y })
-      .visibility(this.videoMode ? Visibility.Visible : Visibility.Hidden).backgroundColor('#000000').clip(true)
+      .visibility(this.videoMode && this.workspaceLayout().video.width > 0 ? Visibility.Visible : Visibility.Hidden).backgroundColor('#000000').clip(true)
   }
   @Builder
   workspaceSettings() {
-    Column({ space: 0 }) {
-      if (this.showPortInfo) {
-        Text('TCP / UDP / WebSocket 需手动连接与启用；本地写入不等于硬件执行确认。其它灰色工具仍未接入，真机播放和视觉一致性尚未验证。').fontSize(UiStyle.helper).fontColor('#795548').padding({ left: this.contentPadding(), right: this.contentPadding(), top: 12, bottom: 12 })
-      }
-      if (!this.videoMode && horizontalWorkspace(this.widthVp, this.heightVp, this.generalConfiguration.appOrientation)) {
-        Row({ space: UiStyle.paneGap }) {
-          Scroll(this.sourceScroller) { this.sourceColumn() }.layoutWeight(1).align(Alignment.Top)
-          Scroll(this.settingsScroller) { this.scriptArea() }.layoutWeight(1).align(Alignment.Top)
-        }.padding({ left: this.contentPadding(), right: this.contentPadding(), top: 12, bottom: 12 }).width('100%').layoutWeight(1).alignItems(VerticalAlign.Top)
-      } else {
-        Scroll(this.settingsScroller) {
+    Stack({ alignContent: Alignment.TopStart }) {
+      if (!this.workspaceLayout().sideBySide) {
+        if (this.wideWorkspace()) {
+          Row({ space: UiStyle.paneGap }) {
+            Scroll(this.sourceScroller) { this.playerPreview() }.layoutWeight(1).height('100%').align(Alignment.Top)
+            this.inspector()
+          }.padding({ left: this.contentPadding(), right: this.contentPadding(), top: 16, bottom: 16 }).width('100%').height('100%').alignItems(VerticalAlign.Top)
+        } else {
           Column({ space: 12 }) {
-            this.workspaceStatus()
-            if (this.resourceFocus && this.showResources) { this.libraryPanel() }
-            if (this.videoMode) { this.scriptArea() }
-            this.sourcePanel()
-            if (!this.resourceFocus && this.showResources) { this.libraryPanel() }
-            if (!this.videoMode) { this.scriptArea() }
-            this.outputPanel()
-            this.preferencesPanel()
-            this.devicePanel()
-          }.padding({ left: this.contentPadding(), right: this.contentPadding(), top: 12, bottom: 12 }).width('100%')
-        }.width('100%').layoutWeight(1).align(Alignment.Top)
+            this.transport()
+            this.inspector()
+          }.padding({ left: this.contentPadding(), right: this.contentPadding(), top: 12, bottom: 12 }).width('100%').height('100%')
+        }
+      } else {
+        this.inspector()
       }
-      if (!this.videoMode && (this.widthVp < 840 || this.heightVp < 500)) { this.transport() }
     }.width(this.workspaceLayout().settings.width).height(Math.max(1, this.workspaceLayout().settings.height))
       .position({ x: this.workspaceLayout().settings.x, y: this.workspaceLayout().settings.y })
-      .visibility(this.videoFullscreen ? Visibility.Hidden : Visibility.Visible).clip(true)
+      .visibility(this.currentScreen === 'workspace' && !this.videoFullscreen ? Visibility.Visible : Visibility.Hidden).clip(true)
+  }
+  @Builder
+  inspectorWarning() {
+      if (this.diagnosticBlocked || this.serialProbeState.quarantined || this.settingsReadOnly || this.recoveryRequired || this.sessionFault.length > 0) {
+        Text(this.sessionFault.length > 0 ? '运行故障 · 输出关闭' : this.settingsReadOnly || this.recoveryRequired ? '设置只读 / 等待恢复' : '诊断清理未确认 · 连接与发送暂不可用').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%').padding({ top: 8, bottom: 8 })
+      }
+  }
+  @Builder
+  inspector() {
+    Column({ space: 0 }) {
+      this.toolNavigation()
+      Text(this.outputSummary()).fontSize(UiStyle.helper).fontColor(this.outputTargets.some(target => target.connection === 'fault') ? UiStyle.danger : UiStyle.muted).width('100%').padding({ top: 8, bottom: 8 }).wordBreak(WordBreak.BREAK_ALL)
+      if (this.inspectorHeight() >= 220) { this.inspectorWarning() }
+      Scroll(this.settingsScroller) {
+        Column({ space: 16 }) {
+          if (this.inspectorHeight() < 220) { this.inspectorWarning() }
+          this.workspaceStatus()
+          if (this.workspaceTool === 'script') { this.scriptArea() }
+          if (this.workspaceTool === 'output') { this.outputPanel() }
+          if (this.workspaceTool === 'media') {
+            this.mediaToolbar()
+            Button('打开视频列表').flatButton().height(48).width('100%').onClick(() => this.showLibrary())
+            this.sourcePanel()
+            Button(this.showResources ? '收起资源详情' : '高级资源详情与手动配对').flatButton().height(48).width('100%').onClick(() => { this.showResources = !this.showResources; })
+            if (this.showResources) { this.libraryPanel() }
+          }
+          if (this.workspaceTool === 'settings') {
+            this.preferencesPanel()
+            this.devicePanel()
+            Text(this.materialStatusLabel()).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
+            Text('MultiFunPlayer ' + APP_VERSION_NAME + ' · OHOS').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
+            if (this.showPortInfo) { Text('需要明确连接和启用发送。本地写成功不等于硬件执行确认；串口 CH 实验仅写。设备视觉、IME 与硬件互通仍需实测。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
+          }
+          if (!this.videoMode && !this.wideWorkspace() && this.workspaceTool === 'script') { this.traceArea() }
+        }.padding({ top: 12, bottom: 20 }).width('100%')
+      }.width('100%').layoutWeight(1).align(Alignment.Top)
+    }.width(this.workspaceLayout().sideBySide || !this.wideWorkspace() ? '100%' : this.inspectorWidth()).height(this.inspectorHeight())
+      .padding({ left: this.workspaceLayout().sideBySide ? this.contentPadding() : 0, right: this.workspaceLayout().sideBySide ? this.contentPadding() : 0 })
+  }
+  @Builder
+  toolNavigation() {
+    Row({ space: 0 }) {
+      ForEach(['script', 'output', 'media', 'settings'], (tool: string) => {
+        Button(tool === 'script' ? '脚本' : tool === 'output' ? '连接' : tool === 'media' ? '媒体' : '设置').flatButton()
+          .width('25%').height(UiStyle.control).padding({ left: 4, right: 4 }).backgroundColor(UiStyle.page)
+          .fontColor(this.workspaceTool === tool ? UiStyle.accent : UiStyle.muted).fontWeight(this.workspaceTool === tool ? FontWeight.Bold : FontWeight.Normal)
+          .borderRadius(0).border({ width: { bottom: this.workspaceTool === tool ? 3 : 1 }, color: this.workspaceTool === tool ? UiStyle.accent : UiStyle.edge })
+          .accessibilityText((this.workspaceTool === tool ? '当前工具：' : '切换工具：') + (tool === 'script' ? '脚本' : tool === 'output' ? '连接' : tool === 'media' ? '媒体' : '设置'))
+          .onClick(() => this.selectWorkspaceTool(tool))
+      })
+    }.width('100%')
+  }
+  @Builder
+  wideTrace() {
+    if (this.currentScreen === 'workspace' && this.videoMode && !this.videoFullscreen && this.workspaceLayout().trace.height > 0) {
+      Scroll(this.sourceScroller) { this.traceArea() }
+        .padding({ left: this.contentPadding(), right: this.contentPadding(), top: 16, bottom: 16 })
+        .width(this.workspaceLayout().trace.width).height(this.workspaceLayout().trace.height)
+        .position({ x: this.workspaceLayout().trace.x, y: this.workspaceLayout().trace.y }).align(Alignment.Top)
+    }
   }
   @Builder
   globalStopButton() {
-    Button('停止').flatButton().width(72).height(UiStyle.control).flexShrink(0)
+    Button('停止').flatButton().width(64).height(52).flexShrink(0)
       .backgroundColor(UiStyle.danger).fontColor('#FFFFFF').accessibilityText('全局停止 · F12')
       .onClick(() => this.stop())
   }
   @Builder
   headerTools() {
-    Button('⌕').flatButton().width(UiStyle.control).height(UiStyle.control).flexShrink(0).fontSize(24).accessibilityText(t('Resources and script libraries')).onClick(() => this.showLibrary())
-    Button('?').flatButton().width(UiStyle.control).height(UiStyle.control).flexShrink(0).fontSize(22).accessibilityText(t('Port status and limitations')).onClick(() => { this.showPortInfo = !this.showPortInfo; })
+    Button('•••').flatButton().width(UiStyle.control).height(UiStyle.control).flexShrink(0).backgroundColor(UiStyle.page).border({ width: 0 }).fontSize(22).accessibilityText('更多 · 通用、输入与设备设置').onClick(() => { this.showPortInfo = true; this.selectWorkspaceTool('settings'); })
   }
   @Builder
   workspaceHeader() {
-    Column({ space: 0 }) {
-      if (this.widthVp < 320) {
-        Row({ space: 8 }) {
-          Text('MultiFunPlayer').fontSize(UiStyle.heading).fontColor(UiStyle.ink).fontWeight(FontWeight.Bold).layoutWeight(1).wordBreak(WordBreak.BREAK_ALL)
-          this.globalStopButton()
-        }.width('100%').height(UiStyle.control)
-        Row({ space: 8 }) {
-          this.headerTools()
-          if (this.widthVp >= 240) { Text(APP_VERSION_NAME + ' OHOS').fontSize(UiStyle.helper).fontColor(UiStyle.muted).layoutWeight(1) }
-        }.width('100%').height(UiStyle.control).margin({ top: 8 })
+    Row({ space: 4 }) {
+      if (this.currentScreen === 'player') {
+        Button('‹').flatButton().width(44).height(48).fontSize(26).accessibilityText('返回视频列表').onClick(() => this.showLibrary())
+        Text(this.videoName || '播放器').fontSize(16).fontColor(UiStyle.ink).layoutWeight(1).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+        Button('⚙').flatButton().width(44).height(48).accessibilityText('轴与连接设置').onClick(() => this.selectWorkspaceTool('script'))
       } else {
-        Row({ space: 8 }) {
-          Text(this.widthVp < 400 ? 'MultiFun\nPlayer' : 'MultiFunPlayer').fontSize(this.widthVp < 400 ? 22 : 24)
-            .fontColor(UiStyle.ink).fontWeight(FontWeight.Bold).layoutWeight(1)
-          if (this.widthVp >= 520) { Text(APP_VERSION_NAME + ' OHOS').fontSize(UiStyle.helper).fontColor(UiStyle.muted) }
-          this.globalStopButton()
-          this.headerTools()
-        }.width('100%').height(UiStyle.control)
+        Text(this.widthVp < 520 ? 'MFP' : 'MultiFunPlayer').fontSize(this.widthVp < 520 ? 18 : 20).fontColor(UiStyle.ink).fontWeight(FontWeight.Bold).layoutWeight(1).maxLines(1)
+        Button('视频').flatButton().height(48).padding({ left: 10, right: 10 }).backgroundColor(this.currentScreen === 'library' ? UiStyle.accentSoft : UiStyle.page).onClick(() => this.showLibrary())
+        Button('控制').flatButton().height(48).padding({ left: 10, right: 10 }).backgroundColor(this.currentScreen === 'workspace' ? UiStyle.accentSoft : UiStyle.page).onClick(() => this.selectWorkspaceTool(this.workspaceTool))
+        if (this.currentScreen === 'workspace' && this.widthVp >= 900) { Button(this.workspacePreviewCollapsed ? '展开预览' : '收起预览').flatButton().height(48).onClick(() => this.toggleWorkspacePreview()) }
+        if (this.videoMode && this.widthVp >= 400) { Button('▶').flatButton().width(44).height(48).accessibilityText('返回播放器').onClick(() => this.selectScreen('player')) }
       }
-    }.padding({ left: 12, right: 12, top: this.widthVp < 320 ? 8 : 10, bottom: this.widthVp < 320 ? 8 : 10 })
+      this.globalStopButton()
+    }.padding({ left: 8, right: 8, top: 4, bottom: 4 })
       .width('100%').height(this.workspaceLayout().headerHeight).backgroundColor(UiStyle.page)
       .border({ width: { bottom: 1 }, color: UiStyle.edge })
       .visibility(this.videoFullscreen ? Visibility.Hidden : Visibility.Visible)
@@ -2929,15 +3622,25 @@ struct Index {
   build() {
     Stack({ alignContent: Alignment.TopStart }) {
       this.workspaceSettings()
+      if (this.currentScreen === 'library') { this.videoLibraryScreen() }
+      this.wideTrace()
       // A layout switch only moves/resizes this same surface; no if/else around it.
       this.videoStage()
       this.workspaceHeader()
+      if (this.currentScreen === 'player' && (this.openingVideo || this.importing || !this.videoReady || this.sessionFault.length > 0)) {
+        Text(this.sessionFault.length > 0 ? '运行故障 · 输出关闭：' + this.sessionFault : this.openingVideo || this.importing ? '正在打开视频…' : t(this.status)).fontSize(14).fontColor('#FFFFFF').padding(12)
+          .width('100%').backgroundColor('#B3000000').position({ x: 0, y: this.workspaceLayout().headerHeight })
+      }
+      if (this.currentScreen === 'player' && this.videoFullscreen && this.presentationMode === 'in-window' && !this.presentationRestorePending && this.presentationReason.length > 0 && this.videoReady && !this.openingVideo && !this.importing && this.sessionFault.length === 0) {
+        Text('当前为窗口内全屏：' + this.presentationReason).fontSize(14).fontColor('#FFFFFF').padding(8)
+          .width('100%').backgroundColor('#B3000000').position({ x: 0, y: this.workspaceLayout().headerHeight })
+      }
       if (this.presentationRestorePending) {
         Column({ space: 4 }) {
           Text('窗口尚未恢复：' + this.presentationReason).fontSize(UiStyle.helper).fontColor('#FFFFFF').width('100%')
           Button('重试退出系统全屏').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => this.setVideoFullscreen(false))
         }.padding(8).width(Math.max(1, this.widthVp - 16)).constraintSize({ maxWidth: 600 })
-          .backgroundColor('#833D46').position({ x: 8, y: this.videoFullscreen ? 8 : this.workspaceLayout().headerHeight + 8 })
+          .backgroundColor(UiStyle.danger).position({ x: 8, y: this.videoFullscreen ? 8 : this.workspaceLayout().headerHeight + 8 })
       }
       if (this.errorNoticeMode === 'snackbar') {
         Column({ space: 8 }) {
@@ -2945,32 +3648,15 @@ struct Index {
             .width('100%').height(Math.max(52, Math.min(120, this.heightVp * 0.22)))
           Row({ space: 8 }) {
             Button('关闭提示').flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).onClick(this.errorDismissHandler(this.errorNoticeId))
-            Button('全局停止').flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).fontColor(UiStyle.danger).onClick(() => this.stop())
+            Button('全局停止').flatButton().constraintSize({ minHeight: 52 }).layoutWeight(1).fontColor(UiStyle.danger).onClick(() => this.stop())
           }.width('100%')
         }.padding(12).width('100%').backgroundColor(UiStyle.danger).align(Alignment.Bottom)
       }
-      if (this.errorNoticeMode === 'dialog') {
-        Column({ space: 0 }) {
-          Blank()
-          Column({ space: 8 }) {
-            Text('错误').fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.danger).width('100%')
-            Scroll() { Text(this.errorNoticeMessage).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).width('100%') }
-              .width('100%').layoutWeight(1)
-            Button('知道了').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(this.errorDismissHandler(this.errorNoticeId))
-            Button('全局停止 · F12').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').backgroundColor(UiStyle.danger).fontColor('#FFFFFF').onClick(() => this.stop())
-          }.padding(16).width('92%').height(Math.max(200, Math.min(620, this.heightVp - 24)))
-            .constraintSize({ maxWidth: 600 }).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius)
-          Blank()
-        }.width('100%').height('100%').backgroundColor('#99000000').onClick(() => {})
-      }
+
     }.width('100%').height('100%').backgroundColor(UiStyle.page).focusable(true)
       .onAreaChange((_old: Area, area: Area) => this.resizeWorkspace(Number(area.width), Number(area.height)))
       .onBlur(() => this.cancelKeyboardWork())
-      .onKeyPreIme((event: KeyEvent): boolean => (event.type === KeyType.Down || event.type === KeyType.Up) && event.keyCode === EMERGENCY_STOP_KEY && this.handleKeyboardKey(event.keyCode, event.type === KeyType.Down))
-      .onKeyEventDispatch((event: KeyEvent): boolean => {
-        if (event.type !== KeyType.Down && event.type !== KeyType.Up) { return false; }
-        if (this.handleKeyboardKey(event.keyCode, event.type === KeyType.Down)) { return true; }
-        return event.type === KeyType.Down && !KeyboardInputSession.isEditing() && this.exitFullscreenWithKey(event.keyCode);
-      })
+      .onKeyPreIme(this.keyboardPreImeHandler())
+      .onKeyEventDispatch(this.keyboardDispatchHandler())
   }
 }

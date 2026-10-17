@@ -1,3 +1,4 @@
+import { SettingsDraftOwner } from '../entry/src/main/ets/presentation/SettingsDraftOwner.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -15,8 +16,8 @@ const source = readFileSync(new URL('../entry/src/main/ets/components/OutputSett
 const controller = ('class Panel {' + source.slice(source.indexOf('export struct OutputSettingsPanel {') +
   'export struct OutputSettingsPanel {'.length, source.indexOf('  build() {')) + '}')
   .replace(/@Prop\s*@Watch\([^)]*\)\s*/g, '').replace(/@Prop\s*|@State\s*/g, '');
-const Panel = new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel', 'OutputSettingsDraft', 'OutputEndpoint', 'KeyboardInputSession',
-  stripTypeScriptTypes(controller) + '; return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel, OutputSettingsDraft, OutputEndpoint, KeyboardInputSession);
+const Panel = new Function('SettingsDraftOwner','SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel', 'OutputSettingsDraft', 'OutputEndpoint', 'KeyboardInputSession',
+  stripTypeScriptTypes(controller) + '; return Panel;')(SettingsDraftOwner,SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel, OutputSettingsDraft, OutputEndpoint, KeyboardInputSession);
 const profile = { precision: 4, revision: 7, axisOrder: ['L0', 'R0'], maximumDurationMs: 10000, maximumPayloadBytes: 1024 };
 const range = (axisId, minimum = 0, maximum = 1, enabled = true) => ({ axisId, minimum, maximum, enabled });
 function draft(targetId = 'output-A', profileId = 'device-A', targetGeneration = 1) {
@@ -172,12 +173,12 @@ test('explicit arm requires live applied configuration and stays bound to the re
   panel.armed = true; panel.arm(); assert.deepEqual(calls, [['arm', 'output-A', 1]]);
 });
 
-test('UI preserves 52vp wrapped controls, guards mutations, and explains durable explicit-only restore', () => {
+test('UI preserves 48vp wrapped controls, guards mutations, and explains durable explicit-only restore', () => {
   assert.match(source, /@Prop readOnly: boolean = false/);
   assert.match(source, /@Prop @Watch\('profileChanged'\) profileId: string = ''/);
   assert.match(source, /有效配置.*保存|有效设置.*保存/); assert.match(source, /恢复.*不会.*连接.*启用/);
-  assert.ok((source.match(/wrap: FlexWrap\.Wrap/g) ?? []).length >= 2);
-  for (const label of ['连接 / 应用配置', '断开', '启用发送', '解除发送']) {
+  assert.ok((source.match(/wrap: FlexWrap\.Wrap/g) ?? []).length >= 1);
+  for (const label of ['连接 / 应用配置', '断开 / 编辑连接', '启用发送', '解除发送']) {
     const start = source.indexOf("Button('" + label + "')");
     assert.ok(start >= 0, label);
     const button = source.slice(start, source.indexOf('.onClick(', start));
@@ -186,7 +187,8 @@ test('UI preserves 52vp wrapped controls, guards mutations, and explains durable
   }
   const callbacks = source.split('  build() {')[1].split(/onChange:|onSelect:|onCommit:|\.onChange\(/).slice(1);
   assert.ok(callbacks.length >= 15);
-  for (const callback of callbacks) assert.match(callback.slice(0, callback.indexOf('}')), /this\.canEdit(?:Serial)?\(\)|this\.changeSerialBackend\(value\)|this\.selectSerialPort\(value\)/);
+  for (const callback of callbacks) assert.match(callback.slice(0, callback.indexOf('}')), /this\.canEdit(?:Serial|Endpoint)?\(\)|this\.commit(?:Baud|Host|Port)\(value\)|this\.changeSerialBackend\(value\)|this\.selectSerialPort\(value\)/);
+  for (const field of ['Host','Port']) assert.match(source, new RegExp('commit'+field+'\\(value: (?:string|number)\\): boolean \\{ if \\(!this\\.canEditEndpoint\\(\\)\\)'));
   assert.doesNotMatch(source, /配置仅在本次应用进程保留|this\.model\.setKind/);
   assert.match(source, /类型固定/);
 });

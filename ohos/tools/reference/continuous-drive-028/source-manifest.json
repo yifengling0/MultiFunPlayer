@@ -1,0 +1,131 @@
+{
+  "sourceRepository": "https://github.com/Yoooi0/MultiFunPlayer",
+  "sourcePin": "36c08fbb99ac9398a63ff1cca1bbf68cd2228a94",
+  "sources": {
+    "Source/MultiFunPlayer/Input/IInputGestureDescriptor.cs": {
+      "sha256": "ae71996c542c28f6aaa20db92024af10ca528e20183d403a0ae5c3ed0df7ce69",
+      "gitBlobSha1": "8bf6607d212c2d06a24e2bd8ff22dba920791ca2",
+      "bytes": 297
+    },
+    "Source/MultiFunPlayer/Input/IInputGesture.cs": {
+      "sha256": "76ac869e3c009cf2bd059aae84ad5fe79ff3e118813424c707c6631ff845fd32",
+      "gitBlobSha1": "9dffb060aa060d298e3779670a2a852ca2807a5a",
+      "bytes": 1984
+    },
+    "Source/MultiFunPlayer/Input/IInputGestureData.cs": {
+      "sha256": "e1b745599307e63edca74cf8cb0d0540b52ac8940b8c50bba36cbf2c75c1555e",
+      "gitBlobSha1": "7510baaa345b01759363f1b04c98269bb6251e63",
+      "bytes": 2273
+    },
+    "Source/MultiFunPlayer/Shortcut/AxisDriveShortcut.cs": {
+      "sha256": "bd39b9bc6d035f9f6616d3bfe489144391de523e1d30deb41a5f9725aab8f904",
+      "gitBlobSha1": "b7ec576f9d88ae9d4dd5f7b8fbd6a5e693683bbe",
+      "bytes": 1511
+    },
+    "Source/MultiFunPlayer/Shortcut/AxisOffsetShortcut.cs": {
+      "sha256": "24f7a3994063be8325fae63c241cb258893d7f3b50a9bd4dcb370bdee331dc70",
+      "gitBlobSha1": "6745e18cc3996891eef75890510c9030b1fb5d92",
+      "bytes": 1488
+    },
+    "Source/MultiFunPlayer/OutputTarget/DeviceAxisSettings.cs": {
+      "sha256": "fc333331346fd3d9f8e1c4983c4804a1ac58213681811b9094e7df91063a8ff1",
+      "gitBlobSha1": "a1b17648972958f16b2d45b7500271c1d843d5c4",
+      "bytes": 369
+    },
+    "Source/MultiFunPlayer/MotionProvider/AbstractMotionProvider.cs": {
+      "sha256": "f970c36b3d6ad042c60bb393d9a8e7344c68ce22985d10dced85fa1783209f28",
+      "gitBlobSha1": "e36ed35d7a9134d2b503d9392a7dc4d1ccbe29a1",
+      "bytes": 5807
+    },
+    "Source/MultiFunPlayer/MotionProvider/IMotionProvider.cs": {
+      "sha256": "8b2746966377f39bee9a3963a751fdedb39b0e78eca652a719549336df6e52d3",
+      "gitBlobSha1": "080616704ab00545fd2cfc52e45d2f0e1a02954d",
+      "bytes": 171
+    },
+    "Source/MultiFunPlayer/Shortcut/IShortcut.cs": {
+      "sha256": "d61eb349e9705b26417b1e2455e1249819533a06090eeb2c4b636f8cfc0f9f21",
+      "gitBlobSha1": "9d1deb593be7b4be6db735a782aa614f362e0954",
+      "bytes": 4937
+    },
+    "Source/MultiFunPlayer/Shortcut/IShortcutActionRunner.cs": {
+      "sha256": "b547cc6adb6aad370adbbd0d53515a68a147404612cc1842ff8c252489b6f91d",
+      "gitBlobSha1": "a9211783c5374574b4134ba65098fc0ef15513b3",
+      "bytes": 10886
+    },
+    "Source/MultiFunPlayer/Common/Utils/MathUtils.cs": {
+      "sha256": "aa30c767e098e17f05a68a0e37b560d8d6670f24987b06716efeb5350384f30b",
+      "gitBlobSha1": "018b81af5370cb637570e3c82b6f3064cb3e0528",
+      "bytes": 11424
+    },
+    "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs": {
+      "sha256": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+      "gitBlobSha1": "abf01744fc93ff46b13381c5316369850e5528a7",
+      "bytes": 30803
+    },
+    "Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs": {
+      "sha256": "3104cecc1510ef394a786c04239bafc58d33af4465d2b3c04b0409995c19debe",
+      "gitBlobSha1": "2869885e72d11de61383701b31e148b2d79c9765",
+      "bytes": 109044
+    },
+    "Source/MultiFunPlayer/MotionProvider/IMotionProviderManager.cs": {
+      "sha256": "609d3a02b8b0dc07304389385c041dbaa063357f686ae56c81da59e7981164cd",
+      "gitBlobSha1": "03f7f50bb963a5180cc6bd7452913577918fd01e",
+      "bytes": 5162
+    },
+    "Source/MultiFunPlayer/MotionProvider/Views/CustomCurveMotionProvider.xaml": {
+      "sha256": "e76573b9cb5a0186a1fe6e272f8da4bc08bbfb7bde0be3d1b49c18774b52d6c3",
+      "gitBlobSha1": "ca11fa95a9f9d42a3c8749a4f0206562f0a96980",
+      "bytes": 7289
+    },
+    "Source/MultiFunPlayer/MotionProvider/Views/PatternMotionProvider.xaml": {
+      "sha256": "6ece9dde709da0ea50a52b746ced1b0c87a1bd22882589b34d11d473cc7460e5",
+      "gitBlobSha1": "0d01d1d32677639990c35027b1305cb360efc215",
+      "bytes": 4579
+    },
+    "Source/MultiFunPlayer/MotionProvider/Views/RandomMotionProvider.xaml": {
+      "sha256": "5f4b3ddf6af92e537c6a67f0f7b77a12edb78a372aa1ad714a05bfd31191ef4c",
+      "gitBlobSha1": "7093f47d22b8c2842198e16e4442c739913281c3",
+      "bytes": 8131
+    },
+    "Source/MultiFunPlayer/MotionProvider/Views/LoopingScriptMotionProvider.xaml": {
+      "sha256": "0622142c523f3a4fd2a21253d3343c7b0904bb42b1bfd2d7bd3ccc60fb252838",
+      "gitBlobSha1": "d66d075ef99556a1303a9bde34e3b69f718d5ddb",
+      "bytes": 5763
+    },
+    "Source/MultiFunPlayer/MotionProvider/ViewModels/CustomCurveMotionProvider.cs": {
+      "sha256": "fb83c8ae42f9364a49b9528b04be0f847db1fc548d0c6701131d533c3a85ae4d",
+      "gitBlobSha1": "4dc5a10370ff5297e8976650d7140f20366c58c9",
+      "bytes": 11654
+    },
+    "Source/MultiFunPlayer/UI/Controls/Views/ScriptView.xaml": {
+      "sha256": "f42527b6cef4181e2935974f2a275d5eef0d06b976435a6cfd2afb88ebb86336",
+      "gitBlobSha1": "afc5cad2685e063cd4b2907d11c876bd4db1ae8e",
+      "bytes": 137618
+    },
+    "Source/MultiFunPlayer/Input/RawInput/RawInputProcessor.cs": {
+      "sha256": "41f19848ad6df81d5823b868751ee46282a441a237573581232e99180176ddc8",
+      "gitBlobSha1": "8a15b98e33c3a88668e03e6d9e1b3e971b037968",
+      "bytes": 9004
+    },
+    "Source/MultiFunPlayer/UI/Controls/Views/ShortcutSettingsView.xaml": {
+      "sha256": "261a901f1b99bddac1a14210516f081b678c62f8d365cc90a2ba82fe34a6eb68",
+      "gitBlobSha1": "9fc1f51e873c574187e816ab9af3e158a0c7b10b",
+      "bytes": 58307
+    },
+    "Source/MultiFunPlayer/OutputTarget/Views/TcpOutputTarget.xaml": {
+      "sha256": "673b9854684c6f2fa896287985b04609ba7dcefb89431b96ced7721a7103229b",
+      "gitBlobSha1": "c42d624772fcd84d92a41025ee5335a9274f80f7",
+      "bytes": 14208
+    },
+    "Source/MultiFunPlayer/OutputTarget/Views/UdpOutputTarget.xaml": {
+      "sha256": "9906fe1c24bd92e2f3990f44373c6181513352a3a857d4acbbb421904b9ef7e5",
+      "gitBlobSha1": "0fa9fd2500dfe86e8a2072a629858fd4b0f434e6",
+      "bytes": 14208
+    },
+    "Source/MultiFunPlayer/OutputTarget/Views/WebSocketOutputTarget.xaml": {
+      "sha256": "abdb543a0b89322188f9dbf7a9797f47cf2df337aa2891f97a5c35b062123967",
+      "gitBlobSha1": "9a9bdacecd52b9544c90974f71db2828c3bdd05e",
+      "bytes": 14245
+    }
+  }
+}

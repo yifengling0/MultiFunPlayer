@@ -53,8 +53,8 @@ test('background/stage lifecycle through actual NativeOutputSession cancels and 
  const code=readFileSync(new URL('../entry/src/main/ets/entryability/EntryAbility.ets',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace('export default class','class');
  for(const method of ['onBackground','onWindowStageDestroy','onDestroy']){
   h.Owner.setForeground(true);const operation=h.Diagnostic.run(h.page.diagnosticOwner,h.request(),h.page.output);await settle();
-  const Ability=new Function('UIAbility','NativeOutputSession','RemoteMediaSession','NativeWindowPresentation','PlaybackSession','AppStorage',stripTypeScriptTypes(code)+';return EntryAbility;')(class{},h.Owner,{closeIfReady(){}},{destroyStage(){},setForeground(){}},{flushIfReady(){}},{setOrCreate(){}});
-  new Ability()[method]();assert.equal(h.diagnostic.snapshot().phase,'closing');assert.equal((await operation).phase,'cancelled');
+  const Ability=new Function('NativeKeyboardWindow','UIAbility','NativeOutputSession','RemoteMediaSession','NativeWindowPresentation','PlaybackSession','AppStorage',stripTypeScriptTypes(code)+';return EntryAbility;')({claimStage(){return 1;},bindStage(){},setForeground(){},releaseStage(){}},class{},h.Owner,{closeIfReady(){}},{destroyStage(){},setForeground(){}},{flushIfReady(){}},{setOrCreate(){}});
+  const app=new Ability();app.lifecycleOwner=++Ability.lifecycleSequence; /* established-stage fixture */ app[method]();assert.equal(h.diagnostic.snapshot().phase,'closing');assert.equal((await operation).phase,'cancelled');
  }
 });
 test('remount cancels old request, late owner cannot cancel new request, and close quarantine survives replacement page',async()=>{

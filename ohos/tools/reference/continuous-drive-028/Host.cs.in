@@ -1,0 +1,169 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading;
+using System.ComponentModel;
+using System.Reflection;
+using System.Text.Json;
+using MultiFunPlayer.Common;
+using MultiFunPlayer.Input;
+using MultiFunPlayer.MotionProvider;
+using MultiFunPlayer.OutputTarget;
+using MultiFunPlayer.Shortcut;
+
+class Program {
+ static double D(JsonElement item,string key,double fallback=0)=>item.TryGetProperty(key,out var v)?v.GetDouble():fallback;
+ static string S(JsonElement item,string key)=>item.GetProperty(key).GetString();
+ static bool B(JsonElement item,string key)=>item.TryGetProperty(key,out var v)&&v.GetBoolean();
+ static object Data(IAxisInputGestureData value)=>value==null?null:new {valueOrDelta=value.ValueOrDelta,deltaTime=value.DeltaTime,isAbsolute=value.IsAbsolute,isRelative=value.IsRelative};
+ static double? Finite(double value)=>double.IsFinite(value)?value:null;
+ static object Transition(AxisValueTransition transition) {
+  double Field(string name)=>(double)typeof(AxisValueTransition).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic).GetValue(transition);
+  return new {initialized=transition.IsInitialized,finished=transition.IsFinished,current=Field("_currentValue"),from=Field("_fromValue"),to=Field("_toValue"),duration=Field("_duration"),time=Field("_time")};
+ }
+ static void Main() {
+  var inputs=JsonSerializer.Deserialize<JsonElement[]>(Console.In.ReadToEnd());var rows=new List<object>();
+  foreach(var input in inputs) {
+   var kind=S(input,"kind");object output=null;
+   var runner=new Runner();var descriptor=new Descriptor();
+   var gesture=new Gesture(descriptor,D(input,"value"),D(input,"delta"),D(input,"duration"));
+   IAxisInputGestureData data=B(input,"absolute")?AxisInputGestureData.Absolute(D(input,"value"),D(input,"duration")):AxisInputGestureData.Relative(D(input,"value"),D(input,"duration"));
+   if(kind=="drive") {
+    var shortcut=new AxisDriveShortcut(runner,descriptor){DriveMode=Enum.Parse<AxisDriveShortcutMode>(S(input,"mode")),Invert=B(input,"invert")};
+    shortcut.Deliver(gesture);output=Data(runner.Values.LastOrDefault());
+   } else if(kind=="offset") {
+    var shortcut=new AxisOffsetShortcut(runner,descriptor){OffsetMode=Enum.Parse<AxisOffsetShortcutMode>(S(input,"mode")),Speed=D(input,"speed"),Invert=B(input,"invert")};
+    shortcut.Deliver(gesture);var immediate=runner.Values.Count;var running=shortcut.Running;var period=shortcut.Period.TotalSeconds;
+    shortcut.Tick();output=new {immediate,running,period,data=Data(runner.Values.LastOrDefault()),offset=(double)typeof(AxisOffsetShortcut).GetField("_offset",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(shortcut)};
+   } else if(kind=="apply") output=data.ApplyTo(D(input,"current"),D(input,"modifier"));
+   else if(kind=="action"||kind=="contrast") {
+    var name=S(input,"action");var manager=new Capture();var axis=DeviceAxis.All[0];
+    if(name.StartsWith("TCP/0::")) {
+     var host=new OutputHost();host.RegisterActions(manager);var settings=host.AxisSettings[axis];settings.Minimum=D(input,"minimum");settings.Maximum=D(input,"maximum");
+     if(kind=="contrast")manager.Actions[name].DynamicInvoke(axis,D(input,"value"));
+     else {
+      var args=new List<object>{data,axis};
+      if(name.Contains("::Minimum::"))args.Add(D(input,"minimumLimit"));
+      else if(name.Contains("::Maximum::"))args.Add(D(input,"maximumLimit",1));
+      else{args.Add(D(input,"minimumLimit"));args.Add(D(input,"maximumLimit",1));}
+      manager.Actions[name].DynamicInvoke(args.ToArray());
+     }
+     output=new {minimum=settings.Minimum,maximum=settings.Maximum};
+    } else if(name.StartsWith("MotionProvider::")) {
+     var host=new OracleProvider(axis);host.Speed=host.Minimum=host.Maximum=D(input,"current");OracleProvider.Register(manager,a=>a==axis?host:null);
+     manager.Actions[name].DynamicInvoke(data,axis);
+     output=name.Contains("::Speed::")?host.Speed:name.Contains("::Minimum::")?host.Minimum:host.Maximum;
+    } else {
+     var host=new ScriptHost();host.AxisStates[axis].Value=D(input,"current");host.AxisSettings[axis].MotionProviderBlend=D(input,"current");host.Register(manager);
+     manager.Actions[name].DynamicInvoke(data,axis);
+     if(name=="Axis::MotionProviderBlend::Drive")output=host.AxisSettings[axis].MotionProviderBlend;
+     else {var transition=host.AxisStates[axis].ExternalTransition;var state=Transition(transition);var ticks=new List<double?>();foreach(var dt in new[]{0d,.05,.05,.1})ticks.Add(Finite(transition.Update(dt)));output=new {state,ticks};}
+    }
+   }
+   rows.Add(new {input,output});
+  }
+  // Real original Invoke uses CompareExchange and resets on completion or refused scheduling.
+  var held=new Runner{CompleteImmediately=false};var desc=new Descriptor();var drive=new AxisDriveShortcut(held,desc);
+  drive.Deliver(new Gesture(desc,.5,.1,0));drive.Deliver(new Gesture(desc,.6,.2,0));var countWhileHeld=held.Values.Count;
+  held.Complete();drive.Deliver(new Gesture(desc,.7,.3,0));var countAfterCompletion=held.Values.Count;
+  var denied=new Runner{Accept=false};var retry=new AxisDriveShortcut(denied,desc);retry.Deliver(new Gesture(desc,.5,.1,0));denied.Accept=true;retry.Deliver(new Gesture(desc,.5,.2,0));
+  var changing=new Runner();var offset=new AxisOffsetShortcut(changing,desc){Speed=.1};
+  offset.Deliver(new Gesture(desc,1,.1,0));var immediateCount=changing.Values.Count;offset.Tick();
+  offset.Deliver(new Gesture(desc,.75,-.25,0));offset.Tick();var startsWhileChanging=offset.Starts;
+  offset.Deliver(new Gesture(desc,.5,-.25,0));offset.Tick();
+  Console.WriteLine(JsonSerializer.Serialize(new {rows,scheduling=new {
+   countWhileHeld,countAfterCompletion,acceptedAfterRefusal=denied.Values.Count,
+   immediateCount,startsWhileChanging,repeatStoppedAtZero=!offset.Running,values=changing.Values.Select(Data).ToArray()
+  }}));
+ }
+}
+class Descriptor:IAxisInputGestureDescriptor{}
+class Gesture(IAxisInputGestureDescriptor descriptor,double value,double delta,double deltaTime):AbstractAxisInputGesture(descriptor,value,delta,deltaTime){}
+class OutputHost {
+ public string Identifier=>"TCP/0";public bool AutoConnectEnabled{get;set;}
+ public Dictionary<DeviceAxis,DeviceAxisSettings> AxisSettings{get;}=DeviceAxis.All.ToDictionary(a=>a,_=>new DeviceAxisSettings());
+ @@OUTPUT_REGISTER@@
+}
+class ScriptHost {
+ public Dictionary<DeviceAxis,AxisSettings> AxisSettings{get;}=DeviceAxis.All.ToDictionary(a=>a,_=>new AxisSettings());
+ public Dictionary<DeviceAxis,AxisState> AxisStates{get;}=DeviceAxis.All.ToDictionary(a=>a,_=>new AxisState());
+ public void Register(IShortcutManager s) {
+  @@SCRIPT_UPDATE_SETTINGS@@
+  @@AXIS_VALUE_DRIVE@@
+  @@AXIS_BLEND_DRIVE@@
+ }
+ @@SET_AXIS_TRANSITION@@
+}
+class AxisSettings {public double MotionProviderBlend{get;set;}}
+class AxisState {public double Value{get;set;}public AxisValueTransition ExternalTransition{get;}=new();public IDisposable BeginUpdateScope()=>new Noop();class Noop:IDisposable{public void Dispose(){}}}
+@@AXIS_VALUE_TRANSITION@@
+[DisplayName("Oracle")]
+class OracleProvider(DeviceAxis target):AbstractMotionProvider(target,null) {
+ public override void Update(double deltaTime){}
+ public static void Register(IShortcutManager manager,Func<DeviceAxis,OracleProvider> get)=>RegisterActions(manager,get);
+}
+namespace MultiFunPlayer.Common {
+ public sealed record DeviceAxis(string Name) {public double DefaultValue=>.5;public static DeviceAxis[] All{get;}=[new("L0"),new("R0")];}
+ public sealed record SyncRequestMessage(DeviceAxis Axis);
+ public static class MathUtils { @@CLAMP_01@@ @@CLAMP_SAFE@@ @@LERP@@ @@UNLERP@@ @@MAP@@ }
+}
+namespace Stylet {
+ public class PropertyChangedBase{}
+ public class Screen {protected virtual void OnPropertyChanged(string propertyName){}}
+ public interface IEventAggregator {void Publish(object value);}
+}
+namespace Newtonsoft.Json {
+ public enum MemberSerialization{OptIn}
+ [AttributeUsage(AttributeTargets.Class)]public class JsonObjectAttribute:Attribute{public JsonObjectAttribute(MemberSerialization value){}}
+ [AttributeUsage(AttributeTargets.Property)]public class JsonPropertyAttribute:Attribute{}
+}
+namespace PropertyChanged {[AttributeUsage(AttributeTargets.Property)]public class DoNotNotifyAttribute:Attribute{}}
+namespace MultiFunPlayer.Property {public interface IPropertyManager {void RegisterProperty<TIn,TOut>(string name,Func<TIn,TOut> getter);}}
+namespace MultiFunPlayer.Shortcut {
+ internal interface IShortcutActionConfiguration{}
+ internal interface IShortcutActionRunner {bool ScheduleInvoke(IEnumerable<IShortcutActionConfiguration> configurations,IInputGestureData data,Action callback);}
+ class Configuration:IShortcutActionConfiguration{}
+ class Runner:IShortcutActionRunner {
+  public readonly List<IAxisInputGestureData> Values=[];public bool Accept=true;public bool CompleteImmediately=true;private Action _complete;
+  public bool ScheduleInvoke(IEnumerable<IShortcutActionConfiguration> configurations,IInputGestureData data,Action callback){if(!Accept)return false;Values.Add((IAxisInputGestureData)data);_complete=callback;if(CompleteImmediately)Complete();return true;}
+  public void Complete(){var completion=_complete;_complete=null;completion?.Invoke();}
+ }
+ internal abstract class AbstractShortcut<TGesture,TData>(IShortcutActionRunner actionRunner,IInputGestureDescriptor gesture)
+  where TGesture:IInputGesture where TData:IInputGestureData {
+  private bool _isScheduled;private Action _tick;
+  public List<IShortcutActionConfiguration> Configurations{get;}=[new Configuration()];
+  public bool Running=>_tick!=null;public TimeSpan Period{get;private set;}public int Starts{get;private set;}
+  protected abstract void Update(TGesture input);public void Deliver(TGesture input)=>Update(input);
+  @@INVOKE@@
+  @@ON_INVOKED@@
+  protected bool IsRepeatRunning()=>Running;
+  protected void CancelRepeat()=>_tick=null;
+  protected void Repeat(TimeSpan period,Action callback){Period=period;_tick=callback;Starts++;}
+  public void Tick()=>_tick?.Invoke();
+ }
+ public class Builder<T> {
+  public Builder<T> WithLabel(string value)=>this;public Builder<T> WithItemsSource(IEnumerable<T> value)=>this;public Builder<T> WithDefaultValue(T value)=>this;
+  public Builder<T> AsNumericUpDown(double minimum=double.MinValue,double maximum=double.MaxValue,double interval=1,string stringFormat=null)=>this;
+ }
+ public interface IShortcutManager {
+  void RegisterAction(string name,Action action);
+  void RegisterAction<T1>(string name,Action<Builder<T1>> a,Action<T1> action);
+  void RegisterAction<T1,T2>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<T1,T2> action);
+  void RegisterAction<T1,T2>(string name,Action<Builder<T2>> b,Action<T1,T2> action);
+  void RegisterAction<T1,T2,T3>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<T1,T2,T3> action);
+  void RegisterAction<T1,T2,T3>(string name,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<T1,T2,T3> action);
+  void RegisterAction<T1,T2,T3,T4>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<Builder<T4>> d,Action<T1,T2,T3,T4> action);
+  void RegisterAction<T1,T2,T3,T4>(string name,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<Builder<T4>> d,Action<T1,T2,T3,T4> action);
+ }
+ public class Capture:IShortcutManager {
+  public Dictionary<string,Delegate> Actions{get;}=new();
+  public void RegisterAction(string name,Action action)=>Actions[name]=action;
+  public void RegisterAction<T1>(string name,Action<Builder<T1>> a,Action<T1> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<T1,T2> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2>(string name,Action<Builder<T2>> b,Action<T1,T2> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2,T3>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<T1,T2,T3> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2,T3>(string name,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<T1,T2,T3> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2,T3,T4>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<Builder<T4>> d,Action<T1,T2,T3,T4> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2,T3,T4>(string name,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<Builder<T4>> d,Action<T1,T2,T3,T4> action)=>Actions[name]=action;
+ }
+}

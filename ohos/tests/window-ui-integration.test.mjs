@@ -1,9 +1,11 @@
+import { SettingsDraftOwner } from '../entry/src/main/ets/presentation/SettingsDraftOwner.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { registerHooks, stripTypeScriptTypes } from 'node:module';
 registerHooks({
   resolve(s,c,next) {
+    if(s==='@kit.BasicServicesKit') return {url:'data:text/javascript,export const deviceInfo={deviceType:"2in1"};',shortCircuit:true};
     if(s==='@kit.ArkUI') return {url:'data:text/javascript,export const window={MaximizePresentation:{ENTER_IMMERSIVE:2,EXIT_IMMERSIVE:1}};',shortCircuit:true};
     if(s.startsWith('.')&&!/\.[a-z]+$/i.test(s)) return next(s+'.ts',c);
     return next(s,c);
@@ -35,7 +37,7 @@ function ability(options={}) {
  const calls=[];
  const playback={initialize:options.initialize||(()=>Promise.resolve()),flushIfReady(){calls.push(['flush']);}};
  const output={setForeground(value){calls.push(['output',value]);},closeIfReady(){calls.push(['close']);}};
- const Ability=new Function('UIAbility','NativeOutputSession','AppStorage','PlaybackSession','NativeWindowPresentation','RemoteMediaSession',stripTypeScriptTypes(abilitySource)+';return EntryAbility;')(class{},output,{setOrCreate(_name,value){calls.push(['storage',value]);}},playback,N,{closeIfReady(){}});
+ const Ability=new Function('NativeKeyboardWindow','UIAbility','NativeOutputSession','AppStorage','PlaybackSession','NativeWindowPresentation','RemoteMediaSession',stripTypeScriptTypes(abilitySource)+';return EntryAbility;')({claimStage(){return 1;},bindStage(){},setForeground(){},releaseStage(){}},class{},output,{setOrCreate(_name,value){calls.push(['storage',value]);}},playback,N,{closeIfReady(){}});
  const app=new Ability();app.context={filesDir:'/owned/private'};return {app,calls};
 }
 function method(name) {
@@ -45,11 +47,12 @@ function method(name) {
  return pageSource.slice(start,end);
 }
 function page() {
+ KeyboardInputSession.setWindowFocus(KeyboardInputSession.claimWindow(),true);
  const calls=[];
- const methods=['remoteSource','aboutToAppear','aboutToDisappear','foregroundChanged','updateKeyboardContext','retireShortcutWorker','cancelManagedReload','cancelKeyboardWork','presentationChanged','setVideoFullscreen','onBackPress','exitFullscreenWithKey'].map(method).join('\n');
- const Page=new Function('SerialDiagnosticSession','SocketDiagnosticSession','NativeWindowPresentation','NativeOutputSession','systemDateTime','setInterval','clearInterval','KeyCode','KeyboardInputSession','RemoteMediaSession',stripTypeScriptTypes('class Page{'+methods+'}')+';return Page;')(SerialDiagnosticSession,{claimOwner(){return 1;},releaseOwner(){}},N,{setForeground(v){calls.push(['outputForeground',v]);},restore(){}},{TimeType:{STARTUP:1},getUptime(){return 1;}},()=>1,()=>{}, {KEYCODE_ESCAPE:2070},KeyboardInputSession,{current(){return {subscribe(){return ()=>{};},snapshot(){return {};}};}});
- const p=new Page();p.serialDiscovery={cancel(){}};Object.assign(p,{keyboard:new LocalShortcutEngine(),shortcutQueue:Promise.resolve(),keyboardOwner:0,keyboardCaptureRevision:0,keyboardCaptureId:'',keyboardCaptureKeys:[],pendingShortcutDispatches:[],shortcutWorkerRevision:0,shortcutConnections:new Map(),shortcutAxes:new Map(),shortcutProfiles:new Map(),showInputSettings:false,errorNoticeMode:'',errors:new ErrorPresentation(),viewActive:false,foreground:true,videoMode:true,videoFullscreen:false,presentationMode:'windowed',presentationReason:'',presentationRestorePending:false,presentationOwner:0,openVideoRequest:0,pendingVideoUri:'',timer:-1,libraryBusy:false,pairOpening:false,openingVideo:false});
- p.engine={mediaSourceConfiguration(){return {selectedSource:'internal',deoVr:{host:'127.0.0.1',port:23554}};},detachMotionCanvas(){},keyboardConfiguration(){return new KeyboardShortcutConfiguration();},generalConfiguration(){return new GeneralConfiguration();},activeRegistry(){return {profile:{},revision:1};},outputConfiguration(){return {};},setForeground(v){calls.push(['engineForeground',v]);},setConnected(v){calls.push(['connected',v]);},stop(){calls.push(['stop']);},flush(){calls.push(['flush']);}};
+ const methods=['remoteSource','closeConfirmation','aboutToAppear','aboutToDisappear','foregroundChanged','updateKeyboardContext','retireShortcutWorker','cancelManagedReload','cancelKeyboardWork','presentationChanged','setVideoFullscreen','onBackPress','exitFullscreenWithKey'].map(method).join('\n');
+ const Page=new Function('ImmersiveMaterialManager','SettingsDraftOwner','SerialDiagnosticSession','SocketDiagnosticSession','NativeWindowPresentation','NativeOutputSession','systemDateTime','setInterval','clearInterval','KeyCode','KeyboardInputSession','RemoteMediaSession',stripTypeScriptTypes('class Page{'+methods+'}')+';return Page;')({initialize:async()=>{}},SettingsDraftOwner,SerialDiagnosticSession,{claimOwner(){return 1;},releaseOwner(){}},N,{setForeground(v){calls.push(['outputForeground',v]);},restore(){}},{TimeType:{STARTUP:1},getUptime(){return 1;}},()=>1,()=>{}, {KEYCODE_ESCAPE:2070},KeyboardInputSession,{current(){return {subscribe(){return ()=>{};},snapshot(){return {};}};}});
+ const p=new Page();p.selectScreen=screen=>{p.currentScreen=screen;};p.currentScreen='player';p.libraryOpeningRevision=-1;p.cancelLibraryPlayback=()=>{};p.continuous={setConfiguration(){}};p.cancelContinuousInput=()=>{};p.updateContinuousContext=()=>{};p.settingsDraftOwner=new SettingsDraftOwner();p.settingsDraftEpoch=0;p.serialDiscovery={cancel(){}};Object.assign(p,{confirmationOwner:null,confirmationErrorId:0,confirmationCloseUnconfirmed:false,keyboard:new LocalShortcutEngine(),shortcutQueue:Promise.resolve(),keyboardOwner:0,keyboardCaptureRevision:0,keyboardCaptureId:'',keyboardCaptureKeys:[],pendingShortcutDispatches:[],shortcutWorkerRevision:0,shortcutConnections:new Map(),shortcutAxes:new Map(),shortcutProfiles:new Map(),showInputSettings:false,errorNoticeMode:'',errors:new ErrorPresentation(),viewActive:false,foreground:true,videoMode:true,videoFullscreen:false,presentationMode:'windowed',presentationReason:'',presentationRestorePending:false,presentationOwner:0,openVideoRequest:0,pendingVideoUri:'',timer:-1,libraryBusy:false,pairOpening:false,openingVideo:false});
+ p.engine={continuousInputConfiguration(){return {enabled:true,mappings:[]};},mediaSourceConfiguration(){return {selectedSource:'internal',deoVr:{host:'127.0.0.1',port:23554}};},detachMotionCanvas(){},keyboardConfiguration(){return new KeyboardShortcutConfiguration();},generalConfiguration(){return new GeneralConfiguration();},activeRegistry(){return {profile:{},revision:1};},outputConfiguration(){return {};},setForeground(v){calls.push(['engineForeground',v]);},setConnected(v){calls.push(['connected',v]);},stop(){calls.push(['stop']);},flush(){calls.push(['flush']);}};
  p.output={setForeground(v){calls.push(['output',v]);}};p.video={dispose(){calls.push(['dispose']);},release(){calls.push(['release']);return Promise.resolve();}};
  for(const name of ['deoVrSnapshot','disconnectDeoVr','sync','scanDownloads','cancelRuntimeControl','disconnectInternal','cancelMediaSeek','cancelLibrary','openPendingVideo'])p[name]=()=>calls.push([name]);
  return {p,calls};

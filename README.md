@@ -1,4 +1,10 @@
-> OHOS **0.22.0 / code23** UI candidate: [scope](ohos/README.md), [usage](ohos/USAGE_ZH.md), [local checks](ohos/LOCAL_TEST_022.md). Full-width device-responsive regions, one neutral surface, reduced nesting and balanced52vp tool rows; source/output permissions and single video Surface remain. Serial is still under separate review and excluded from this candidate. No new native visual/hardware acceptance;1:1coverage remains154/188sites,44partial,34unwired.
+> OHOS **0.29.0 / code30**: dedicated video library and player, compact axis accordion, discoverable connection settings, and observed mobile fullscreen lifecycle. [Contract](ohos/PLAYER_WORKSPACE_029_CONTRACT.md) · [Device checks](ohos/LOCAL_TEST_029.md). Actual device rendering/hardware still needs validation.
+
+> OHOS **0.27.0 / code28** official immersive-control integration: [contract](ohos/IMMERSIVE_UI_027_CONTRACT.md), [device checks](ohos/LOCAL_TEST_027.md). API26 dynamically guarded native Select/menu/Toggle/Slider/dialog material requests; API20 fallback, real owned confirmations and modal Stop. Approved workspace retained. Device rendering remains unverified.
+
+> OHOS **0.26.0 / code27** keyboard lifecycle correction: [contract](ohos/KEYBOARD_FOCUS_026_CONTRACT.md), [local checks](ohos/LOCAL_TEST_026.md). Real main-window focus and Cancel retire pending keyboard actions; stale page/window/Ability callbacks cannot control replacements. Approved0.25 visual structure retained. Device event delivery and hardware acceptance remain unverified.
+
+> OHOS **0.25.0 / code26** approved visual-design implementation: [scope](ohos/README.md), [usage](ohos/USAGE_ZH.md), [local checks](ohos/LOCAL_TEST_025.md). Light/teal player and four-tool inspector, shared panel styles and responsive editor drafts; fixed52vp Stop and single native video Surface retained. Actual ArkUI visuals, IME and hardware acceptance still require the user's devices. Original-site coverage remains154/188, including44partial and34unwired.
 
 <div align="center">
     <h1>MultiFunPlayer</h1>

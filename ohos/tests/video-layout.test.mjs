@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { videoWorkspaceLayout } from '../entry/src/main/ets/core/VideoLayout.ts';
+import {setupIndex} from './index-controller-helpers.mjs';
+import { SettingsDraftOwner } from '../entry/src/main/ets/presentation/SettingsDraftOwner.ts';
 
 function inBounds(rect, width, height) {
   for (const n of [rect.x, rect.y, rect.width, rect.height]) assert.ok(Number.isFinite(n) && n >= 0);
@@ -73,15 +75,11 @@ test('layout is bounded through breakpoints, rotation, multiwindow and transient
 });
 
 const source = readFileSync(new URL('../entry/src/main/ets/pages/Index.ets', import.meta.url), 'utf8');
-const methodStart = source.indexOf('  workspaceLayout():');
-const methodEnd = source.indexOf('  drawTrace():', methodStart);
-const LayoutController = new Function('videoWorkspaceLayout', 'KeyCode', 'NativeWindowPresentation', stripTypeScriptTypes(
-  'class LayoutController {' + source.slice(methodStart, methodEnd) + '}') + '; return LayoutController;')(
-  videoWorkspaceLayout, { KEYCODE_ESCAPE: 2070 }, { requestForOwner() {} });
-
 test('actual fullscreen, system Back, Escape and resize methods leave player, clock and script intact', () => {
-  const page = new LayoutController();
+  const {page} = setupIndex(); page.currentScreen = 'player'; page.libraryLoaded = true;
+  page.cancelContinuousInput = () => {}; // Local input cancellation has its actual-controller suite.
   Object.assign(page, { generalConfiguration: {appOrientation:'auto'}, foreground: true, viewActive: true, widthVp: 400, heightVp: 800, videoMode: true, videoFullscreen: false,
+    settingsDraftOwner: new SettingsDraftOwner(), settingsDraftEpoch: 0, confirmationOwner:null,confirmationErrorId:0,
     positionMs: 45212, durationMs: 90000, playbackSpeed: 1.5, globalOffsetMs: 250,
     axisOffsetMs: -50, axisScale: 1.4, selectedAxis: 2, surfaceId: 'same-surface',
     document: { id: 'same-script' }, playing: true });
@@ -89,17 +87,25 @@ test('actual fullscreen, system Back, Escape and resize methods leave player, cl
   page.video = noTouch; page.engine = noTouch;
   const document = page.document;
   for (let repeat = 0; repeat < 10; repeat++) {
+    const lease = page.settingsDraftOwner.open('layout', 'pending', 'same-baseline', '');
+    assert.equal(page.settingsDraftOwner.write(lease.token, 'same-baseline', 'unapplied text', true), true);
+    const epoch = page.settingsDraftEpoch;
     page.setVideoFullscreen(true);
     assert.equal(page.videoFullscreen, true);
     page.resizeWorkspace(800, 400);
     assert.equal(page.workspaceLayout().video.width, 800);
+    assert.equal(page.settingsDraftEpoch, epoch + 1);
+    assert.equal(page.settingsDraftOwner.isCurrent(lease.token, 'same-baseline'), false);
+    assert.equal(page.settingsDraftOwner.peek('layout', 'pending'), 'unapplied text');
+    assert.equal(page.settingsDraftOwner.hasPending('layout'), true);
     assert.equal(page.exitFullscreenWithKey(1), false);
     assert.equal(page.exitFullscreenWithKey(2070), true);
     assert.equal(page.videoFullscreen, false);
     page.setVideoFullscreen(true);
     assert.equal(page.onBackPress(), true);
-    assert.equal(page.onBackPress(), false);
+    assert.equal(page.onBackPress(), true); assert.equal(page.currentScreen, 'library'); assert.equal(page.onBackPress(), false); page.selectScreen('player');
     page.resizeWorkspace(400, 800);
+    assert.ok(page.settingsDraftEpoch >= epoch + 2);
   }
   assert.equal(page.document, document);
   assert.equal(page.surfaceId, 'same-surface');
@@ -124,7 +130,8 @@ test('one permanent native surface exists outside conditional responsive/fullscr
   assert.doesNotMatch(stage, /\.setXComponentSurface(?:Rect|Size)\(/);
   const build = source.slice(source.indexOf('  build() {'));
   assert.match(build, /this\.workspaceSettings\(\)[\s\S]*this\.videoStage\(\)[\s\S]*Row\(/);
-  assert.match(build, /exitFullscreenWithKey\(event\.keyCode\)/);
+  assert.match(build, /\.onKeyEventDispatch\(this\.keyboardDispatchHandler\(\)\)/);
+  assert.match(source, /exitFullscreenWithKey\(event\.keyCode\)/);
   assert.doesNotMatch(build, /\.release\(|\.open\(|\.load\(|\.seek\(/);
 });
 
@@ -140,13 +147,13 @@ test('568-vp landscape phones retain a real video surface and a 320-vp settings 
   }
 });
 
-test('sub-568 landscape uses a compact control row without starving settings or video', () => {
+test('sub-568 landscape prioritizes reachable tools while retaining a small preview and fullscreen control', () => {
   for (const [width, height] of [[480, 320], [540, 320], [567, 320], [567, 360]]) {
     const layout = videoWorkspaceLayout(width, height, true, false);
     assert.equal(layout.sideBySide, false);
     assert.equal(layout.controlsHeight, 52);
-    assert.ok(layout.video.height - layout.controlsHeight >= 104);
-    assert.ok(layout.settings.height >= 80);
+    assert.ok(layout.video.height - layout.controlsHeight >= 32);
+    assert.ok(layout.settings.height >= 156);
     assert.ok(layout.settings.width >= 320);
   }
 });
@@ -189,7 +196,7 @@ test('resizing is locally continuous within each split mode; discrete mode bound
     const layout = videoWorkspaceLayout(w, h, true, false);
     inBounds(layout.video, w, h); inBounds(layout.settings, w, h);
     assert.ok(separated(layout.video, layout.settings));
-    assert.ok(layout.video.height - layout.controlsHeight >= 104);
+    assert.ok(layout.video.height - layout.controlsHeight >= 32);
     assert.ok(layout.settings.height >= 80 && layout.settings.width >= 320);
   }
 });

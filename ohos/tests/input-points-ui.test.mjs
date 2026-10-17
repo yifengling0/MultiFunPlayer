@@ -6,6 +6,7 @@ import { registerHooks, stripTypeScriptTypes } from 'node:module';
 registerHooks({ resolve(specifier, context, next) {
   return next(specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier) ? specifier + '.ts' : specifier, context);
 } });
+const { SettingsDraftOwner } = await import('../entry/src/main/ets/presentation/SettingsDraftOwner.ts');
 const model = await import('../entry/src/main/ets/input/ShortcutConfiguration.ts');
 const motion = await import('../entry/src/main/ets/core/MotionConfiguration.ts');
 const preview = await import('../entry/src/main/ets/core/CurvePreview.ts');
@@ -26,10 +27,12 @@ function controller(text, name, dependencies) {
   const start = text.indexOf('export struct ' + name);
   const build = text.indexOf('  build()', start), builder = text.indexOf('  @Builder', start);
   const end = builder >= 0 && builder < build ? builder : build;
-  const code = text.slice(start, end).replace('export struct', 'class').replace(/@(Prop|State|Watch)(\([^)]*\))?\s*/g, '') + '\n}';
+  const code = text.slice(start, end).replace('export struct', 'class').replace(/@(Prop|State|Watch|StorageLink)(\([^)]*\))?\s*/g, '') + '\n}';
   return new Function(...Object.keys(dependencies), stripTypeScriptTypes(code) + '\nreturn ' + name + ';')(...Object.values(dependencies));
 }
-const curve = helpers(curveSource, ['SettingsNumberLogic', 'SettingsOption', 'CurveEditRules', 'CurveGeometryOwners'], motion);
+const curveHelpers = helpers(curveSource, ['SettingsNumberLogic', 'SettingsOption', 'CurveEditRules', 'CurveGeometryOwners'], motion);
+const { UiStyle } = await import('../entry/src/main/ets/presentation/UiStyle.ts');
+const curve = { ...curveHelpers, SettingsDraftOwner, UiStyle };
 const { InputSettingsEdits: E } = helpers(inputSource, ['InputSettingsEdits'], { ...model, ...motion });
 const Panel = controller(inputSource, 'InputSettingsPanel', { ...model, ...motion, ...curve, InputSettingsEdits: E });
 const canvas = new Proxy({}, { get(target, key) { return target[key] ?? (() => {}); }, set(target, key, value) { target[key] = value; return true; } });
@@ -263,8 +266,8 @@ test('actual ArkUI uses the shared bounded editor, independent interpolation, re
   assert.match(inputSource, /minimumX: this.spec\(action.id\).pointsKind === 'smartLimit' \? 0 : null/);
   assert.match(inputSource, /maximumX: this.spec\(action.id\).pointsKind === 'smartLimit' \? 100 : null/);
   assert.match(inputSource, /interpolationMode: this.curveInterpolation\(action\), isLooping: false/);
-  assert.match(inputSource, /this.pointEditor\(action, this.mappingMaximumPoints\(mapping.id, index\), this.mappingPointsHandler\(mapping.id, index\)\)/);
-  assert.match(inputSource, /this.pointEditor\(this.touchAction, KeyboardShortcutConfiguration.MAX_POINTS_PER_ACTION, this.touchPointsHandler\(\)\)/);
+  assert.match(inputSource, /this.pointEditor\(action, this.mappingMaximumPoints\(mapping.id, index\), this.mappingPointsHandler\(mapping.id, index\),\s*'mapping:' \+ mapping.id \+ ':action:' \+ index \+ ':' \+ action.id \+ ':points', this.mappingDraftSource\(mapping\), this.draftScope \+ ':mappings'\)/);
+  assert.match(inputSource, /this.pointEditor\(this.touchAction, KeyboardShortcutConfiguration.MAX_POINTS_PER_ACTION, this.touchPointsHandler\(\),\s*'touch:' \+ this.touchActionId \+ ':points', this.touchDraftSource\(\), this.draftScope \+ ':touch'\)/);
   assert.equal((inputSource.match(/label: 'Interpolation type · 插值'/g) ?? []).length, 2);
   assert.match(inputSource, /onSelect: this.bindEditChoice\(\(value: string\) => \{ this.actionText\(mapping.id, index, 'text', value\)/);
   assert.match(inputSource, /options: this.textOptions\(this.touchAction\), editable: !this.readOnly, onSelect: this.touchChoiceHandler\('text'\)/);

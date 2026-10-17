@@ -5,6 +5,7 @@ import { registerHooks, stripTypeScriptTypes } from 'node:module';
 registerHooks({ resolve(specifier, context, next) {
   return next(specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier) ? specifier + '.ts' : specifier, context);
 } });
+const { SettingsDraftOwner } = await import('../entry/src/main/ets/presentation/SettingsDraftOwner.ts');
 const keyboard = await import('../entry/src/main/ets/input/ShortcutConfiguration.ts');
 const general = await import('../entry/src/main/ets/settings/GeneralConfiguration.ts');
 const { KeyboardShortcutConfiguration, KeyboardShortcutMapping, ShortcutAction, shortcutActionCatalog,
@@ -19,14 +20,14 @@ function component(name, dependencies) {
   const text = source(name); const start = text.indexOf('export struct ' + name);
   const build = text.indexOf('  build()', start); const builder = text.indexOf('  @Builder', start);
   const end = builder < 0 ? build : Math.min(builder, build);
-  const code = text.slice(start, end).replace('export struct', 'class').replace(/@(Prop|State|Watch)(\([^)]*\))?\s*/g, '') + '\n}';
+  const code = text.slice(start, end).replace('export struct', 'class').replace(/@(Prop|State|Watch|StorageLink)(\([^)]*\))?\s*/g, '') + '\n}';
   return new Function(...Object.keys(dependencies), stripTypeScriptTypes(code) + '\nreturn ' + name + ';')(...Object.values(dependencies));
 }
 class SettingsOption { constructor(value, label = value) { this.value = value; this.label = label; } }
 const { InputSettingsEdits: E } = helpers('InputSettingsPanel', ['InputSettingsEdits'], keyboard);
 const { GeneralSettingsEdits: G } = helpers('GeneralSettingsPanel', ['GeneralSettingsEdits'], general);
-const Panel = component('InputSettingsPanel', { ...keyboard, InputSettingsEdits: E, SettingsOption });
-const GeneralPanel = component('GeneralSettingsPanel', { ...general, GeneralSettingsEdits: G, SettingsOption });
+const Panel = component('InputSettingsPanel', { SettingsDraftOwner, ...keyboard, InputSettingsEdits: E, SettingsOption });
+const GeneralPanel = component('GeneralSettingsPanel', { SettingsDraftOwner, ...general, GeneralSettingsEdits: G, SettingsOption });
 function configuration() {
   const value = new KeyboardShortcutConfiguration();
   const mapping = new KeyboardShortcutMapping('first', 'First');
@@ -420,12 +421,12 @@ test('all 40 rendered Input settings callbacks are bound at render time; Stop re
   assert.equal(callbacks.length, 40);
   assert.equal(callbacks.filter(callback => callback === 'onChange })').length, 1);
   const pointBuilder = input.slice(0, input.indexOf('  @Builder', input.indexOf('private pointEditor')));
-  assert.match(pointBuilder, /private pointEditor\(action: ShortcutAction, maximumPoints: number, onChange: \(points: MotionCurvePoint\[\]\) => void\)/);
+  assert.match(pointBuilder, /private pointEditor\(action: ShortcutAction, maximumPoints: number, onChange: \(points: MotionCurvePoint\[\]\) => void, draftKey: string, draftSource: string, draftScope: string\)/);
   assert.match(pointBuilder, /CurvePointEditor\([\s\S]*onChange: onChange \}\)/);
   const pointCalls = [...input.matchAll(/this\.pointEditor\(([^\n]+)/g)].map(match => match[1]);
   assert.deepEqual(pointCalls, [
-    'action, this.mappingMaximumPoints(mapping.id, index), this.mappingPointsHandler(mapping.id, index))',
-    'this.touchAction, KeyboardShortcutConfiguration.MAX_POINTS_PER_ACTION, this.touchPointsHandler())'
+    'action, this.mappingMaximumPoints(mapping.id, index), this.mappingPointsHandler(mapping.id, index),',
+    'this.touchAction, KeyboardShortcutConfiguration.MAX_POINTS_PER_ACTION, this.touchPointsHandler(),'
   ]);
   for (const callback of callbacks.filter(callback => callback !== 'onChange })')) {
     assert.match(callback, /^this\.(?:bindEdit|touchNumberHandler|touchBooleanHandler|touchChoiceHandler|touchTextHandler)/);

@@ -5,6 +5,7 @@ import { registerHooks, stripTypeScriptTypes } from 'node:module';
 registerHooks({ resolve(specifier, context, next) {
   return next(specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier) ? specifier + '.ts' : specifier, context);
 } });
+const { SettingsDraftOwner } = await import('../entry/src/main/ets/presentation/SettingsDraftOwner.ts');
 const { UiStyle } = await import('../entry/src/main/ets/presentation/UiStyle.ts');
 const { GeneralConfiguration } = await import('../entry/src/main/ets/settings/GeneralConfiguration.ts');
 const base = new URL('../entry/src/main/ets/components/', import.meta.url);
@@ -21,13 +22,14 @@ function contrast(first, second) {
   return (values[0] + 0.05) / (values[1] + 0.05);
 }
 
-test('readable is the shared default and compact never reduces the 52vp control floor', () => {
-  assert.equal(UiStyle.body(), 18); assert.equal(UiStyle.body(false), 18); assert.equal(UiStyle.body(true), 16);
-  assert.equal(UiStyle.control, 52); assert.equal(UiStyle.heading, 22); assert.equal(UiStyle.helper, 14);
+test('readable is the shared default and compact never reduces the 48vp control floor', () => {
+  assert.equal(UiStyle.body(), 16); assert.equal(UiStyle.body(false), 16); assert.equal(UiStyle.body(true), 15);
+  assert.equal(UiStyle.control, 48); assert.equal(UiStyle.heading, 22); assert.equal(UiStyle.helper, 14);
   assert.ok(UiStyle.padding(false) > UiStyle.padding(true)); assert.ok(UiStyle.gap(false) > UiStyle.gap(true));
   for (const file of files) {
     const text = readFileSync(new URL(file, base), 'utf8');
-    assert.match(text, /@Prop compact: boolean = false/, file);
+    if (file === 'OwnedConfirmationDialog.ets') { assert.match(text, /UiStyle\.body\(\)/); assert.doesNotMatch(text, /@Prop compact/); }
+    else { assert.match(text, /@Prop compact: boolean = false/, file); }
     assert.doesNotMatch(text, /deviceType|compact\s*\?\s*(?:32|34|36|40|44|48)\s*:/, file);
     assert.doesNotMatch(text, /\.fontSize\((?:[0-9]|1[0-3])\)|\.font\(\{ size: (?:[0-9]|1[0-3])\s*\}/, file);
     assert.doesNotMatch(text, /\.height\((?:3\d|4\d|5[01])\)/, file);
@@ -42,7 +44,7 @@ test('palette supplies readable text, semantic actions and restrained light surf
   }
 });
 
-test('every command keeps a 52vp minimum, bounded width and native pressed feedback', () => {
+test('every command keeps a 48vp minimum and Stop52, bounded width and native pressed feedback', () => {
   let count = 0;
   for (const file of files) {
     const text = readFileSync(new URL(file, base), 'utf8');
@@ -51,9 +53,14 @@ test('every command keeps a 52vp minimum, bounded width and native pressed feedb
       assert.ok(end > match.index, file);
       const button = text.slice(match.index, end);
       assert.doesNotMatch(button.slice(7), /(?<![A-Za-z])Button\(/, file);
-      assert.match(button, /minHeight: UiStyle\.control, maxWidth: '100%'/, file);
+      if (file === 'OwnedConfirmationDialog.ets') {
+        assert.match(button, /\.height\((?:UiStyle.control|52)\)/);
+        assert.match(button, /\.layoutWeight\(1\)|\.width\('100%'\)/);
+        assert.match(text, /ConfirmationDialogGeometry.width\(this.viewportWidth\)/);
+      } else { assert.match(button, /minHeight: (?:UiStyle\.control|52), maxWidth: '100%'/, file); }
       assert.match(button, /stateEffect\(true\)/, file);
-      assert.match(button, /labelStyle\(\{ maxLines: 10, overflow: TextOverflow\.Clip \}\)/, file);
+      if (file === 'OwnedConfirmationDialog.ets') { assert.match(button, /fontSize\(UiStyle.body\(\)\)/); }
+      else { assert.match(button, /labelStyle\(\{ maxLines: 10, overflow: TextOverflow\.Clip \}\)/, file); }
       count++;
     }
   }
@@ -67,10 +74,17 @@ test('shared fields stack labels and disclose long select values at 240vp', () =
   assert.match(shared, /Text\(this\.labelText\(\)\)[^\n]+wordBreak\(WordBreak\.BREAK_ALL\)/);
   assert.match(shared, /optionHeight\(UiStyle\.control\)/);
   assert.match(text, /let best: number = 28/);
-  assert.match(shared, /Toggle\([^\n]+\.height\(UiStyle\.control\)/);
-  assert.match(shared, /Text\(this\.label\)\.fontSize\(UiStyle\.heading\)/);
+  assert.match(shared, /Toggle\([^\n]+\.width\(48\)\.height\(28\)/);
+  assert.match(shared, /responseRegion\(\{ x: -2, y: -12, width: UiStyle.control, height: UiStyle.control \}\)/);
+  assert.match(shared, /constraintSize\(\{ minHeight: UiStyle.control \}\)/);
+  assert.match(shared, /Text\(this\.label\)\.fontSize\(this.topLevel \? UiStyle.heading : UiStyle.section\)/);
+  assert.equal(UiStyle.section, 18);
+  assert.match(shared, /if \(this.detailExpanded\) \{\s*Text\(this.labelText\(\)\)/);
+  assert.match(shared, /accessibilityText\(this.label \+ '：' \+ this.labelText\(\)\)/);
+  assert.match(shared, /onClick\(this.detailHandler\(\)\)/);
   assert.match(shared, /onSubmit\(KeyboardInputSession\.submitHandler/);
-  assert.match(shared, /onBlur\(KeyboardInputSession\.blurHandler/);
+  assert.match(shared, /onBlur\(KeyboardInputSession\.focusHandler\(this.keyboardEditorId, false\)\)/);
+  assert.doesNotMatch(shared, /onBlur\(KeyboardInputSession\.blurHandler/);
 });
 
 test('playlist names wrap outside bounded action labels and lists retain parent-scroll handoff', () => {
@@ -89,8 +103,8 @@ const helperSource = generalSource.split('@Component')[0].replace(/^import .*;\n
 const Edits = new Function('GeneralConfiguration', stripTypeScriptTypes(helperSource) + '\nreturn GeneralSettingsEdits;')(GeneralConfiguration);
 const start = generalSource.indexOf('export struct GeneralSettingsPanel');
 const controller = generalSource.slice(start, generalSource.indexOf('  build()', start))
-  .replace('export struct', 'class').replace(/@(Prop|State|Watch)(\([^)]*\))?\s*/g, '') + '\n}';
-const Panel = new Function('GeneralConfiguration', 'GeneralSettingsEdits', stripTypeScriptTypes(controller) + '\nreturn GeneralSettingsPanel;')(GeneralConfiguration, Edits);
+  .replace('export struct', 'class').replace(/@(Prop|State|Watch|StorageLink)(\([^)]*\))?\s*/g, '') + '\n}';
+const Panel = new Function('SettingsDraftOwner', 'GeneralConfiguration', 'GeneralSettingsEdits', stripTypeScriptTypes(controller) + '\nreturn GeneralSettingsPanel;')(SettingsDraftOwner, GeneralConfiguration, Edits);
 
 test('density edits are validated detached snapshots; mounting never mutates a preference', () => {
   const initial = new GeneralConfiguration();

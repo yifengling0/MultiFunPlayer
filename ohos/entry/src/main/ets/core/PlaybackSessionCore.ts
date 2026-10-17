@@ -1,3 +1,6 @@
+import { ContinuousInputConfiguration, ContinuousInputAction, validateContinuousAction } from '../input/ContinuousInputConfiguration';
+import { ContinuousGestureData } from '../input/ContinuousDriveEngine';
+import { applyContinuousMotion, continuousValue } from '../input/ContinuousInputActions';
 import { RemoteMediaClock } from './RemoteMediaClock';
 import { DeoVrControlEvidence } from '../media/deovr/DeoVrControlEvidence';
 import type { DeoVrControlRequest } from '../media/deovr/DeoVrControlEvidence';
@@ -404,6 +407,38 @@ export class PlaybackSessionCore {
     // output must not invalidate another target's source frame or seek intent.
     if (this.onConfigurationChanged !== null) { this.onConfigurationChanged(); }
   }
+  continuousInputConfiguration(): ContinuousInputConfiguration { return ContinuousInputConfiguration.clone(this.configuration.continuousInput); }
+  changeContinuousInputConfiguration(value: ContinuousInputConfiguration): void {
+    this.assertConfigurationWritable(); const next = ContinuousInputConfiguration.clone(value);
+    if (JSON.stringify(next) === JSON.stringify(this.configuration.continuousInput)) { return; }
+    this.configuration.continuousInput = next;
+    // Input preferences do not imply reception, media state or output authority.
+    if (this.onConfigurationChanged !== null) { this.onConfigurationChanged(); }
+  }
+  /** Current local Drive data only; input reception and physical Arm remain host-owned.
+   * Consumer order is the same normal setter path as the original registrations. */
+  applyContinuousAxisAction(action: ContinuousInputAction, data: ContinuousGestureData): void {
+    this.assertConfigurationWritable();
+    if (!validateContinuousAction(action) || !this.foreground || this.failure.length > 0 || this.hasPendingProfileChanges() ||
+      !this.registry.axes.some(axis => axis.name === action.targetAxis)) { throw new Error('Continuous target is unavailable.'); }
+    if (action.id === 'Axis::Value::Drive') {
+      if (continuousValue(0, data) === null) { throw new Error('Invalid continuous value.'); }
+      this.setContinuousAxisTransition(action.targetAxis, data.valueOrDelta, data.deltaTime, !data.isAbsolute); return;
+    }
+    if (action.id === 'Axis::MotionProviderBlend::Drive') {
+      const settings = this.getAxisConfiguration(action.targetAxis);
+      const value = continuousValue(settings.motionProviderBlend, data);
+      if (value === null) { throw new Error('Invalid continuous blend.'); }
+      settings.motionProviderBlend = Math.max(0, Math.min(1, value));
+      this.changeAxisConfiguration(action.targetAxis, settings); return;
+    }
+    if (action.id.startsWith('MotionProvider::')) {
+      const settings = applyContinuousMotion(this.getMotionConfiguration(action.targetAxis, action.provider), action, data);
+      if (settings === null) { throw new Error('Invalid continuous Motion configuration.'); }
+      this.changeMotionConfiguration(action.targetAxis, settings); return;
+    }
+    throw new Error('Continuous action is not an axis consumer.');
+  }
   keyboardConfiguration(): KeyboardShortcutConfiguration { return KeyboardShortcutConfiguration.clone(this.configuration.keyboard); }
   generalConfiguration(): GeneralConfiguration { return GeneralConfiguration.clone(this.configuration.general); }
   changeKeyboardConfiguration(value: KeyboardShortcutConfiguration): void {
@@ -502,11 +537,17 @@ export class PlaybackSessionCore {
   /** Disconnect is not permission to resume the same paused transition later. */
   revokeManualPreview(): void { if (this.manualPreviewActive) { this.stop(); } }
   setAxisValue(axisName: string, value: number, durationSeconds: number, offset: boolean = false): void {
+    // Numeric button/editor arguments are bounded by their original UI contract.
+    if (!Number.isFinite(value) || value < (offset ? -1 : 0) || value > 1) { throw new Error('Invalid manual editor value.'); }
+    this.setContinuousAxisTransition(axisName, value, durationSeconds, offset);
+  }
+  private setContinuousAxisTransition(axisName: string, value: number, durationSeconds: number, offset: boolean): void {
     this.assertConfigurationWritable();
     if (!this.foreground || !this.connected || this.failure.length > 0 || this.hasPendingProfileChanges() ||
       !this.registry.axes.some(axis => axis.name === axisName)) { throw new Error('Manual target is unavailable, disabled or not in a healthy foreground session.'); }
-    if (!Number.isFinite(value) || value < (offset ? -1 : 0) || value > 1 ||
-      !Number.isFinite(durationSeconds) || durationSeconds < 0) { throw new Error('Invalid manual transition value or duration.'); }
+    // Original aggregated RawInput deltas may exceed one; the transition owns
+    // clamping/append semantics. Continuous Drive must not inherit button bounds.
+    if (!Number.isFinite(value) || !Number.isFinite(durationSeconds) || durationSeconds < 0) { throw new Error('Invalid manual transition value or duration.'); }
     this.cancelScriptReload(); this.cancelSourceSeek(); this.dispatchControlRevision++;
     this.pipeline.setTransition(axisName, value, durationSeconds, offset); this.manualCommandCount++;
   }

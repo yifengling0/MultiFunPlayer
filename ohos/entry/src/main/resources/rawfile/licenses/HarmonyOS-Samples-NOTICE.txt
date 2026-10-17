@@ -1,0 +1,7 @@
+HarmonyOS Samples
+Referenced dialog/component example headers: Copyright (c) 2024 Huawei Device Co., Ltd.
+Source: https://gitcode.com/HarmonyOS_Samples/sample_in_harmonyos
+Reference revision: 7aa95cac4eca15e39fc6638cdf1de7db6fb70ad6
+Licensed under Apache License 2.0; full license accompanies this notice.
+MFP uses the documented component/dialog patterns with its own state, input ownership, and safety lifecycle. No sample demo actions or HDS navigation implementation are imported.
+The upstream repository contains no separate NOTICE file. This attribution is supplied by the MFP port.

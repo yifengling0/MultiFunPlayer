@@ -1,3 +1,4 @@
+import { SettingsDraftOwner } from '../presentation/SettingsDraftOwner';
 import { UiStyle } from '../presentation/UiStyle';
 import { MotionProviderConfiguration, MotionConfigurations, MotionCurvePoint } from '../core/MotionConfiguration';
 import { MotionControlValues, MotionControlField, MotionControlResult, createMotionControlValues, transferMotionControlValues, userEditMotionControlValue } from '../core/MotionControlValues';
@@ -61,6 +62,10 @@ export class MotionSettingsEdits {
 
 @Component
 export struct MotionSettingsPanel {
+  // Reference ownership is page-local; @Prop would deep-copy and split the draft store.
+  draftOwner: SettingsDraftOwner = new SettingsDraftOwner();
+  @Prop @Watch('draftContextChanged') draftScope: string = '';
+  @Prop @Watch('draftContextChanged') draftEpoch: number = 0;
   @Prop @Watch('configurationChanged') configuration: MotionProviderConfiguration = new MotionProviderConfiguration('Random');
   @Prop scriptResources: ManagedMotionScriptResource[] = [];
   @Prop compact: boolean = false;
@@ -72,13 +77,32 @@ export struct MotionSettingsPanel {
   @State error: string = '';
   @State renderRevision: number = 0;
   @State controlValues: MotionControlValues | null = null;
+  private controlDraftToken: number = 0;
+  private controlDraftSource: string = '';
   private active: boolean = true;
   private editEpoch: number = 0;
   private observedBindingKey: string = '';
   private observedProvider: string = '';
   private observedSnapshot: string = '';
   aboutToAppear(): void { this.active = true; this.resetControls(); }
-  aboutToDisappear(): void { this.active = false; this.retireEdits(); }
+  aboutToDisappear(): void { this.active = false; this.draftOwner.release(this.controlDraftToken); this.retireEdits(); }
+  private draftContextChanged(): void {
+    this.retireEdits();
+    if (this.active) { this.restoreControlDraft(this.controlValues === null ? transferMotionControlValues(createMotionControlValues(), this.configuration).state : this.controlValues); }
+  }
+  private restoreControlDraft(initial: MotionControlValues): void {
+    this.draftOwner.release(this.controlDraftToken);
+    this.controlDraftSource = this.draftScope + ':' + JSON.stringify(this.configuration);
+    const lease = this.draftOwner.open(this.draftScope, '$controlValues', this.controlDraftSource, JSON.stringify(initial));
+    this.controlDraftToken = lease.token;
+    try { this.controlValues = JSON.parse(lease.value) as MotionControlValues; }
+    catch { this.controlValues = initial; }
+  }
+  private saveControlDraft(): void {
+    if (this.controlValues !== null && !this.draftOwner.write(this.controlDraftToken, this.controlDraftSource, JSON.stringify(this.controlValues))) {
+      this.error = '控件草稿已失效，请重新编辑。';
+    }
+  }
   private retireEdits(): void { this.editEpoch++; this.renderRevision++; }
   private resetControls(): void {
     this.retireEdits(); this.error = '';
@@ -86,7 +110,7 @@ export struct MotionSettingsPanel {
     this.observedSnapshot = JSON.stringify(this.configuration);
     // Portable initial order is minimum -> maximum -> octaves. WPF first-binding
     // and retained-popup scheduling remain unproved; attachment never writes back.
-    this.controlValues = transferMotionControlValues(createMotionControlValues(), this.configuration).state;
+    this.restoreControlDraft(transferMotionControlValues(createMotionControlValues(), this.configuration).state);
   }
   private bindingChanged(): void { if (this.active) { this.resetControls(); } }
   private availabilityChanged(): void { this.retireEdits(); }
@@ -99,10 +123,11 @@ export struct MotionSettingsPanel {
     this.observedSnapshot = snapshot; this.retireEdits(); this.error = '';
     // Retain coercion history across source notifications. The pure transfer
     // changes only differing source fields; identical render snapshots are inert.
-    this.controlValues = transferMotionControlValues(this.controlValues, this.configuration).state;
+    this.restoreControlDraft(transferMotionControlValues(this.controlValues, this.configuration).state);
   }
   private ownsEdit(key: string, snapshot: string, epoch: number): boolean {
-    return this.active && !this.readOnly && key === this.bindingKey && epoch === this.editEpoch &&
+    return this.active && !this.readOnly && this.draftOwner.isCurrent(this.controlDraftToken, this.controlDraftSource) &&
+      this.controlDraftSource === this.draftScope + ':' + JSON.stringify(this.configuration) && key === this.bindingKey && epoch === this.editEpoch &&
       this.observedBindingKey === key && this.observedProvider === this.configuration.id &&
       this.observedSnapshot === snapshot && snapshot === JSON.stringify(this.configuration);
   }
@@ -132,7 +157,7 @@ export struct MotionSettingsPanel {
     // snapshot; otherwise its watched host echo will transfer later. A rejected
     // edit leaves the old effective state intact. Never overwrite newer context.
     if (this.active && !this.readOnly && this.bindingKey === key && this.configuration.id === provider &&
-      this.editEpoch === expectedEpoch && JSON.stringify(this.configuration) === committedSnapshot) { this.controlValues = result.state; }
+      this.editEpoch === expectedEpoch && JSON.stringify(this.configuration) === committedSnapshot) { this.controlValues = result.state; this.saveControlDraft(); }
     return true;
   }
   private choiceHandler(field: string): (value: string) => void {
@@ -204,7 +229,7 @@ export struct MotionSettingsPanel {
     // A source/context change remounts numeric drafts even if its effective value
     // is unchanged. An old focus/blur/submit can never retarget a newer context.
     ForEach([field + ':' + this.renderRevision], (_identity: string) => {
-      SettingsNumberField({ label: label, value: value, unit: unit, compact: this.compact, editable: !this.readOnly,
+      SettingsNumberField({ draftOwner: this.draftOwner, draftScope: this.draftScope, draftEpoch: this.draftEpoch, draftKey: field, label: label, value: value, unit: unit, compact: this.compact, editable: !this.readOnly,
         integer: field === 'octaves', commitEqualEdits: field === 'minimum' || field === 'maximum' || field === 'octaves',
         onCommit: this.numberHandler(field) })
     }, (identity: string) => identity)
@@ -213,7 +238,7 @@ export struct MotionSettingsPanel {
     // The containing workspace owns vertical scrolling; this panel sizes to content.
     Column() {
       Column() {
-        SettingsSectionTitle({ label: this.configuration.id + ' · 生成器参数' })
+        SettingsSectionTitle({ label: this.configuration.id + ' · 生成器参数', topLevel: true })
         if (this.configuration.id === 'Pattern') {
           SettingsChoiceField({ label: '波形', selected: this.configuration.pattern ?? '', options: this.patterns(), compact: this.compact,
             onSelect: this.choiceHandler('pattern') })
@@ -241,9 +266,13 @@ export struct MotionSettingsPanel {
           SettingsSwitchField({ label: '循环', value: this.configuration.isLooping ?? false, compact: this.compact,
             onChange: this.flagHandler('isLooping') })
           if (this.onReset !== undefined) {
-            Button('重置曲线播放 · RESET').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-              .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact))
-              .fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft).borderRadius(UiStyle.radius).onClick(this.resetHandler())
+            Button('重置曲线播放 · RESET')
+              .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+              .borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+              .stateStyles({
+                focused: { .outline({ width: 2, color: UiStyle.accent }) },
+                disabled: { .opacity(UiStyle.disabledOpacity) }
+              }).onClick(this.resetHandler())
           }
           SettingsSwitchField({ label: '结束时同步', value: this.configuration.syncOnEnd ?? false, compact: this.compact,
             onChange: this.flagHandler('syncOnEnd') })
@@ -262,7 +291,7 @@ export struct MotionSettingsPanel {
         }
         if (this.configuration.id === 'Custom Curve') {
           SettingsSectionTitle({ label: '自定义控制点 · CURVE' })
-          CurvePointEditor({ points: this.configuration.points ?? [], compact: this.compact, bindingKey: this.bindingKey, onGeometry: this.onGeometry,
+          CurvePointEditor({ draftOwner: this.draftOwner, draftScope: this.draftScope, draftKey: 'curve', draftEpoch: this.draftEpoch, points: this.configuration.points ?? [], compact: this.compact, bindingKey: this.bindingKey, onGeometry: this.onGeometry,
             viewMaximumX: this.optionalNumber('durationSeconds'), maximumPoints: MotionConfigurations.MAX_POINTS,
             interpolationMode: this.configuration.interpolationMode ?? 'linear', isLooping: this.configuration.isLooping ?? false,
             xLabel: '时间（秒）', yLabel: '位置（0–1）',

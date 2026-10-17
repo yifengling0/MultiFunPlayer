@@ -1,3 +1,44 @@
+# 0.28 checkpoint: local continuous input, remaining parity
+
+Nine original continuous registration sites are now reachable through a bounded local input editor/surface and actual native callback/controller path. All remain partial: total163/188=110full-portable+53partial,25unwired. The separate9-template continuous catalog does not inflate the existing182button IDs. See ACTION_COVERAGE_028.md.
+
+1. User-device validation remains the highest practical next step: approved layout/material rendering, touch/mouse/axis delivery, wheel calibration, native focus/cancellation and experimental CH output. No mock result is hardware acceptance.
+2. Remaining original registrations:17 external-source/lifecycle,7 output discovery/ownership/protocol,1diagnostic. Common real output protocols/inputs should take priority over adding many rarely used media adapters, once authorized scope is chosen.
+3. Continuous parity remains local and foreground: Windows global RawInput/XInput, raw mouse hardware quirks, gamepad normalization and TCode IN are absent. Serial target Range Drive is not wired. Physical input units/phase delivery and WPF dispatcher/binding semantics are not proven.
+4. Existing explicit output permissions, bounded values, independent preview/Arm and fail-closed provenance remain safety adaptations. A stopped Value followed by a new preview cannot authorize an old held epoch; explicitly rebuild/start the preview when needed. Genuine unknown history also needs the existing explicit runtime rebuild.
+5. Preserve remote user translations and current0.24draft ownership/0.25layout/0.27materials. File specialist review remains blocked; Git publication remains paused until effective fresh confirmation.
+
+## Historical priorities
+
+# 0.26 prerequisite and continuous-input next scope
+
+- Existing-keyboard window/CANCEL lifecycle is corrected without changing0.25 visuals. Physical event delivery still needs user-device validation; see KEYBOARD_FOCUS_026_CONTRACT.md.
+- Nine original Drive registration templates remain unwired. Five Drive modes are event-driven; separate Axis Offset has two modes and100ms repetition. Dedicated Range Middle/Size formulas and original C# execution evidence are needed before implementation. Real touch/local pointer and wheel-vp sources are feasible; keyboard virtual axes must be an explicit adaptation. ArkUI gamepad axisMap ranges are unspecified, so generic gamepad driving remains excluded until supported normalization is proven.
+- Coverage remains182IDs/154of188 originalsites=110full-portable+44partial,34unwired. The previous list and hardware/visual/CH-IN/File-review boundaries remain.
+
+## Historical priorities
+
+# 0.25 checkpoint: approved design implemented, device acceptance still open
+
+The approved light/teal player+inspector design now replaces the mixed long workspace. All existing controls remain under four tools, shared panels use consistent visual hierarchy, and0.24 draft ownership remains. Source geometry/controller/SDK evidence cannot establish actual ArkUI font/IME/touch or physical connectivity.
+
+1. User-device visual feedback and CH read-only/experimental-write diagnostics remain the immediate priority. Inspect actual safe areas, keyboard, long labels, Select menus and fixed Stop before expanding protocols.
+2. Original registration coverage is unchanged:154/188 (110full-portable,44partial),34unwired.17 source/lifecycle,9 continuousDrive,7 output/scheduler and1debug sites remain; serial is a reachable experimental backend, not completion of its original shortcut/input registration.
+3. The user-approved concept is implemented but not evidence of native rendering. No denied rendering route was retried. File recording and its blocked review remain untouched; Git publication requires effective authorization via the publisher.
+
+## Historical record
+
+# 0.24 后续优先项
+
+1. **统一视觉方案与真机可达性**：用户仍认为布局/按钮不好看。先确认完整播放器+检查器提案，再实现一致的信息层级；0.24草稿修复不算美化完成。具体HMOS代码工坊链接和设备截图仍待提供。保留52vp全局Stop、单Surface和受控草稿。
+2. **实际设备编辑验收**：本轮已修通用owner、明确确认、失焦不提交及过期回调；仍需真机IME合成、光标/焦点、旋转、字体缩放、下拉和拖点验证。控制器/官方SDK不能替代触摸和渲染证据。
+3. **用户CH340设备验证**：先只读报告，再用户明确安全空载测试。CH仍窄ROM30实验仅写，无IN/按钮轴输入/ACK；其他芯片/CDC/原完整串口参数与快捷映射依旧缺失。
+4. **主要功能余项**：连续Drive输入、Buttplug/其他常用输出、剩余媒体源与自动连接、44partial/34unwired原注册点保持逐条记录。本轮没有新增原动作覆盖，不把版本数当完成率。
+
+File特殊审查保持阻断，未发布录制；Git只由publisher在有效授权下处理。未连接未指定物理设备，既有冻结包不改。
+
+## Historical record
+
 # 0.23 后续优先项
 
 1. **用户实际CH340设备验证**：只读报告、ROM/VID/PID/接口、USB授权/OTG、实际OUT与拔插/关闭；当前实验只写，没有执行ACK。先收真实报告再决定支持矩阵，不凭mock宣称所有芯片/手机兼容。

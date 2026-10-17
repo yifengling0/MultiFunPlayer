@@ -1,3 +1,5 @@
+import { ConfirmationOwner, ConfirmationRequest, ConfirmationActions } from '../entry/src/main/ets/presentation/ConfirmationOwner.ts';
+import { SettingsDraftOwner } from '../entry/src/main/ets/presentation/SettingsDraftOwner.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -12,7 +14,7 @@ const { PlaybackSessionCore } = await import('../entry/src/main/ets/core/Playbac
 const { DeviceAxisDefinition, DeviceProfiles } = await import('../entry/src/main/ets/core/DeviceProfile.ts');
 const { AxisConfiguration, AxisConfigurationEntry, SyncConfiguration } = await import('../entry/src/main/ets/core/AxisConfiguration.ts');
 const { UiStyle } = await import('../entry/src/main/ets/presentation/UiStyle.ts');
-const { videoWorkspaceLayout } = await import('../entry/src/main/ets/core/VideoLayout.ts');
+const { videoWorkspaceLayout, applicationWorkspaceLayout } = await import('../entry/src/main/ets/core/VideoLayout.ts');
 const { MotionProviderConfiguration } = await import('../entry/src/main/ets/core/MotionConfiguration.ts');
 const {SerialDiagnosticSession,SerialDiagnosticSnapshot}=await import('../entry/src/main/ets/app/SerialDiagnosticSession.ts');
 const {SerialDiscoveryController,SerialDiscoverySnapshot}=await import('../entry/src/main/ets/output/SerialDiscoveryController.ts');
@@ -32,6 +34,10 @@ const {applyOutputEndpointAction,isOutputEndpointAction,outputConnectionOperatio
 const {OutputEndpoint}=await import('../entry/src/main/ets/output/OutputCoordinator.ts');
 const {applyOutputRangeAction}=await import('../entry/src/main/ets/input/ShortcutOutputRangeActions.ts');
 const {applyMotionShortcutAction,motionShortcutProviderId}=await import('../entry/src/main/ets/input/ShortcutMotionActions.ts');
+const {ContinuousInputConfiguration,ContinuousInputAction}=await import('../entry/src/main/ets/input/ContinuousInputConfiguration.ts');
+const {ContinuousDriveEngine,ContinuousInputContext,ContinuousOutputIdentity,ContinuousCapture,ContinuousDispatch,ContinuousGestureData}=await import('../entry/src/main/ets/input/ContinuousDriveEngine.ts');
+const {LocalDrivePointer,LocalSurfaceGeometry,LocalTouchPacket,LocalMousePacket,LocalWheelPacket,LocalPointerResult}=await import('../entry/src/main/ets/input/LocalDrivePointer.ts');
+const {applyContinuousRange}=await import('../entry/src/main/ets/input/ContinuousInputActions.ts');
 const { LocalShortcutEngine, ShortcutDispatch, ShortcutKeyEvent } = await import('../entry/src/main/ets/input/LocalShortcutEngine.ts');
 const { GeneralConfiguration } = await import('../entry/src/main/ets/settings/GeneralConfiguration.ts');
 const { ErrorPresentation, horizontalWorkspace } = await import('../entry/src/main/ets/presentation/GeneralPresentation.ts');
@@ -79,9 +85,12 @@ function setup(options = {}) {
   const scans = [];
   const reads = [];
   const initialDocument = { axes: [], metadata: {}, source: 'initial' };
-  const state = { scriptText: '{}', candidateActions: 0 };
+  const state = { scriptText: '{}', candidateActions: 0, dialogs: [] };
   const inertRemote = { snapshot() { return {status:'disconnected',generation:0,resourceRevision:0,path:null,positionSeconds:null,durationSeconds:null,playing:false,diagnostic:null,closeConfirmed:true}; }, async disconnect() {}, subscribe() { return () => {}; } };
-  const dependencies = {
+  const dependencies = { SettingsDraftOwner, ConfirmationOwner, ConfirmationRequest, ConfirmationActions,
+    ImmersiveMaterialManager: { initialize: async () => ({ state: 'unsupported-runtime' }), status: () => ({ state: 'unsupported-runtime' }), decorateCustomDialog: value => value },
+    ConfirmationDialogGeometry: { width: value => Math.min(480, Math.max(160, value - 32)) }, DialogAlignment: { Center: 0 },
+    CustomDialogController: class { constructor(options) { this.options = options; this.closed = 0; this.opened = 0; state.dialogs.push(this); } open() { this.opened++; if (options.dialogOpenError) throw Error('open failed'); } close() { this.closed++; if (options.dialogCloseError) throw Error('close failed'); } },
     SerialDiagnosticSession: options.serialProbeOwner || SerialDiagnosticSession, SerialDiagnosticSnapshot, NativeDeviceClipboard: class { async writeText(){} },
     SerialDiscoveryController, SerialDiscoverySnapshot, NativeSerialFactory: class { inspectAll(){return [];} async listPortsExplicit(){return [];} },
     SocketDiagnosticSession: options.diagnosticOwner || { claimOwner() { return 1; }, owns(owner) { return owner > 0; }, releaseOwner() {}, cancel() {}, blocked() { return false; }, outputsQuiet() { return true; }, snapshot() { return { requestId: 0, busy: false, phase: 'idle' }; } },
@@ -89,13 +98,15 @@ function setup(options = {}) {
     MediaSourceConfiguration, deoVrScriptMatchHint, parseDeoVrEndpointText, parseMediaSourceShortcut, RemoteMediaSession: options.remoteOwner || { current: kind => (kind === 'heresphere' ? options.hereSphereSource : options.remoteSource) || inertRemote, allClosed: () => [options.remoteSource, options.hereSphereSource].every(source => !source || source.snapshot().closeConfirmed) },
     KeyboardInputSession, KeyboardShortcutConfiguration, ShortcutAction, cloneShortcutAction, shortcutActionCatalog, EMERGENCY_STOP_KEY, isShortcutKey,
     resolveManagedLoopingSelection, parseManagedLoopingScript, applyOutputRangeAction, SettingsOption: class { constructor(value,label){this.value=value;this.label=label;} },
+    ContinuousInputConfiguration,ContinuousInputAction,ContinuousDriveEngine,ContinuousInputContext,ContinuousOutputIdentity,ContinuousCapture,ContinuousDispatch,ContinuousGestureData,LocalDrivePointer,LocalSurfaceGeometry,LocalTouchPacket,LocalMousePacket,LocalWheelPacket,LocalPointerResult,applyContinuousRange,
     applyAxisShortcutAction, applySyncShortcutAction, applyMediaShortcut, shortcutNameEquals, applyShortcutPointAction, customCurvePointArguments, applyMotionShortcutAction, motionShortcutProviderId, LocalShortcutEngine, ShortcutDispatch, ShortcutKeyEvent, GeneralConfiguration, ErrorPresentation, horizontalWorkspace,
-    ResourceSelectionResult, videoWorkspaceLayout, UiStyle, OutputSettingsDraft, InternalSourceLibrary, InternalPlaylist, InternalPlaylistItem, InternalPlaylistEvent, PlaylistPresentation, PlaylistPanelSnapshot, PlaylistPanelAction, PlaylistActionContext, PlaybackConfiguration,
+    ResourceSelectionResult, videoWorkspaceLayout, applicationWorkspaceLayout, UiStyle, OutputSettingsDraft, InternalSourceLibrary, InternalPlaylist, InternalPlaylistItem, InternalPlaylistEvent, PlaylistPresentation, PlaylistPanelSnapshot, PlaylistPanelAction, PlaylistActionContext, PlaybackConfiguration,
     NativeWindowPresentation: { setListener() { return 1; }, releaseOwner() { return Promise.resolve(); }, requestForOwner(_owner, value) { calls.push(['presentationRequest', value]); return Promise.resolve(); } },
     NativeOutputSession: { matchesTarget() { return true; }, canConnect() { return true; }, restore() {}, synchronizeProfile() {}, summaries() { return []; }, selectedId() { return 'manual-network'; }, draftDiagnostic() { return ''; }, draftSnapshot(){return new OutputSettingsDraft();},saveDraft(){return true;}, setForeground(value) { calls.push(['outputForeground',value]); }, current() { return {
       ids() { return []; }, get() { return this; }, isRemoving() { return false; }, stop() {}, disarm() {}, beginSourceSeek() { calls.push(['outputBeginSeek']); return false; }, setForeground() {}, refresh() {}, status() { return null; },
       appliedConfigurationId(){return 0;}, isBusy() { return false; }, message() { return ''; }, async connect() { return false; }, async disconnect() {}
     }; } },
+    KeyType: { Down: 0, Up: 1 }, KeyCode: { KEYCODE_ESCAPE: 2070 },
     deviceInfo: { deviceType: 'phone' },
     Scroller: class { scrollEdge() { calls.push(['scrollTop']); } },
     Edge: { Top: 0 },
@@ -112,6 +123,8 @@ function setup(options = {}) {
       outputConfiguration() { return {}; }
       playbackConfiguration() { return new PlaybackConfiguration(); }
       keyboardConfiguration() { return new KeyboardShortcutConfiguration(); }
+      continuousInputConfiguration() { return new ContinuousInputConfiguration(); }
+      fault() { return ""; }
       generalConfiguration() { return new GeneralConfiguration(); }
       pause() { calls.push(['pause']); }
       load(document) { calls.push(['load', document]); }
@@ -202,11 +215,11 @@ function setup(options = {}) {
       }
     },
     canIUse: () => true,
-    // Index resolves several labels through the translator, including inside
-    // shortcutOutputOptions(), which this harness does execute.
+    // User localization patch: preserve the actual Index translator dependency.
     t: value => value,
-    systemDateTime: { getUptime: () => state.now ?? 0, TimeType: { ACTIVE: 0 } },
-    setTimeout: callback => { queueMicrotask(callback); return 1; },
+    systemDateTime: { getUptime: (_clock, nano) => nano ? (state.now ?? 0) * 1000000 : state.now ?? 0, TimeType: { ACTIVE: 0 } },
+    setTimeout: options.setTimeout || (callback => { queueMicrotask(callback); return 1; }),
+    clearTimeout: options.clearTimeout || (() => {}),
     setInterval: () => 1,
     clearInterval: () => {},
     fileIo: {},
@@ -217,6 +230,7 @@ function setup(options = {}) {
   if(options.actualResources) { dependencies.ResourceLibrary=ActualResourceLibrary; dependencies.FunscriptParser=ActualFunscriptParser; }
   const Index = new Function(...Object.keys(dependencies), js + '\nreturn Index;')(...Object.values(dependencies));
   const page = new Index();
+  KeyboardInputSession.setWindowFocus(KeyboardInputSession.claimWindow(), true);
   page.viewActive = true;
   page.foreground = true;
   page.sync = () => {};

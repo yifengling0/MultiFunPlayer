@@ -1,3 +1,4 @@
+import { SettingsDraftOwner } from '../entry/src/main/ets/presentation/SettingsDraftOwner.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -21,10 +22,11 @@ function helpers(source, names, dependencies) {
   return new Function(...Object.keys(dependencies), stripTypeScriptTypes(body) + '\nreturn {' + names.join(',') + '};')(...Object.values(dependencies));
 }
 function controller(source, name, dependencies) {
+  dependencies = { SettingsDraftOwner, ...dependencies };
   const start = source.indexOf('export struct ' + name);
   const ends = [source.indexOf('  @Builder', start), source.indexOf('  build()', start)].filter(index => index >= 0);
   const body = source.slice(start, Math.min(...ends)).replace('export struct', 'class')
-    .replace(/@(Prop|State|Watch)(\([^)]*\))?\s*/g, '') + '\n}';
+    .replace(/@(Prop|State|Watch|StorageLink)(\([^)]*\))?\s*/g, '') + '\n}';
   return new Function(...Object.keys(dependencies), stripTypeScriptTypes(body) + '\nreturn ' + name + ';')(...Object.values(dependencies));
 }
 const { MotionSettingsEdits } = helpers(source, ['MotionSettingsEdits'], motion);

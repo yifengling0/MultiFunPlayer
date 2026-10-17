@@ -1,4 +1,6 @@
+import { MfpSelectMaterialModifier, MfpToggleMaterialModifier } from '../presentation/immersive/ImmersiveMaterialModifiers';
 import { UiStyle } from '../presentation/UiStyle';
+import { DraftLease, SettingsDraftOwner } from '../presentation/SettingsDraftOwner';
 import { KeyboardInputSession } from '../app/KeyboardInputSession';
 import { MotionCurvePoint, MotionConfigurations } from '../core/MotionConfiguration';
 import { CurvePreview, CurvePreviewResult } from '../core/CurvePreview';
@@ -72,49 +74,137 @@ export class CurveGeometryOwners {
 @Component
 export struct SettingsNumberField {
   private keyboardEditorId: number = KeyboardInputSession.newEditorId();
-  aboutToDisappear(): void { KeyboardInputSession.releaseEditor(this.keyboardEditorId); }
+  draftOwner: SettingsDraftOwner = new SettingsDraftOwner();
+  @Prop @Watch('refreshValue') draftScope: string = '';
+  @Prop @Watch('refreshValue') draftKey: string = '';
+  @Prop @Watch('refreshValue') draftSource: string = '';
+  @Prop @Watch('refreshValue') draftEpoch: number = 0;
+  draftGuard: () => boolean = (): boolean => true;
+  private draftToken: number = 0;
+  private leaseOwner: SettingsDraftOwner | null = null;
+  private leaseScope: string = '';
+  private leaseKey: string = '';
+  private leaseEpoch: number = 0;
+  private draftMounted: boolean = false;
+  aboutToDisappear(): void {
+    this.draftMounted = false;
+    if (this.leaseOwner !== null) { this.leaseOwner.release(this.draftToken); }
+    this.draftToken = 0; KeyboardInputSession.releaseEditor(this.keyboardEditorId);
+  }
   @State fieldWidth: number = 0;
   measureField(width: number): void { if (Number.isFinite(width) && width > 0) { this.fieldWidth = width; } }
-  @Prop label: string = '';
+  @Prop @Watch('refreshValue') label: string = '';
   @Prop @Watch('refreshValue') value: number = 0;
-  @Prop minimum: number | null = null;
-  @Prop maximum: number | null = null;
-  @Prop allowInfinity: boolean = false;
-  @Prop integer: boolean = false;
+  @Prop @Watch('refreshValue') minimum: number | null = null;
+  @Prop @Watch('refreshValue') maximum: number | null = null;
+  @Prop @Watch('refreshValue') allowInfinity: boolean = false;
+  @Prop @Watch('refreshValue') integer: boolean = false;
   @Prop compact: boolean = false;
   @Prop unit: string = '';
-  @Prop editable: boolean = true;
+  @Prop @Watch('refreshValue') editable: boolean = true;
   @Prop commitEqualEdits: boolean = false;
-  private edited: boolean = false;
+  @State private edited: boolean = false;
   onCommit: (value: number) => boolean = (_value: number): boolean => true;
   onEdit: () => void = (): void => {};
   @State draft: string = '';
   @State error: boolean = false;
-  aboutToAppear(): void { KeyboardInputSession.releaseEditor(this.keyboardEditorId); this.keyboardEditorId = KeyboardInputSession.newEditorId(); this.refreshValue(); }
-  private refreshValue(): void { this.keyboardEditorId = KeyboardInputSession.renewEditor(this.keyboardEditorId); this.draft = SettingsNumberLogic.format(this.value); this.error = false; this.edited = false; }
+  @State storageError: boolean = false;
+  aboutToAppear(): void {
+    KeyboardInputSession.releaseEditor(this.keyboardEditorId); this.keyboardEditorId = KeyboardInputSession.newEditorId();
+    this.draftMounted = true; this.refreshValue();
+  }
+  private effectiveDraftKey(): string { return this.draftKey.length > 0 ? this.draftKey : this.label; }
+  private currentDraftSource(): string {
+    return JSON.stringify([this.draftSource, SettingsNumberLogic.format(this.value), String(this.minimum),
+      String(this.maximum), String(this.allowInfinity), String(this.integer)]);
+  }
+  private draftCurrent(token: number): boolean {
+    return this.draftMounted && this.draftGuard() && token === this.draftToken && this.leaseOwner === this.draftOwner &&
+      this.leaseScope === this.draftScope && this.leaseKey === this.effectiveDraftKey() && this.leaseEpoch === this.draftEpoch &&
+      this.draftOwner.isCurrent(token, this.currentDraftSource());
+  }
+  private refreshValue(): void {
+    if (!this.draftMounted) { return; }
+    this.keyboardEditorId = KeyboardInputSession.renewEditor(this.keyboardEditorId);
+    if (this.leaseOwner !== null) { this.leaseOwner.release(this.draftToken); }
+    this.leaseOwner = this.draftOwner; this.leaseScope = this.draftScope;
+    this.leaseKey = this.effectiveDraftKey(); this.leaseEpoch = this.draftEpoch;
+    const lease: DraftLease = this.draftOwner.open(this.leaseScope, this.leaseKey, this.currentDraftSource(),
+      JSON.stringify([SettingsNumberLogic.format(this.value), '0', '0']));
+    this.draftToken = lease.token; this.storageError = lease.sourceId === 0 || lease.overflow;
+    const state: string[] = JSON.parse(lease.value) as string[];
+    this.draft = state[0]; this.error = state[1] === '1'; this.edited = state[2] === '1' || lease.pending;
+  }
+  private saveDraft(): void {
+    if (this.draftCurrent(this.draftToken)) {
+      this.storageError = !this.draftOwner.write(this.draftToken, this.currentDraftSource(), JSON.stringify([this.draft, this.error ? '1' : '0', this.edited ? '1' : '0']), this.edited || this.error);
+    }
+  }
+  private changeHandler(): (text: string) => void {
+    const token: number = this.draftToken; const onEdit: () => void = this.onEdit; const guard: () => boolean = this.draftGuard;
+    return (text: string): void => {
+      if (!this.editable || !this.draftCurrent(token) || onEdit !== this.onEdit || guard !== this.draftGuard) { return; }
+      this.draft = text; this.error = false; this.edited = true; this.saveDraft(); this.onEdit();
+    };
+  }
+  private commitHandler(): () => void {
+    const token: number = this.draftToken; const guard: () => boolean = this.draftGuard; const callback: (value: number) => boolean = this.onCommit;
+    return (): void => { if (this.draftCurrent(token) && guard === this.draftGuard && callback === this.onCommit) { this.commit(); } };
+  }
+  private cancelHandler(): () => void {
+    const token: number = this.draftToken; const guard: () => boolean = this.draftGuard;
+    return (): void => {
+      if (!this.draftCurrent(token) || guard !== this.draftGuard) { return; }
+      this.draft = SettingsNumberLogic.format(this.value); this.error = false; this.edited = false; this.saveDraft();
+    };
+  }
   private commit(): void {
-    if (!this.editable) { return; }
+    if (!this.editable || this.storageError || !this.draftCurrent(this.draftToken)) { return; }
     const value: number | null = SettingsNumberLogic.parse(this.draft, this.allowInfinity);
     if (value === null || !SettingsNumberLogic.valid(value, this.minimum, this.maximum, this.allowInfinity, this.integer)) {
-      this.error = true; return;
+      this.error = true; this.saveDraft(); return;
     }
-    if (value === this.value && (!this.commitEqualEdits || !this.edited)) { this.draft = SettingsNumberLogic.format(value); this.error = false; return; }
+    if (value === this.value && (!this.commitEqualEdits || !this.edited)) {
+      this.draft = SettingsNumberLogic.format(value); this.error = false; this.edited = false; this.saveDraft(); return;
+    }
     this.error = !this.onCommit(value);
     if (!this.error) { this.draft = SettingsNumberLogic.format(value); this.edited = false; }
+    this.saveDraft();
   }
   build() {
     Column({ space: 2 }) {
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
         Text(this.label + (this.unit.length > 0 ? ' · ' + this.unit : '')).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink)
-          .width(UiStyle.fieldLabelWidth(this.fieldWidth)).padding({ right: 12, top: 6, bottom: 6 }).textAlign(TextAlign.Start)
-        TextInput({ text: this.draft }).fontSize(UiStyle.body(this.compact)).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).borderRadius(UiStyle.radius)
+          .width(UiStyle.numberLabelWidth(this.fieldWidth, this.label, this.unit, this.compact)).padding({ right: 12, top: 6, bottom: 6 }).textAlign(TextAlign.Start).wordBreak(WordBreak.BREAK_ALL)
+        TextInput({ text: this.draft }).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).borderRadius(UiStyle.radius)
           .backgroundColor(UiStyle.field).border({ width: 1, color: this.error ? UiStyle.danger : UiStyle.edge })
-          .width(UiStyle.fieldControlWidth(this.fieldWidth)).enabled(this.editable)
-          .accessibilityText(this.label).onChange(KeyboardInputSession.changeHandler(this.keyboardEditorId, (text: string) => { this.draft = text; this.error = false; this.edited = true; this.onEdit(); }))
-          .onSubmit(KeyboardInputSession.submitHandler(this.keyboardEditorId, () => this.commit())).onFocus(KeyboardInputSession.focusHandler(this.keyboardEditorId, true))
-          .onBlur(KeyboardInputSession.blurHandler(this.keyboardEditorId, () => this.commit()))
+          .width(UiStyle.numberControlWidth(this.fieldWidth, this.label, this.unit, this.compact)).enabled(this.editable && this.draftToken > 0)
+          .accessibilityText(this.label).onChange(KeyboardInputSession.changeHandler(this.keyboardEditorId, this.changeHandler()))
+          .onSubmit(KeyboardInputSession.submitHandler(this.keyboardEditorId, this.commitHandler())).onFocus(KeyboardInputSession.focusHandler(this.keyboardEditorId, true))
+          .onBlur(KeyboardInputSession.focusHandler(this.keyboardEditorId, false))
           .onKeyPreIme(KeyboardInputSession.emergencyHandler(this.keyboardEditorId))
       }.width('100%')
+      if (this.edited || this.error) {
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
+          Text('未应用').fontSize(UiStyle.helper).fontColor(UiStyle.warning).padding({ right: 12 })
+          Button('确认').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
+            .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+            .borderRadius(UiStyle.radius).margin({ right: 8 })
+            .enabled(this.editable && !this.storageError).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
+            .stateStyles({
+              focused: { .outline({ width: 2, color: UiStyle.accent }) },
+              disabled: { .opacity(UiStyle.disabledOpacity) }
+            }).onClick(this.commitHandler())
+          Button('取消').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
+            .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+            .borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+            .stateStyles({
+              focused: { .outline({ width: 2, color: UiStyle.accent }) },
+              disabled: { .opacity(UiStyle.disabledOpacity) }
+            }).onClick(this.cancelHandler())
+        }.width('100%')
+      }
+      if (this.storageError) { Text('草稿空间已满，当前输入未保留。请缩短输入或取消未应用的编辑。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
       if (this.error) { Text('数值无效或超出允许范围').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
     }.width('100%').margin({ bottom: UiStyle.gap(this.compact) })
       .onAreaChange((_old: Area, area: Area) => this.measureField(Number(area.width)))
@@ -124,33 +214,121 @@ export struct SettingsNumberField {
 @Component
 export struct SettingsTextField {
   private keyboardEditorId: number = KeyboardInputSession.newEditorId();
-  aboutToDisappear(): void { KeyboardInputSession.releaseEditor(this.keyboardEditorId); }
+  draftOwner: SettingsDraftOwner = new SettingsDraftOwner();
+  @Prop @Watch('refreshValue') draftScope: string = '';
+  @Prop @Watch('refreshValue') draftKey: string = '';
+  @Prop @Watch('refreshValue') draftSource: string = '';
+  @Prop @Watch('refreshValue') draftEpoch: number = 0;
+  draftGuard: () => boolean = (): boolean => true;
+  private draftToken: number = 0;
+  private leaseOwner: SettingsDraftOwner | null = null;
+  private leaseScope: string = '';
+  private leaseKey: string = '';
+  private leaseEpoch: number = 0;
+  private draftMounted: boolean = false;
+  aboutToDisappear(): void {
+    this.draftMounted = false;
+    if (this.leaseOwner !== null) { this.leaseOwner.release(this.draftToken); }
+    this.draftToken = 0; KeyboardInputSession.releaseEditor(this.keyboardEditorId);
+  }
   @State fieldWidth: number = 0;
   measureField(width: number): void { if (Number.isFinite(width) && width > 0) { this.fieldWidth = width; } }
-  @Prop label: string = '';
+  @Prop @Watch('refreshValue') label: string = '';
   @Prop @Watch('refreshValue') value: string = '';
   @Prop compact: boolean = false;
-  @Prop editable: boolean = true;
+  @Prop @Watch('refreshValue') editable: boolean = true;
+  @State private edited: boolean = false;
   onCommit: (value: string) => boolean = (_value: string): boolean => true;
   onEdit: () => void = (): void => {};
   @State draft: string = '';
   @State error: boolean = false;
-  aboutToAppear(): void { KeyboardInputSession.releaseEditor(this.keyboardEditorId); this.keyboardEditorId = KeyboardInputSession.newEditorId(); this.refreshValue(); }
-  private refreshValue(): void { this.keyboardEditorId = KeyboardInputSession.renewEditor(this.keyboardEditorId); this.draft = this.value; this.error = false; }
+  @State storageError: boolean = false;
+  aboutToAppear(): void {
+    KeyboardInputSession.releaseEditor(this.keyboardEditorId); this.keyboardEditorId = KeyboardInputSession.newEditorId();
+    this.draftMounted = true; this.refreshValue();
+  }
+  private effectiveDraftKey(): string { return this.draftKey.length > 0 ? this.draftKey : this.label; }
+  private currentDraftSource(): string {
+    return JSON.stringify([this.draftSource, this.value]);
+  }
+  private draftCurrent(token: number): boolean {
+    return this.draftMounted && this.draftGuard() && token === this.draftToken && this.leaseOwner === this.draftOwner &&
+      this.leaseScope === this.draftScope && this.leaseKey === this.effectiveDraftKey() && this.leaseEpoch === this.draftEpoch &&
+      this.draftOwner.isCurrent(token, this.currentDraftSource());
+  }
+  private refreshValue(): void {
+    if (!this.draftMounted) { return; }
+    this.keyboardEditorId = KeyboardInputSession.renewEditor(this.keyboardEditorId);
+    if (this.leaseOwner !== null) { this.leaseOwner.release(this.draftToken); }
+    this.leaseOwner = this.draftOwner; this.leaseScope = this.draftScope;
+    this.leaseKey = this.effectiveDraftKey(); this.leaseEpoch = this.draftEpoch;
+    const lease: DraftLease = this.draftOwner.open(this.leaseScope, this.leaseKey, this.currentDraftSource(),
+      JSON.stringify([this.value, '0', '0']));
+    this.draftToken = lease.token; this.storageError = lease.sourceId === 0 || lease.overflow;
+    const state: string[] = JSON.parse(lease.value) as string[];
+    this.draft = state[0]; this.error = state[1] === '1'; this.edited = state[2] === '1' || lease.pending;
+  }
+  private saveDraft(): void {
+    if (this.draftCurrent(this.draftToken)) {
+      this.storageError = !this.draftOwner.write(this.draftToken, this.currentDraftSource(), JSON.stringify([this.draft, this.error ? '1' : '0', this.edited ? '1' : '0']), this.edited || this.error);
+    }
+  }
+  private changeHandler(): (text: string) => void {
+    const token: number = this.draftToken; const onEdit: () => void = this.onEdit; const guard: () => boolean = this.draftGuard;
+    return (text: string): void => {
+      if (!this.editable || !this.draftCurrent(token) || onEdit !== this.onEdit || guard !== this.draftGuard) { return; }
+      this.draft = text; this.error = false; this.edited = true; this.saveDraft(); this.onEdit();
+    };
+  }
+  private commitHandler(): () => void {
+    const token: number = this.draftToken; const guard: () => boolean = this.draftGuard; const callback: (value: string) => boolean = this.onCommit;
+    return (): void => { if (this.draftCurrent(token) && guard === this.draftGuard && callback === this.onCommit) { this.commit(); } };
+  }
+  private cancelHandler(): () => void {
+    const token: number = this.draftToken; const guard: () => boolean = this.draftGuard;
+    return (): void => {
+      if (!this.draftCurrent(token) || guard !== this.draftGuard) { return; }
+      this.draft = this.value; this.error = false; this.edited = false; this.saveDraft();
+    };
+  }
   private commit(): void {
-    if (!this.editable || this.draft === this.value) { this.error = false; return; }
+    if (!this.editable || this.storageError || !this.draftCurrent(this.draftToken)) { return; }
+    if (this.draft === this.value) { this.error = false; this.edited = false; this.saveDraft(); return; }
     this.error = !this.onCommit(this.draft);
+    if (!this.error) { this.edited = false; }
+    this.saveDraft();
   }
   build() {
     Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
       Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width(UiStyle.fieldLabelWidth(this.fieldWidth)).padding({ right: 12, top: 6, bottom: 6 }).wordBreak(WordBreak.BREAK_ALL)
-      TextInput({ text: this.draft }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius)
+      TextInput({ text: this.draft }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).borderRadius(UiStyle.radius)
         .backgroundColor(UiStyle.field).border({ width: 1, color: this.error ? UiStyle.danger : UiStyle.edge }).width(UiStyle.fieldControlWidth(this.fieldWidth))
-        .enabled(this.editable).accessibilityText(this.label)
-        .onChange(KeyboardInputSession.changeHandler(this.keyboardEditorId, (text: string) => { this.draft = text; this.error = false; this.onEdit(); }))
-        .onSubmit(KeyboardInputSession.submitHandler(this.keyboardEditorId, () => this.commit())).onFocus(KeyboardInputSession.focusHandler(this.keyboardEditorId, true))
-          .onBlur(KeyboardInputSession.blurHandler(this.keyboardEditorId, () => this.commit()))
+        .enabled(this.editable && this.draftToken > 0).accessibilityText(this.label)
+        .onChange(KeyboardInputSession.changeHandler(this.keyboardEditorId, this.changeHandler()))
+        .onSubmit(KeyboardInputSession.submitHandler(this.keyboardEditorId, this.commitHandler())).onFocus(KeyboardInputSession.focusHandler(this.keyboardEditorId, true))
+          .onBlur(KeyboardInputSession.focusHandler(this.keyboardEditorId, false))
           .onKeyPreIme(KeyboardInputSession.emergencyHandler(this.keyboardEditorId))
+      if (this.edited || this.error) {
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
+          Text('未应用').fontSize(UiStyle.helper).fontColor(UiStyle.warning).padding({ right: 12 })
+          Button('确认').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
+            .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+            .borderRadius(UiStyle.radius).margin({ right: 8 })
+            .enabled(this.editable && !this.storageError).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
+            .stateStyles({
+              focused: { .outline({ width: 2, color: UiStyle.accent }) },
+              disabled: { .opacity(UiStyle.disabledOpacity) }
+            }).onClick(this.commitHandler())
+          Button('取消').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
+            .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+            .borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+            .stateStyles({
+              focused: { .outline({ width: 2, color: UiStyle.accent }) },
+              disabled: { .opacity(UiStyle.disabledOpacity) }
+            }).onClick(this.cancelHandler())
+        }.width('100%')
+      }
+      if (this.storageError) { Text('草稿空间已满，当前输入未保留。请缩短输入或取消未应用的编辑。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
       if (this.error) { Text('内容无效，请检查格式或重复名称').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
     }.width('100%').margin({ bottom: UiStyle.gap(this.compact) })
       .onAreaChange((_old: Area, area: Area) => this.measureField(Number(area.width)))
@@ -159,23 +337,36 @@ export struct SettingsTextField {
 
 @Component
 export struct SettingsSwitchField {
+  @StorageLink('mfpImmersiveMaterialRevision') materialRevision: number = 0;
   @Prop label: string = '';
   @Prop value: boolean = false;
   @Prop compact: boolean = false;
   @Prop editable: boolean = true;
   onChange: (value: boolean) => void = (_value: boolean): void => {};
+  private active: boolean = true;
+  aboutToAppear(): void { this.active = true; }
+  aboutToDisappear(): void { this.active = false; }
+  private changeHandler(): (value: boolean) => void {
+    const callback = this.onChange; const label = this.label; const prior = this.value;
+    return (value: boolean): void => {
+      if (this.active && this.editable && callback === this.onChange && label === this.label && prior === this.value) { callback(value); }
+    };
+  }
   build() {
     Row({ space: 8 }) {
-      Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).layoutWeight(1)
-      Toggle({ type: ToggleType.Switch, isOn: this.value }).width(60).height(UiStyle.control).selectedColor(UiStyle.accent).enabled(this.editable)
-        .accessibilityText(this.label).onChange((value: boolean) => this.onChange(value))
+      Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).layoutWeight(1).wordBreak(WordBreak.BREAK_ALL)
+      Toggle({ type: ToggleType.Switch, isOn: this.value }).width(48).height(28).attributeModifier(new MfpToggleMaterialModifier(this.materialRevision)).enabled(this.editable)
+        .responseRegion({ x: -2, y: -12, width: UiStyle.control, height: UiStyle.control })
+        .accessibilityText(this.label + (this.value ? '，已开启' : '，已关闭')).onChange(this.changeHandler())
     }.width('100%').constraintSize({ minHeight: UiStyle.control }).margin({ bottom: 3 })
   }
 }
 
 @Component
 export struct SettingsChoiceField {
+  @StorageLink('mfpImmersiveMaterialRevision') materialRevision: number = 0;
   @State fieldWidth: number = 0;
+  @State detailExpanded: boolean = false;
   measureField(width: number): void { if (Number.isFinite(width) && width > 0) { this.fieldWidth = width; } }
   @Prop label: string = '';
   @Prop selected: string = '';
@@ -183,22 +374,59 @@ export struct SettingsChoiceField {
   @Prop compact: boolean = false;
   @Prop editable: boolean = true;
   onSelect: (value: string) => void = (_value: string): void => {};
+  private active: boolean = true;
+  aboutToAppear(): void { this.active = true; }
+  aboutToDisappear(): void { this.active = false; }
+  private selectHandler(): (index: number) => void {
+    const callback = this.onSelect; const label = this.label; const selected = this.selected;
+    const source: string = JSON.stringify(this.options);
+    const options: SettingsOption[] = this.options.map((option: SettingsOption): SettingsOption => new SettingsOption(option.value, option.label));
+    return (index: number): void => {
+      if (this.active && this.editable && callback === this.onSelect && label === this.label && selected === this.selected &&
+        source === JSON.stringify(this.options) && Number.isInteger(index) && index >= 0 && index < options.length) { callback(options[index].value); }
+    };
+  }
   private index(): number { return this.options.findIndex(option => option.value === this.selected); }
   private labelText(): string {
     const index: number = this.index();
     return index < 0 ? this.selected + '（不可用，已保留）' : this.options[index].label;
   }
+  private detailHandler(): () => void {
+    const label: string = this.label; const selected: string = this.selected;
+    const source: string = JSON.stringify(this.options);
+    return (): void => {
+      if (this.active && label === this.label && selected === this.selected && source === JSON.stringify(this.options)) {
+        this.detailExpanded = !this.detailExpanded;
+      }
+    };
+  }
   build() {
     Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
       Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width(UiStyle.fieldLabelWidth(this.fieldWidth)).padding({ right: 12, top: 6, bottom: 6 }).wordBreak(WordBreak.BREAK_ALL)
         .textAlign(TextAlign.Start)
-      Select(this.options.map((option: SettingsOption): SelectOption => { return { value: option.label }; }))
-        .selected(this.index()).value(this.labelText()).optionHeight(UiStyle.control).font({ size: UiStyle.body(this.compact) }).optionFont({ size: UiStyle.body(this.compact) }).selectedOptionFont({ size: UiStyle.body(this.compact) }).fontColor(UiStyle.ink)
-        .backgroundColor(UiStyle.accentSoft).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' })
-        .width(UiStyle.fieldControlWidth(this.fieldWidth)).enabled(this.editable).accessibilityText(this.label)
-        .onSelect((index: number) => { if (index >= 0 && index < this.options.length) { this.onSelect(this.options[index].value); } })
-      // Select's platform label may elide; this fully wrapping text retains the entire value.
-      Text(this.labelText()).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+      Row({ space: 8 }) {
+        Select(this.options.map((option: SettingsOption): SelectOption => { return { value: option.label }; }))
+          .selected(this.index()).value(this.labelText()).optionHeight(UiStyle.control).font({ size: UiStyle.body(this.compact) }).optionFont({ size: UiStyle.body(this.compact) }).selectedOptionFont({ size: UiStyle.body(this.compact) }).fontColor(UiStyle.ink)
+          .attributeModifier(new MfpSelectMaterialModifier(this.materialRevision))
+          .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).layoutWeight(1)
+          .enabled(this.editable).accessibilityText(this.label + '：' + this.labelText())
+          .onSelect(this.selectHandler())
+        Button(this.detailExpanded ? '收起' : '全文').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true)
+          .labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).fontSize(UiStyle.body(this.compact))
+          .padding({ left: 6, right: 6, top: 12, bottom: 12 })
+          .width(UiStyle.control).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).flexShrink(0)
+          .accessibilityText((this.detailExpanded ? '收起完整值：' : '查看完整值：') + this.label + '，' + this.labelText())
+          .borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.detailHandler())
+      }.width(UiStyle.fieldControlWidth(this.fieldWidth))
+      // A native Select may elide. Complete text is always available on explicit
+      // disclosure, including in read-only mode, and in its accessibility label.
+      if (this.detailExpanded) {
+        Text(this.labelText()).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+      }
     }.width('100%').margin({ bottom: UiStyle.gap(this.compact) })
       .onAreaChange((_old: Area, area: Area) => this.measureField(Number(area.width)))
   }
@@ -207,14 +435,27 @@ export struct SettingsChoiceField {
 @Component
 export struct SettingsSectionTitle {
   @Prop label: string = '';
+  @Prop topLevel: boolean = false;
   build() {
-    Text(this.label).fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
-      .padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).margin({ top: 12, bottom: 12 })
+    Text(this.label).fontSize(this.topLevel ? UiStyle.heading : UiStyle.section).fontWeight(FontWeight.Medium).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+      .padding({ top: 8, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).margin({ top: this.topLevel ? 0 : 12, bottom: 12 })
   }
 }
 
 @Component
 export struct CurvePointEditor {
+  draftOwner: SettingsDraftOwner = new SettingsDraftOwner();
+  @Prop @Watch('draftBindingChanged') draftScope: string = '';
+  @Prop @Watch('draftBindingChanged') draftKey: string = '';
+  @Prop @Watch('draftBindingChanged') draftSource: string = '';
+  @Prop @Watch('draftBindingChanged') draftEpoch: number = 0;
+  private draftToken: number = 0;
+  private draftSourceId: number = 0;
+  private leaseOwner: SettingsDraftOwner | null = null;
+  private leaseScope: string = '';
+  private leaseKey: string = '';
+  private leaseEpoch: number = 0;
+  private leaseSource: string = '';
   @Prop @Watch('bindingChanged') bindingKey: string = '';
   onGeometry: (ownerId: number, width: number, height: number, attached: boolean) => void = (_ownerId: number, _width: number, _height: number, _attached: boolean): void => {};
   private geometryOwner: number = 0;
@@ -225,13 +466,15 @@ export struct CurvePointEditor {
   private measuredPlotHeight: number = 0;
   aboutToAppear(): void { this.geometryMounted = true; this.bindingChanged(); }
   aboutToDisappear(): void {
-    this.geometryMounted = false; this.dragging = false;
+    this.geometryMounted = false; this.dragging = false; this.dragCallback = null;
+    if (this.leaseOwner !== null) { this.leaseOwner.release(this.draftToken); }
+    this.draftToken = 0;
     if (this.geometryOwner > 0) { this.onGeometry(this.geometryOwner, 0, 0, false); }
     this.geometryOwner = 0;
   }
   private bindingChanged(): void {
     if (this.geometryOwner > 0) { this.onGeometry(this.geometryOwner, 0, 0, false); }
-    this.geometryOwner = CurveGeometryOwners.next(); this.dragging = false; this.refreshEditContext();
+    this.geometryOwner = CurveGeometryOwners.next(); this.draftBindingChanged();
     if (this.geometryMounted && this.bindingKey.length > 0) {
       this.onGeometry(this.geometryOwner, this.measuredPlotWidth, this.measuredPlotHeight, true);
     }
@@ -245,7 +488,7 @@ export struct CurvePointEditor {
       const plotWidth: number = Math.max(0, width - 24); const plotHeight: number = Math.max(0, height - 24);
       const changed: boolean = plotWidth !== this.measuredPlotWidth || plotHeight !== this.measuredPlotHeight;
       this.measuredPlotWidth = plotWidth; this.measuredPlotHeight = plotHeight;
-      if (changed) { this.refreshEditContext(); this.dragging = false; } this.draw();
+      if (changed) { this.refreshEditContext(); this.dragging = false; this.dragCallback = null; this.workingPoints = CurveEditRules.copy(this.points); } this.draw();
       if (changed && key.length > 0) { this.onGeometry(owner, plotWidth, plotHeight, true); }
     };
   }
@@ -276,7 +519,52 @@ export struct CurvePointEditor {
   private workingPoints: MotionCurvePoint[] = [];
   private dragStartPoints: MotionCurvePoint[] = [];
   private canvas: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
+  private effectiveDraftKey(): string { return this.draftKey.length > 0 ? this.draftKey : 'curve:' + this.bindingKey; }
+  private coordinateDraftScope(): string { return JSON.stringify([this.draftScope, this.effectiveDraftKey(), 'coordinates']); }
+  private coordinateDraftSource(): string { return String(this.draftSourceId); }
+  private currentDraftSource(): string {
+    // Geometry deliberately belongs only to edit/gesture ownership, never draft identity.
+    return JSON.stringify([this.draftSource, this.bindingKey, JSON.stringify(this.points),
+      [this.minimumX, this.maximumX, this.minimumY, this.maximumY, this.strictX, this.viewMinimumX, this.viewMaximumX,
+        this.interpolationMode, this.isLooping, this.maximumPoints].join(',')]);
+  }
+  private draftCurrent(): boolean {
+    return this.geometryMounted && this.leaseOwner === this.draftOwner && this.leaseScope === this.draftScope &&
+      this.leaseKey === this.effectiveDraftKey() && this.leaseEpoch === this.draftEpoch &&
+      this.draftOwner.isCurrent(this.draftToken, this.currentDraftSource());
+  }
+  private draftBindingChanged(): void {
+    if (!this.geometryMounted) { return; }
+    this.dragging = false; this.dragCallback = null;
+    this.workingPoints = CurveEditRules.copy(this.points);
+    if (this.leaseOwner !== null) { this.leaseOwner.release(this.draftToken); }
+    this.leaseOwner = this.draftOwner; this.leaseScope = this.draftScope; this.leaseKey = this.effectiveDraftKey();
+    this.leaseEpoch = this.draftEpoch; this.leaseSource = this.currentDraftSource();
+    let lease: DraftLease = this.draftOwner.open(this.leaseScope, this.leaseKey, this.leaseSource, '');
+    if (lease.sourceChanged) {
+      this.draftOwner.clearScope(this.coordinateDraftScope());
+      if (lease.sourceId === 0) { lease = this.draftOwner.open(this.leaseScope, this.leaseKey, this.leaseSource, ''); }
+    }
+    this.draftToken = lease.token; this.draftSourceId = lease.sourceId;
+    const state: string[] = lease.value.length > 0 ? JSON.parse(lease.value) as string[] : ['-1', '0', '0', ''];
+    this.selected = Number(state[0]); this.draftX = Number(state[1]); this.draftY = Number(state[2]); this.message = state[3];
+    if (this.selected >= this.points.length) { this.selected = -1; }
+    if (lease.sourceId === 0 || lease.overflow) { this.message = '草稿空间已满，部分输入未保留。请取消其他未应用的编辑。'; }
+    // Store the initialized panel state so its stable source anchor cannot be
+    // reclaimed while coordinate drafts may still refer to it after remount.
+    this.saveDraft(); this.refreshEditContext(); this.draw();
+  }
+  private saveDraft(): boolean {
+    if (!this.draftCurrent()) { return false; }
+    if (!this.draftOwner.write(this.draftToken, this.currentDraftSource(),
+      JSON.stringify([String(this.selected), String(this.draftX), String(this.draftY), this.message]))) {
+      this.message = '草稿空间已满，当前输入未保留。请取消其他未应用的编辑。'; return false;
+    }
+    return true;
+  }
   private pointsChanged(): void {
+    if (this.leaseSource !== this.currentDraftSource() || this.leaseOwner !== this.draftOwner ||
+      this.leaseScope !== this.draftScope || this.leaseKey !== this.effectiveDraftKey() || this.leaseEpoch !== this.draftEpoch) { this.draftBindingChanged(); }
     this.refreshEditContext();
     if (this.dragging && (!this.dragCurrent() || this.points.length !== this.dragStartPoints.length ||
       this.points.some((point: MotionCurvePoint, index: number) => point.x !== this.dragStartPoints[index].x || point.y !== this.dragStartPoints[index].y))) {
@@ -303,8 +591,8 @@ export struct CurvePointEditor {
   private py(y: number): number { return 168 - (y - this.minimumY) / (this.maximumY - this.minimumY) * 156; }
   private draw(): void {
     this.canvas.clearRect(0, 0, this.canvasWidth, 180);
-    this.canvas.fillStyle = '#FFFFFF'; this.canvas.fillRect(0, 0, this.canvasWidth, 180);
-    this.canvas.strokeStyle = '#E0E5E8'; this.canvas.lineWidth = 1;
+    this.canvas.fillStyle = UiStyle.page; this.canvas.fillRect(0, 0, this.canvasWidth, 180);
+    this.canvas.strokeStyle = UiStyle.edge; this.canvas.lineWidth = 1;
     for (let line: number = 0; line <= 4; line++) {
       this.canvas.beginPath(); this.canvas.moveTo(12, 12 + line * 39); this.canvas.lineTo(this.canvasWidth - 12, 12 + line * 39); this.canvas.stroke();
     }
@@ -313,7 +601,7 @@ export struct CurvePointEditor {
     const preview: CurvePreviewResult = CurvePreview.build(points, bounds[0], bounds[1], this.minimumY, this.maximumY,
       this.interpolationMode, this.isLooping);
     this.previewIssue = preview.issue;
-    this.canvas.strokeStyle = '#087E8B'; this.canvas.lineWidth = 2;
+    this.canvas.strokeStyle = UiStyle.accent; this.canvas.lineWidth = 2;
     for (const path of preview.paths) {
       this.canvas.beginPath();
       path.forEach((point: MotionCurvePoint, index: number) => {
@@ -325,7 +613,7 @@ export struct CurvePointEditor {
     points.forEach((point: MotionCurvePoint, index: number) => {
       if (point.x < bounds[0] || point.x > bounds[1]) { return; }
       this.canvas.beginPath(); this.canvas.arc(this.px(point.x), this.py(point.y), index === this.selected ? 7 : 5, 0, Math.PI * 2);
-      this.canvas.fillStyle = index === this.selected ? '#142D3A' : '#087E8B'; this.canvas.fill();
+      this.canvas.fillStyle = index === this.selected ? UiStyle.ink : UiStyle.accent; this.canvas.fill();
     });
   }
   private hitPoint(x: number, y: number): number {
@@ -341,7 +629,7 @@ export struct CurvePointEditor {
   }
   private beginPoint(x: number, y: number): void {
     const selected: number = this.hitPoint(x, y);
-    this.selected = selected; this.dragging = selected >= 0;
+    this.selected = selected; this.saveDraft(); this.dragging = selected >= 0;
     this.dragToken = this.editToken(); this.dragCallback = this.onChange;
     this.dragStartPoints = CurveEditRules.copy(this.points); this.workingPoints = CurveEditRules.copy(this.points); this.draw();
   }
@@ -357,7 +645,7 @@ export struct CurvePointEditor {
     }
     this.draw();
   }
-  private cancelPoint(): void { this.dragging = false; this.pointsChanged(); }
+  private cancelPoint(): void { this.dragging = false; this.dragCallback = null; this.pointsChanged(); }
   private movePoint(x: number, y: number): void {
     if (!this.dragging || this.selected < 0) { return; }
     if (!this.dragCurrent()) { this.cancelPoint(); return; }
@@ -406,17 +694,20 @@ export struct CurvePointEditor {
   private edit(index: number, x: number, y: number): boolean {
     const edited: MotionCurvePoint[] | null = CurveEditRules.replace(this.points, index, x, y,
       this.minimumX, this.maximumX, this.minimumY, this.maximumY, this.strictX);
-    if (edited === null) { this.message = this.strictX ? '横坐标必须递增且不能重复。' : '请检查曲线坐标范围。'; return false; }
-    this.message = ''; this.onChange(edited); return true;
+    if (edited === null) { this.message = this.strictX ? '横坐标必须递增且不能重复。' : '请检查曲线坐标范围。'; this.saveDraft(); return false; }
+    this.message = ''; this.saveDraft(); this.onChange(edited); return true;
   }
   private add(): void {
+    if (this.draftOwner.hasPending(this.coordinateDraftScope(), 'new:')) {
+      this.message = '请先确认或取消新点坐标的未应用编辑，再添加曲线点。'; this.saveDraft(); return;
+    }
     const edited: MotionCurvePoint[] | null = CurveEditRules.add(this.points, this.draftX, this.draftY,
       this.minimumX, this.maximumX, this.minimumY, this.maximumY, this.strictX, this.maximumPoints);
-    if (edited === null) { this.message = '无法添加：检查坐标、重复横坐标或点数上限。'; return; }
-    this.message = ''; this.onChange(edited);
+    if (edited === null) { this.message = '无法添加：检查坐标、重复横坐标或点数上限。'; this.saveDraft(); return; }
+    this.message = ''; this.saveDraft(); this.onChange(edited);
   }
   private currentEditSnapshot(): string {
-    return this.geometryOwner + ':' + this.bindingKey + ':' + JSON.stringify(this.points) + ':' +
+    return this.geometryOwner + ':' + this.draftToken + ':' + this.draftEpoch + ':' + this.bindingKey + ':' + JSON.stringify(this.points) + ':' +
       [this.minimumX, this.maximumX, this.minimumY, this.maximumY, this.strictX, this.viewMinimumX, this.viewMaximumX,
         this.interpolationMode, this.isLooping, this.maximumPoints, this.canvasWidth, this.measuredPlotHeight].join(',');
   }
@@ -428,8 +719,12 @@ export struct CurvePointEditor {
   private editCurrent(token: string, callback: (points: MotionCurvePoint[]) => void): boolean {
     // Keep one bounded snapshot, not a full point-list string in every row key.
     // Recheck once per delivered edit, including prop changes before their Watch.
-    return this.geometryMounted && token === this.editToken() && callback === this.onChange &&
+    return this.draftCurrent() && token === this.editToken() && callback === this.onChange &&
       this.editSnapshot === this.currentEditSnapshot();
+  }
+  private coordinateGuard(): () => boolean {
+    const token: string = this.editToken(); const callback: (points: MotionCurvePoint[]) => void = this.onChange;
+    return (): boolean => this.editCurrent(token, callback);
   }
   private pointHandler(index: number, coordinate: string): (value: number) => boolean {
     const token: string = this.editToken(); const callback: (points: MotionCurvePoint[]) => void = this.onChange;
@@ -441,12 +736,14 @@ export struct CurvePointEditor {
   }
   private removeHandler(index: number): () => void {
     const token: string = this.editToken(); const callback: (points: MotionCurvePoint[]) => void = this.onChange;
-    return (): void => { if (this.editCurrent(token, callback)) { this.selected = -1; callback(CurveEditRules.remove(this.points, index)); } };
+    return (): void => { if (this.editCurrent(token, callback)) { this.selected = -1; this.saveDraft(); callback(CurveEditRules.remove(this.points, index)); } };
   }
   private draftHandler(coordinate: string): (value: number) => boolean {
     const token: string = this.editToken(); const callback: (points: MotionCurvePoint[]) => void = this.onChange;
     return (value: number): boolean => { if (!this.editCurrent(token, callback)) { return false; }
-      if (coordinate === 'x') { this.draftX = value; } else { this.draftY = value; } return true; };
+      const oldX: number = this.draftX; const oldY: number = this.draftY;
+      if (coordinate === 'x') { this.draftX = value; } else { this.draftY = value; }
+      if (!this.saveDraft()) { this.draftX = oldX; this.draftY = oldY; return false; } return true; };
   }
   private addHandler(): () => void {
     const token: string = this.editToken(); const callback: (points: MotionCurvePoint[]) => void = this.onChange;
@@ -481,15 +778,22 @@ export struct CurvePointEditor {
             ListItem() {
               Column() {
                 Row() {
-                  Text('点 ' + (index + 1)).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).layoutWeight(1)
-                  Button('删除').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-                    .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.danger).backgroundColor(UiStyle.accentSoft).borderRadius(UiStyle.radius)
-                    .fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).onClick(this.removeHandler(index))
+                  Text('点 ' + (index + 1) + (index === this.selected ? ' · 已选' : '')).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).layoutWeight(1)
+                    .fontWeight(index === this.selected ? FontWeight.Medium : FontWeight.Normal).wordBreak(WordBreak.BREAK_ALL)
+                  Button('删除')
+                    .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius)
+                    .fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+                    .stateStyles({
+                      focused: { .outline({ width: 2, color: UiStyle.accent }) },
+                      disabled: { .opacity(UiStyle.disabledOpacity) }
+                    }).onClick(this.removeHandler(index))
                 }.width('100%')
                 SettingsNumberField({ label: this.xLabel, value: point.x, compact: this.compact, minimum: this.minimumX, maximum: this.maximumX,
-                  onCommit: this.pointHandler(index, 'x') })
+                  draftOwner: this.draftOwner, draftScope: this.coordinateDraftScope(), draftKey: 'point:' + index + ':x',
+                  draftSource: this.coordinateDraftSource(), draftEpoch: this.draftEpoch, draftGuard: this.coordinateGuard(), onCommit: this.pointHandler(index, 'x') })
                 SettingsNumberField({ label: this.yLabel, value: point.y, compact: this.compact, minimum: this.minimumY, maximum: this.maximumY,
-                  onCommit: this.pointHandler(index, 'y') })
+                  draftOwner: this.draftOwner, draftScope: this.coordinateDraftScope(), draftKey: 'point:' + index + ':y',
+                  draftSource: this.coordinateDraftSource(), draftEpoch: this.draftEpoch, draftGuard: this.coordinateGuard(), onCommit: this.pointHandler(index, 'y') })
               }.width('100%').padding({ top: 8, bottom: 8 }).backgroundColor(index === this.selected ? UiStyle.accentSoft : UiStyle.card)
             }
           }, (_point: MotionCurvePoint, index: number): string => this.editToken() + ':' + index)
@@ -498,13 +802,19 @@ export struct CurvePointEditor {
       }
       ForEach([this.editToken()], (_context: string) => {
       SettingsNumberField({ label: '新点 ' + this.xLabel, value: this.draftX, compact: this.compact, minimum: this.minimumX, maximum: this.maximumX,
-        onCommit: this.draftHandler('x') })
+        draftOwner: this.draftOwner, draftScope: this.coordinateDraftScope(), draftKey: 'new:x',
+        draftSource: this.coordinateDraftSource(), draftEpoch: this.draftEpoch, draftGuard: this.coordinateGuard(), onCommit: this.draftHandler('x') })
       SettingsNumberField({ label: '新点 ' + this.yLabel, value: this.draftY, compact: this.compact, minimum: this.minimumY, maximum: this.maximumY,
-        onCommit: this.draftHandler('y') })
+        draftOwner: this.draftOwner, draftScope: this.coordinateDraftScope(), draftKey: 'new:y',
+        draftSource: this.coordinateDraftSource(), draftEpoch: this.draftEpoch, draftGuard: this.coordinateGuard(), onCommit: this.draftHandler('y') })
       }, (context: string): string => context)
-      Button('＋ 添加曲线点').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-        .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink)
-        .backgroundColor(UiStyle.accentSoft).borderRadius(UiStyle.radius).enabled(this.points.length < this.maximumPoints).onClick(this.addHandler())
+      Button('＋ 添加曲线点')
+        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').fontSize(UiStyle.body(this.compact))
+        .borderRadius(UiStyle.radius).enabled(this.points.length < this.maximumPoints).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+        .stateStyles({
+          focused: { .outline({ width: 2, color: UiStyle.accent }) },
+          disabled: { .opacity(UiStyle.disabledOpacity) }
+        }).onClick(this.addHandler())
       if (this.message.length > 0) { Text(this.message).fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
     }.width('100%')
   }

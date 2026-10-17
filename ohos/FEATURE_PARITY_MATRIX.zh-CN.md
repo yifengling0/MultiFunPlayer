@@ -1,3 +1,12 @@
+# 0.28 状态增量
+
+- 本地触摸、按住鼠标与校准滚轮已进入真实Index控制器；5Drive和独立100ms Offset经原C#3194行数值回归。9注册模板接真实轴Transition、Blend、命名Motion和TCP/UDP/WebSocket逐目标Range。输入配置、明确接收、预览与Arm分别控制，取消不伪造松开动作。
+- 182按钮ID保持；独立连续目录9模板。163/188原注册点=110full-portable+53partial，25未接（17源/7输出协议及ownership/1诊断），不代表整产品1:1完成。新增9项均partial，不提升既有44partial。
+- Windows全局RawInput/XInput、gamepad归一化、串口IN/轴按钮事件及串口Range Drive未完成；本地wheel刻度、触摸去重和事件终止需设备实测。官方SDK与模拟native packet不证明真实触摸/硬件。
+- 原0.25布局/0.27系统材质及52Stop/单Surface/0.24草稿owner保留。File审查阻断不变。完整局部输入及旧epoch手动预览边界见LOCAL_TEST_028.md。
+
+## Historical record
+
 # 0.19 状态增量
 
 - DeoVR普通Play/Pause/Speed：既有Arm可经明确事务保留，先关闭gate/清队列，实际同源观测及新合法frame后继续；暂停无活动维持待命。协议没有因果ACK/服务器时间戳，不能证明迟到服务器缓存的因果新鲜度。Seek/Path/AB/AutoSkip仍撤销。

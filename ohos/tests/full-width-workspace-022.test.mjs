@@ -1,3 +1,4 @@
+import { SettingsDraftOwner } from '../entry/src/main/ets/presentation/SettingsDraftOwner.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -12,16 +13,17 @@ const page = readFileSync(new URL('../entry/src/main/ets/pages/Index.ets',import
 const fields = readFileSync(new URL('../entry/src/main/ets/components/CurvePointEditor.ets',import.meta.url),'utf8');
 const sizes = [[240,640],[280,640],[320,640],[360,800],[400,800],[568,320],[800,1280],[800,600],[1280,800],[1920,1080]];
 for(const [width,height] of sizes)for(const video of [false,true])test(`real page geometry fills ${width}×${height}, video=${video} without narrowing its content`,()=>{
- const {page:p}=setupIndex();p.resizeWorkspace(width,height);p.videoMode=video;
+ const {page:p}=setupIndex();p.resizeWorkspace(width,height);p.videoMode=video;p.currentScreen='workspace';
  const layout=p.workspaceLayout(), inset=p.contentPadding(), toolbar=p.scriptPaneWidth();
- assert.equal(layout.settings.width - inset*2, video || width < 720 || (width < height && width <1200) ? toolbar : toolbar*2+UiStyle.paneGap);
+ assert.equal(p.inspectorWidth() - inset*2, toolbar);
+ if(!layout.sideBySide&&p.inspectorWidth()<layout.settings.width){assert.ok(layout.settings.width-p.inspectorWidth()-UiStyle.paneGap-inset*2>0);assert.ok(p.inspectorWidth()<=480);}else{assert.equal(p.inspectorWidth(),layout.settings.width);}
  assert.ok(toolbar>0);
  for(const count of [6,9]){
   const percent=parseFloat(count===6?p.mediaToolWidth():p.axisToolWidth());
-  const columns=Math.round(100/percent);assert.ok(toolbar*percent/100>=52-1e-9);
+  const columns=Math.round(100/percent);assert.ok(toolbar*percent/100>=48-1e-9);
   assert.ok([1,2,3,count].includes(columns));assert.ok(count===9||count%columns===0);
  }
- if(!video&&width===320)assert.equal(p.mediaToolWidth(),(100/3).toString()+'%');
+ if(!video&&width===320)assert.equal(p.mediaToolWidth(),(100/6).toString()+'%');
 });
 test('ordinary panes have no width caps or nested horizontal gutters; modal limits remain independent',()=>{
  const workspace=page.slice(page.indexOf('  workspaceSettings() {'),page.indexOf('  globalStopButton() {'));
@@ -46,8 +48,8 @@ test('width changes alone preserve actual session/frame/source/permission state'
 });
 function fieldController(name){
  const start=fields.indexOf('export struct '+name),end=fields.indexOf('  build()',start);
- const body=fields.slice(start,end).replace('export struct','class').replace(/@(Prop|State|Watch)(\([^)]*\))?\s*/g,'')+'\n}';
- return new Function('KeyboardInputSession',stripTypeScriptTypes(body)+';return '+name+';')(KeyboardInputSession);
+ const body=fields.slice(start,end).replace('export struct','class').replace(/@(Prop|State|Watch|StorageLink)(\([^)]*\))?\s*/g,'')+'\n}';
+ return new Function('SettingsDraftOwner','KeyboardInputSession',stripTypeScriptTypes(body)+';return '+name+';')(SettingsDraftOwner,KeyboardInputSession);
 }
 for(const name of ['SettingsNumberField','SettingsTextField','SettingsChoiceField'])test(`${name}: actual geometry updates retain draft and keyboard ownership across the breakpoint`,()=>{
  const Field=fieldController(name),field=new Field();field.draft='uncommitted example';field.error=true;
@@ -56,7 +58,7 @@ for(const name of ['SettingsNumberField','SettingsTextField','SettingsChoiceFiel
  for(const width of [0,-1,NaN,Infinity])field.measureField(width);
  assert.equal(field.fieldWidth,300);assert.equal(changed,0);
  const block=fields.slice(fields.indexOf('export struct '+name),fields.indexOf('\n@Component',fields.indexOf('export struct '+name)));
- assert.match(block,/fieldLabelWidth\(this.fieldWidth\)/);assert.match(block,/fieldControlWidth\(this.fieldWidth\)/);
+ assert.match(block,name==='SettingsNumberField'?/numberLabelWidth\(this.fieldWidth,/:/fieldLabelWidth\(this.fieldWidth\)/);assert.match(block,name==='SettingsNumberField'?/numberControlWidth\(this.fieldWidth,/:/fieldControlWidth\(this.fieldWidth\)/);
  assert.equal((block.match(/TextInput\(/g)||[]).length,name==='SettingsChoiceField'?0:1);
  assert.doesNotMatch(block,/if \(this.fieldWidth/);
 });

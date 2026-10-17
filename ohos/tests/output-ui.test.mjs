@@ -9,6 +9,7 @@ const {SerialDiagnosticSnapshot}=await import('../entry/src/main/ets/app/SerialD
 const {OutputSettingsModel,OutputSettingsDraft}=await import('../entry/src/main/ets/output/OutputSettingsModel.ts');
 const {OutputEndpoint}=await import('../entry/src/main/ets/output/OutputCoordinator.ts');
 const { KeyboardInputSession } = await import('../entry/src/main/ets/app/KeyboardInputSession.ts');
+const { SettingsDraftOwner } = await import('../entry/src/main/ets/presentation/SettingsDraftOwner.ts');
 const {OutputConfiguration,SavedOutputTarget}=await import('../entry/src/main/ets/settings/OutputConfiguration.ts');
 const device={id:'TCode-0.3',axes:[{name:'L0',enabled:true}]};
 const profile={precision:4,revision:7,axisOrder:['L0'],maximumDurationMs:10000,maximumPayloadBytes:1024};
@@ -40,8 +41,8 @@ test('application native output lifecycle creates no connection and gates immedi
  assert.equal(collection.get('tcp:0'),port);assert.deepEqual(calls,[['create'],['foreground',false]]);
  NativeOutputSession.current({});assert.equal(calls.filter(([kind])=>kind==='create').length,1);
  const ability=readFileSync(new URL('../entry/src/main/ets/entryability/EntryAbility.ets',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace('export default class','class');
- const EntryAbility=new Function('UIAbility','NativeOutputSession','AppStorage','PlaybackSession','NativeWindowPresentation','RemoteMediaSession',stripTypeScriptTypes(ability)+';return EntryAbility;')(class{},NativeOutputSession,{setOrCreate(_name,value){calls.push(['storage',value]);}},{flushIfReady(){calls.push(['flush']);}},{setForeground(){},destroyStage(){}},{closeIfReady(){}});
- calls.length=0;const app=new EntryAbility();app.onBackground();assert.deepEqual(calls,[['foreground',false],['storage',false],['flush']]);
+ const EntryAbility=new Function('NativeKeyboardWindow','UIAbility','NativeOutputSession','AppStorage','PlaybackSession','NativeWindowPresentation','RemoteMediaSession',stripTypeScriptTypes(ability)+';return EntryAbility;')({claimStage(){return 1;},bindStage(){},setForeground(){},releaseStage(){}},class{},NativeOutputSession,{setOrCreate(_name,value){calls.push(['storage',value]);}},{flushIfReady(){calls.push(['flush']);}},{setForeground(){},destroyStage(){}},{closeIfReady(){}});
+ calls.length=0;const app=new EntryAbility();app.lifecycleOwner=++EntryAbility.lifecycleSequence; /* fixture already owns an established stage */ app.onBackground();assert.deepEqual(calls,[['foreground',false],['storage',false],['flush']]);
  calls.length=0;app.onForeground();assert.deepEqual(calls,[['foreground',true],['storage',true]]);
  app.onDestroy();assert.ok(calls.filter(([kind,value])=>kind==='foreground'&&value===false).length>0);
  assert.equal(calls.some(([kind])=>kind==='dispose'),false);app.onForeground();assert.equal(NativeOutputSession.current({}),collection);
@@ -60,7 +61,7 @@ test('opening or hiding output settings does not count as a configuration edit o
  const source=readFileSync(new URL('../entry/src/main/ets/components/OutputSettingsPanel.ets',import.meta.url),'utf8');
  const controller=('class Panel {'+source.slice(source.indexOf('export struct OutputSettingsPanel {')+'export struct OutputSettingsPanel {'.length,source.indexOf('  build() {'))+'}')
    .replace(/@Prop\s*@Watch\([^)]*\)\s*/g,'').replace(/@Prop\s*|@State\s*/g,'');
- const Panel=new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel','OutputSettingsDraft','OutputEndpoint','KeyboardInputSession',stripTypeScriptTypes(controller)+';return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel,OutputSettingsDraft,OutputEndpoint,KeyboardInputSession);
+ const Panel=new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel','OutputSettingsDraft','OutputEndpoint','KeyboardInputSession','SettingsDraftOwner',stripTypeScriptTypes(controller)+';return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel,OutputSettingsDraft,OutputEndpoint,KeyboardInputSession,SettingsDraftOwner);
  const panel=new Panel();let disarms=0;panel.onDisarm=()=>disarms++;panel.profile=profile;panel.profileId=device.id;panel.draft=draftOwner().draftSnapshot();panel.aboutToAppear();
  assert.equal(disarms,0);assert.equal(panel.model.ranges.length,1);panel.changed();assert.equal(disarms,1);
  const page=readFileSync(new URL('../entry/src/main/ets/pages/Index.ets',import.meta.url),'utf8');
@@ -72,7 +73,7 @@ function panelClass() {
  const source=readFileSync(new URL('../entry/src/main/ets/components/OutputSettingsPanel.ets',import.meta.url),'utf8');
  const controller=('class Panel {'+source.slice(source.indexOf('export struct OutputSettingsPanel {')+'export struct OutputSettingsPanel {'.length,source.indexOf('  build() {'))+'}')
    .replace(/@Prop\s*@Watch\([^)]*\)\s*/g,'').replace(/@Prop\s*|@State\s*/g,'');
- return new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel','OutputSettingsDraft','OutputEndpoint','KeyboardInputSession',stripTypeScriptTypes(controller)+';return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel,OutputSettingsDraft,OutputEndpoint,KeyboardInputSession);
+ return new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel','OutputSettingsDraft','OutputEndpoint','KeyboardInputSession','SettingsDraftOwner',stripTypeScriptTypes(controller)+';return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel,OutputSettingsDraft,OutputEndpoint,KeyboardInputSession,SettingsDraftOwner);
 }
 function draftOwner() {
  const Owner=createOutputOwner(()=>inertCoordinator());Owner.current({});Owner.restore(new OutputConfiguration(),device,7);Owner.addTarget('webSocket');return Owner;

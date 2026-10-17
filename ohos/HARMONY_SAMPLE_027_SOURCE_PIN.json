@@ -1,0 +1,54 @@
+{
+  "source": "https://gitcode.com/HarmonyOS_Samples/sample_in_harmonyos",
+  "commit": "7aa95cac4eca15e39fc6638cdf1de7db6fb70ad6",
+  "originalUserReference": "https://gitee.com/harmonyos_samples/sample_in_harmonyos",
+  "migrationCommit": "3a4d6b7753b5cffa204ef42222fcef9531eaf44b",
+  "license": "Apache-2.0",
+  "scope": "API and component-pattern reference; no sample application logic or demonstration actions imported",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "96fd9dba9790d29216d57086cd79309870ecf33b10a51bec3b615b9a29420cfd"
+    },
+    {
+      "path": "build-profile.json5",
+      "sha256": "32cd807327fe607c27da50110ce39ad0efd1a4892a9a71fa762c5263b1672f4f"
+    },
+    {
+      "path": "common/src/main/ets/util/MaterialUtil.ets",
+      "sha256": "b95541f4e4bccc54bf55b2700bf9dd31624622905abeb1933124c67767a25375"
+    },
+    {
+      "path": "common/src/main/ets/util/HdsUtil.ets",
+      "sha256": "853160fc6bce6943bb66609ad89522c167b9b6aeaa2f07b2b59c34e1a45482b2"
+    },
+    {
+      "path": "features/abilitycommon/src/main/ets/view/HomeView.ets",
+      "sha256": "dbbdc2660c54465073684ed247dc7ecde3261a615eb0ac512671188d6d21cb01"
+    },
+    {
+      "path": "features/componentlibrary/src/main/ets/componentdetailview/tabview/component/TabBuilder.ets",
+      "sha256": "4f0b38bb7ce9a1113d9a2402828c84ff7d0a82ccda701a676a2f243e9b14324b"
+    },
+    {
+      "path": "features/componentlibrary/src/main/ets/view/ComponentDetailView.ets",
+      "sha256": "83ac0f26f72c4b3ce6e5bba57e6d8d48c89cf92ed0ce012ab69b274420f1c7e7"
+    },
+    {
+      "path": "features/componentlibrary/src/main/ets/componentdetailview/customdialog/component/CustomDialogComponent.ets",
+      "sha256": "d901264b9916389f4309a7d6145310d1b448eb7fcb63f6e7b18479a3584acd4d"
+    },
+    {
+      "path": "features/componentlibrary/src/main/ets/componentdetailview/buttonview/viewmodel/ButtonAttributeModifier.ets",
+      "sha256": "0f1128dd92d146409bc3d1fa908da35431af8c20b69a5ba17db795cef1eefb14"
+    },
+    {
+      "path": "features/componentlibrary/src/main/ets/componentdetailview/list/component/ListBuilder.ets",
+      "sha256": "73a77ffb66e6b6a6ca959067f6f6da74b20ce2a5c888e8e2767416bc8d88d239"
+    },
+    {
+      "path": "features/componentlibrary/src/main/ets/component/MenuItemBuilder.ets",
+      "sha256": "0a8a28185dbe073685873f35061b4b14e491b1a860efa19542995ac56d29ceed"
+    }
+  ]
+}

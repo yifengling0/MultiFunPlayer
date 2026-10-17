@@ -1,4 +1,5 @@
 import { UiStyle } from '../presentation/UiStyle';
+import { SettingsDraftOwner } from '../presentation/SettingsDraftOwner';
 import { PlaylistPanelAction, PlaylistPanelSnapshot, PlaylistPanelRow, PlaylistPresentation } from '../core/playback/PlaylistPresentation';
 import { SettingsNumberField, SettingsSwitchField, SettingsSectionTitle } from './CurvePointEditor';
 
@@ -6,6 +7,9 @@ import { SettingsNumberField, SettingsSwitchField, SettingsSectionTitle } from '
  * cancellation and all clocks. Density is an explicit preference on every device. */
 @Component
 export struct InternalPlaylistPanel {
+  draftOwner: SettingsDraftOwner = new SettingsDraftOwner();
+  @Prop draftScope: string = '';
+  @Prop draftEpoch: number = 0;
   @Prop snapshot: PlaylistPanelSnapshot = new PlaylistPanelSnapshot();
   @Prop compact: boolean = false;
   onAction: (action: PlaylistPanelAction) => void = (_action: PlaylistPanelAction): void => {};
@@ -18,34 +22,42 @@ export struct InternalPlaylistPanel {
   }
   @Builder
   private command(label: string, kind: string, enabled: boolean) {
-    Button(label).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-      .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' })
+    Button(label)
+      .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control })
       .fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius).margin({ right: 6, bottom: 6 })
-      .backgroundColor(kind === 'connect' && this.snapshot.connected ? UiStyle.danger : UiStyle.accentSoft)
-      .fontColor(kind === 'connect' && this.snapshot.connected ? UiStyle.field : UiStyle.ink)
-      .enabled(enabled).accessibilityText(label).onClick(() => this.emit(kind))
+      .enabled(enabled).accessibilityText(label).fontColor(kind === 'connect' && !this.snapshot.connected ? UiStyle.field : kind === 'connect' || kind === 'clear' || kind === 'cleanup' ? UiStyle.danger : UiStyle.ink).backgroundColor(kind === 'connect' && !this.snapshot.connected ? UiStyle.accent : UiStyle.field).border({ width: 1, color: kind === 'connect' && !this.snapshot.connected ? UiStyle.accent : UiStyle.edge })
+      .stateStyles({
+        focused: { .outline({ width: 2, color: UiStyle.accent }) },
+        disabled: { .opacity(UiStyle.disabledOpacity) }
+      }).onClick(() => this.emit(kind))
   }
   @Builder
   private playlistRow(row: PlaylistPanelRow) {
     Column({ space: UiStyle.gap(this.compact) }) {
       Text((row.index + 1) + '. ' + row.name + (row.exists ? '' : ' · 已缺失'))
         .fontSize(UiStyle.body(this.compact)).fontColor(row.exists ? UiStyle.ink : UiStyle.danger).width('100%').wordBreak(WordBreak.BREAK_ALL)
-      Button(row.index === this.snapshot.currentIndex ? '▶ 当前脚本' : '选择此脚本').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-        .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius)
-        .width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact))
-        .backgroundColor(row.index === this.snapshot.currentIndex ? UiStyle.accent : UiStyle.accentSoft)
-        .fontColor(!row.exists ? UiStyle.danger : row.index === this.snapshot.currentIndex ? UiStyle.field : UiStyle.ink)
-        .enabled(this.active() && row.exists).accessibilityText('选择脚本 ' + row.name)
-        .onClick(() => this.emit('select', row.index))
-      Button('移除').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-        .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact))
+      Button(row.index === this.snapshot.currentIndex ? '▶ 当前脚本' : '选择此脚本')
+        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius)
+        .width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+        .enabled(this.active() && row.exists).accessibilityText((row.index === this.snapshot.currentIndex ? '当前脚本：' : '选择脚本：') + row.name)
+        .fontColor(!row.exists ? UiStyle.danger : row.index === this.snapshot.currentIndex ? UiStyle.accent : UiStyle.ink).backgroundColor(row.index === this.snapshot.currentIndex ? UiStyle.accentSoft : UiStyle.field).border({ width: 1, color: row.index === this.snapshot.currentIndex ? UiStyle.accent : UiStyle.edge }).fontWeight(row.index === this.snapshot.currentIndex ? FontWeight.Medium : FontWeight.Normal)
+        .stateStyles({
+          focused: { .outline({ width: 2, color: UiStyle.accent }) },
+          disabled: { .opacity(UiStyle.disabledOpacity) }
+        }).onClick(() => this.emit('select', row.index))
+      Button('移除')
+        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
         .enabled(this.active()).accessibilityText('从队列移除 ' + row.name)
-        .fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).onClick(() => this.emit('remove', row.index))
+        .fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+        .stateStyles({
+          focused: { .outline({ width: 2, color: UiStyle.accent }) },
+          disabled: { .opacity(UiStyle.disabledOpacity) }
+        }).onClick(() => this.emit('remove', row.index))
     }.width('100%').padding({ top: 8, bottom: 8 }).margin({ bottom: 8 }).border({ width: { bottom: 1 }, color: UiStyle.edge })
   }
   build() {
     Column({ space: UiStyle.gap(this.compact) }) {
-      SettingsSectionTitle({ label: 'INTERNAL · 脚本播放列表' })
+      SettingsSectionTitle({ label: 'INTERNAL · 脚本播放列表', topLevel: true })
       Text(this.snapshot.connected ? '已连接 · ' + Math.max(0, this.snapshot.currentIndex + 1) + ' / ' + this.snapshot.rows.length : '未连接 Internal')
         .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       if (this.snapshot.readOnly) {
@@ -55,8 +67,12 @@ export struct InternalPlaylistPanel {
         Flex({ wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
           LoadingProgress().width(24).height(24)
           Text('正在刷新或加载脚本…').fontSize(UiStyle.body(this.compact)).width('100%')
-          Button('取消').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-            .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).enabled(!this.snapshot.readOnly).onClick(() => this.emit('cancel'))
+          Button('取消').fontSize(UiStyle.body(this.compact))
+            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).enabled(!this.snapshot.readOnly).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+            .stateStyles({
+              focused: { .outline({ width: 2, color: UiStyle.accent }) },
+              disabled: { .opacity(UiStyle.disabledOpacity) }
+            }).onClick(() => this.emit('cancel'))
         }.width('100%')
       }
       if (this.snapshot.error.length > 0) {
@@ -109,10 +125,14 @@ export struct InternalPlaylistPanel {
             ListItem() {
               Column({ space: UiStyle.gap(this.compact) }) {
                 Text(row.name).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
-                Button('＋ 加入队列').fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-                .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' })
+                Button('＋ 加入队列')
+                .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control })
                 .fontSize(UiStyle.body(this.compact)).enabled(this.active() && row.exists).accessibilityText('加入队列 ' + row.name)
-                .onClick(() => this.emit('append', row.index))
+                .fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+                  .stateStyles({
+                    focused: { .outline({ width: 2, color: UiStyle.accent }) },
+                    disabled: { .opacity(UiStyle.disabledOpacity) }
+                  }).onClick(() => this.emit('append', row.index))
               }.width('100%').padding({ top: 8, bottom: 8 }).border({ width: { bottom: 1 }, color: UiStyle.edge })
             }
           }, (row: PlaylistPanelRow) => row.index + ':' + row.associationId)
@@ -133,7 +153,8 @@ export struct InternalPlaylistPanel {
         SettingsSwitchField({ label: '启用自动跳转', value: this.snapshot.autoSkipEnabled, compact: this.compact,
           onChange: (enabled: boolean) => this.emit('autoSkip', -1, 0, enabled) })
         if (this.snapshot.autoSkipOffset > 0) { Text('当前快捷键偏移：+' + this.snapshot.autoSkipOffset.toString() + ' 秒（原快捷键允许正值；下方编辑器仅设置提前量）').fontSize(UiStyle.helper).width('100%') }
-        SettingsNumberField({ label: '提前偏移', unit: '秒 ≤ 0', value: this.snapshot.autoSkipOffset,
+        SettingsNumberField({ draftOwner: this.draftOwner, draftScope: this.draftScope, draftKey: 'autoSkipOffset',
+          draftEpoch: this.draftEpoch, label: '提前偏移', unit: '秒 ≤ 0', value: this.snapshot.autoSkipOffset,
           maximum: 0, compact: this.compact, editable: this.editable(),
           onCommit: (value: number): boolean => { this.emit('autoSkipOffset', -1, value); return this.editable(); } })
       }.width('100%').enabled(this.editable())

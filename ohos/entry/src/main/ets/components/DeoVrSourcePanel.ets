@@ -1,5 +1,6 @@
-import { UiStyle } from '../presentation/UiStyle';
 import { t } from '../l10n/Texts';
+import { UiStyle } from '../presentation/UiStyle';
+import { SettingsDraftOwner } from '../presentation/SettingsDraftOwner';
 import { MediaSourceConfiguration } from '../settings/MediaSourceConfiguration';
 import { SettingsChoiceField, SettingsNumberField, SettingsOption, SettingsSectionTitle, SettingsTextField } from './CurvePointEditor';
 
@@ -29,6 +30,9 @@ export class DeoVrSourceEdits {
 
 @Component
 export struct DeoVrSourcePanel {
+  draftOwner: SettingsDraftOwner = new SettingsDraftOwner();
+  @Prop @Watch('ownerChanged') draftScope: string = '';
+  @Prop @Watch('ownerChanged') draftEpoch: number = 0;
   @Prop @Watch('ownerChanged') configuration: MediaSourceConfiguration = new MediaSourceConfiguration();
   @Prop @Watch('ownerChanged') readOnly: boolean = false;
   @Prop compact: boolean = false;
@@ -46,17 +50,31 @@ export struct DeoVrSourcePanel {
   onConnect: () => void = (): void => {};
   onDisconnect: () => void = (): void => {};
   @State private pendingRequest: string = '';
+  @State private draftNotice: string = '';
   private interactionEpoch: number = 0;
   private active: boolean = true;
+  private deliveryLease: number = 0;
+  private deliverySource(): string { return JSON.stringify([this.draftScope, this.draftEpoch, this.readOnly]); }
+  private deliveryToken(source: string): number {
+    if (!this.draftOwner.isCurrent(this.deliveryLease, source)) { this.deliveryLease = this.draftOwner.open(this.draftScope, '$delivery', source, '').token; }
+    return this.deliveryLease;
+  }
+  private deliveryCurrent(token: number, source: string): boolean {
+    return this.active && source === this.deliverySource() && this.draftOwner.isCurrent(token, source);
+  }
+
 
   aboutToAppear(): void { this.active = true; this.interactionEpoch++; }
-  aboutToDisappear(): void { this.active = false; this.interactionEpoch++; }
-  private ownerChanged(): void { this.interactionEpoch++; }
+  aboutToDisappear(): void { this.draftOwner.release(this.deliveryLease); this.active = false; this.interactionEpoch++; }
+  private ownerChanged(): void { this.draftOwner.release(this.deliveryLease); this.interactionEpoch++; }
   private runtimeChanged(): void { this.pendingRequest = ''; this.interactionEpoch++; }
   private canEdit(): boolean {
     return this.active && !this.readOnly && !this.busy && !this.connected && this.closeConfirmed && this.pendingRequest === '';
   }
   private canEditEndpoint(): boolean { return this.canEdit() && this.configuration.selectedSource !== 'internal'; }
+  private pendingEndpointDraft(): boolean {
+    return this.draftOwner.hasPending(this.draftScope, this.configuration.selectedSource + ':');
+  }
   private canConnect(): boolean {
     return this.canEditEndpoint() && MediaSourceConfiguration.validate(this.configuration).length === 0;
   }
@@ -68,7 +86,7 @@ export struct DeoVrSourcePanel {
   }
   private emit(next: MediaSourceConfiguration | null): boolean {
     if (next === null || !this.canEdit()) { return false; }
-    this.interactionEpoch++;
+    this.interactionEpoch++; this.draftNotice = '';
     this.onChange(next);
     return true;
   }
@@ -83,27 +101,33 @@ export struct DeoVrSourcePanel {
   }
   private sourceHandler(): (value: string) => void {
     const owner: MediaSourceConfiguration = this.configuration; const epoch: number = this.interactionEpoch;
+    const source = this.deliverySource(); const token = this.deliveryToken(source);
     return (value: string): void => {
-      if (this.configuration === owner && this.interactionEpoch === epoch) { this.selectSource(value); }
+      if (this.deliveryCurrent(token, source) && this.configuration === owner && this.interactionEpoch === epoch) { this.selectSource(value); }
     };
   }
   private hostHandler(): (value: string) => boolean {
     const owner: MediaSourceConfiguration = this.configuration; const epoch: number = this.interactionEpoch;
-    return (value: string): boolean => this.configuration === owner && this.interactionEpoch === epoch && this.commitHost(value);
+    const source = this.deliverySource(); const token = this.deliveryToken(source);
+    return (value: string): boolean => this.deliveryCurrent(token, source) && this.configuration === owner && this.interactionEpoch === epoch && this.commitHost(value);
   }
   private portHandler(): (value: number) => boolean {
     const owner: MediaSourceConfiguration = this.configuration; const epoch: number = this.interactionEpoch;
-    return (value: number): boolean => this.configuration === owner && this.interactionEpoch === epoch && this.commitPort(value);
+    const source = this.deliverySource(); const token = this.deliveryToken(source);
+    return (value: number): boolean => this.deliveryCurrent(token, source) && this.configuration === owner && this.interactionEpoch === epoch && this.commitPort(value);
   }
   private connectionHandler(disconnect: boolean): () => void {
     const owner: MediaSourceConfiguration = this.configuration; const epoch: number = this.interactionEpoch;
+    const source = this.deliverySource(); const token = this.deliveryToken(source);
     return (): void => {
-      if (this.configuration !== owner || this.interactionEpoch !== epoch) { return; }
+      if (!this.deliveryCurrent(token, source) || this.configuration !== owner || this.interactionEpoch !== epoch) { return; }
       if (disconnect) { this.disconnect(); } else { this.connect(); }
     };
   }
   private connect(): void {
     if (!this.canConnect()) { return; }
+    if (this.pendingEndpointDraft()) { this.draftNotice = '请先确认或取消未应用的主机和端口，再连接。'; return; }
+    this.draftNotice = '';
     this.pendingRequest = 'connect'; this.interactionEpoch++;
     this.onConnect();
   }
@@ -143,7 +167,7 @@ export struct DeoVrSourcePanel {
     // The parent workspace owns scrolling and passes the saved density choice.
     // Both densities retain at least 52vp touch targets in a narrow pane.
     Column({ space: UiStyle.gap(this.compact) }) {
-      SettingsSectionTitle({ label: '媒体来源 · MEDIA SOURCE' })
+      SettingsSectionTitle({ label: '媒体来源 · MEDIA SOURCE', topLevel: true })
       if (this.readOnly) {
         Text('当前设置仅可查看；已有连接仍可取消或断开。').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.warning).width('100%')
       }
@@ -154,19 +178,34 @@ export struct DeoVrSourcePanel {
           .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       } else {
         SettingsTextField({ label: this.sourceLabel() + ' 主机 / IP · 不含凭据', value: this.endpointHost(),
+          draftOwner: this.draftOwner, draftScope: this.draftScope,
+          draftKey: this.configuration.selectedSource + ':host', draftSource: JSON.stringify(this.configuration),
+          draftEpoch: this.draftEpoch,
           compact: this.compact, editable: this.canEditEndpoint(), onCommit: this.hostHandler() })
-        SettingsNumberField({ label: 'TCP 端口', value: this.endpointPort(), minimum: 1, maximum: 65535,
+        SettingsNumberField({ label: 'TCP 端口', value: this.endpointPort(),
+          draftOwner: this.draftOwner, draftScope: this.draftScope,
+          draftKey: this.configuration.selectedSource + ':port', draftSource: JSON.stringify(this.configuration),
+          draftEpoch: this.draftEpoch,  minimum: 1, maximum: 65535,
           integer: true, compact: this.compact, editable: this.canEditEndpoint(), onCommit: this.portHandler() })
         Text('仅保存来源选择和端点。恢复设置不会自动连接、播放或启用输出。连接期间请先断开，再修改来源或端点。')
           .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
-        Button('连接 ' + this.sourceLabel()).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-          .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').enabled(this.canConnect())
-          .accessibilityText('显式连接 ' + this.sourceLabel()).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).onClick(this.connectionHandler(false))
+        if (this.draftNotice.length > 0) { Text(this.draftNotice).fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%') }
+        Button('连接 ' + this.sourceLabel()).fontSize(UiStyle.body(this.compact))
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').enabled(this.canConnect())
+          .accessibilityText('显式连接 ' + this.sourceLabel()).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.connectionHandler(false))
       }
       if (this.busy || this.connected || !this.closeConfirmed || this.pendingRequest !== '') {
-        Button(this.connectionLabel()).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).backgroundColor(UiStyle.accentSoft)
-          .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').enabled(this.canDisconnect())
-          .accessibilityText('取消连接或断开 ' + this.sourceLabel()).fontColor(UiStyle.field).backgroundColor(UiStyle.danger).onClick(this.connectionHandler(true))
+        Button(this.connectionLabel()).fontSize(UiStyle.body(this.compact))
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').enabled(this.canDisconnect())
+          .accessibilityText('取消连接或断开 ' + this.sourceLabel()).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .stateStyles({
+            focused: { .outline({ width: 2, color: UiStyle.accent }) },
+            disabled: { .opacity(UiStyle.disabledOpacity) }
+          }).onClick(this.connectionHandler(true))
       }
       if (this.configuration.selectedSource !== 'internal' || this.connected || this.busy || !this.closeConfirmed) {
         Text('连接状态：' + t(this.status)).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
