@@ -4,9 +4,14 @@
 # system-wide, which smudges these LF blobs to CRLF and turns every pinned byte check
 # into a failure. Pin LF wherever a test compares bytes. Docs/ and the desktop C# build
 # are not content-pinned, so they keep their .editorconfig crlf preference.
-/ohos/** text eol=lf
-/Source/** text eol=lf
-/tools/** text eol=lf
+#
+# text=auto, not bare text: a blanket `text` overrides Git's binary detection and strips
+# CR bytes out of images and other binaries. It already cost 5 bytes from
+# ohos/docs/interface-025/mfp-harmony-concept.png. auto only converts what Git detects
+# as text, and skips binaries.
+/ohos/** text=auto eol=lf
+/Source/** text=auto eol=lf
+/tools/** text=auto eol=lf
 
 # Two upstream files were committed with CRLF inside the blob itself, so they must be
 # reproduced byte for byte rather than normalized.
