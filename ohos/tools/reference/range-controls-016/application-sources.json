@@ -1,0 +1,19 @@
+{
+  "sourceCommit": "36c08fbb99ac9398a63ff1cca1bbf68cd2228a94",
+  "sha256": {
+    "Source/MultiFunPlayer/MultiFunPlayer.csproj": "a2620172310b16e6979566dc831da976187a1814cd625038faab7a67a94068c9",
+    "Source/MultiFunPlayer/FodyWeavers.xml": "c6eac35ef5dd5f819fe937753918c7ded13bce873889a7d749e0c03442961194",
+    "Source/MultiFunPlayer/MotionProvider/AbstractMotionProvider.cs": "f970c36b3d6ad042c60bb393d9a8e7344c68ce22985d10dced85fa1783209f28",
+    "Source/MultiFunPlayer/MotionProvider/ViewModels/RandomMotionProvider.cs": "8d2a465883d8cf7559fe225edf20497dce46fc196f8be2db7e24f17278deaf42",
+    "Source/MultiFunPlayer/MotionProvider/IMotionProviderManager.cs": "609d3a02b8b0dc07304389385c041dbaa063357f686ae56c81da59e7981164cd",
+    "Source/MultiFunPlayer/UI/Converters/MotionProviderSelectorConverter.cs": "edbec9c2f605be64d7178a99b1c686f7fac48a0cf327a442b96fb2d31954e6ec",
+    "Source/MultiFunPlayer/UI/Controls/Views/ScriptView.xaml": "f42527b6cef4181e2935974f2a275d5eef0d06b976435a6cfd2afb88ebb86336",
+    "Source/MultiFunPlayer/UI/Themes/RangeSlider.xaml": "3708b71f819f743e93f8e38fcccc97ee44302a28f698d87dd50ab23a5ecdf8b3",
+    "Source/MultiFunPlayer/App.xaml": "abc63b1ec07337b3f4b58ae63aa5f8ddfb0228abb1db4a76089e7ee840323802",
+    "Source/MultiFunPlayer/Shortcut/IShortcutSettingTemplateContext.cs": "57b5e648671b06258d221aed1ba059de5d53d82aa7ba4cc3112a3f23ee413cf3",
+    "Source/MultiFunPlayer/MotionProvider/Views/CustomCurveMotionProvider.xaml": "e76573b9cb5a0186a1fe6e272f8da4bc08bbfb7bde0be3d1b49c18774b52d6c3",
+    "Source/MultiFunPlayer/MotionProvider/Views/LoopingScriptMotionProvider.xaml": "0622142c523f3a4fd2a21253d3343c7b0904bb42b1bfd2d7bd3ccc60fb252838",
+    "Source/MultiFunPlayer/MotionProvider/Views/PatternMotionProvider.xaml": "6ece9dde709da0ea50a52b746ced1b0c87a1bd22882589b34d11d473cc7460e5",
+    "Source/MultiFunPlayer/MotionProvider/Views/RandomMotionProvider.xaml": "5f4b3ddf6af92e537c6a67f0f7b77a12edb78a372aa1ad714a05bfd31191ef4c"
+  }
+}

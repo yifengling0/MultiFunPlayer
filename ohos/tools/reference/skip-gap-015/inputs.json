@@ -1,0 +1,4874 @@
+[
+  {
+    "name": "selected_axis_is_ignored",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "targetAxis": "R0",
+    "mediaPosition": 1,
+    "note": "Select R0, but original minimum across both bindings is L0=10."
+  },
+  {
+    "name": "null_target_checks_all",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "unknown_target_is_not_dereferenced",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "targetAxis": "Z9",
+    "mediaPosition": 1
+  },
+  {
+    "name": "empty_axes_short_circuits",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "invocation": "empty",
+    "mediaPosition": 1
+  },
+  {
+    "name": "null_enumerable_uses_all",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "invocation": "all",
+    "mediaPosition": 1
+  },
+  {
+    "name": "no_bound_axes",
+    "axes": [],
+    "mediaPosition": 1
+  },
+  {
+    "name": "null_empty_singleton_bindings",
+    "axes": [
+      {
+        "name": "L0",
+        "points": null,
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [],
+        "index": 0
+      },
+      {
+        "name": "R1",
+        "points": [
+          [
+            20,
+            0.5
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "earliest_past_blocks_future",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            35,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 15
+  },
+  {
+    "name": "earliest_equal_blocks_future",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            35,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 10
+  },
+  {
+    "name": "earliest_too_near_blocks_future",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            35,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 9,
+    "minimumSkip": 2
+  },
+  {
+    "name": "minimum_exact_is_rejected",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 8,
+    "minimumSkip": 2
+  },
+  {
+    "name": "minimum_just_greater_is_allowed",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 7.999999,
+    "minimumSkip": 2
+  },
+  {
+    "name": "minimum_zero_requires_strictly_future",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 10,
+    "minimumSkip": 0
+  },
+  {
+    "name": "inside_non_gap_does_not_search_ahead",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            10,
+            0
+          ],
+          [
+            20,
+            1
+          ],
+          [
+            40,
+            1
+          ],
+          [
+            50,
+            0
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 5
+  },
+  {
+    "name": "before_starts_at_zero",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            10,
+            0
+          ],
+          [
+            20,
+            1
+          ],
+          [
+            40,
+            1
+          ],
+          [
+            50,
+            0
+          ]
+        ],
+        "index": -1
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "invalid_starts_at_zero",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            10,
+            0
+          ],
+          [
+            20,
+            1
+          ],
+          [
+            40,
+            1
+          ],
+          [
+            50,
+            0
+          ]
+        ],
+        "index": -2147483648
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "after_starts_at_zero",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            10,
+            0
+          ],
+          [
+            20,
+            1
+          ],
+          [
+            40,
+            1
+          ],
+          [
+            50,
+            0
+          ]
+        ],
+        "index": 2147483647
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "out_of_range_inside_index",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 999
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "negative_nonstandard_index_starts_zero",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": -2
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "last_index_no_following_point",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 2
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "flat_to_final_point",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0.3
+          ],
+          [
+            10,
+            0.3
+          ],
+          [
+            20,
+            0.3
+          ],
+          [
+            30,
+            0.3
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "value_epsilon_strictly_less",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0.000999
+          ],
+          [
+            20,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "value_epsilon_equal_not_gap",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0.001
+          ],
+          [
+            20,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "position_epsilon_strictly_less",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            0.000999,
+            1
+          ],
+          [
+            20,
+            0
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -5,
+    "minimumSkip": 0
+  },
+  {
+    "name": "position_epsilon_equal_not_gap",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            0.001,
+            1
+          ],
+          [
+            20,
+            0
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -5,
+    "minimumSkip": 0
+  },
+  {
+    "name": "raw_target_ignores_positive_offsets",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            40,
+            0.5
+          ],
+          [
+            50,
+            1
+          ]
+        ],
+        "index": 0,
+        "offset": 5,
+        "deriveIndexFromPosition": true
+      }
+    ],
+    "mediaPosition": 35,
+    "globalOffset": 10,
+    "note": "Original helpers prepare Index=2 at axis position20; target remains40, not55."
+  },
+  {
+    "name": "raw_target_ignores_negative_offset",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            40,
+            0.5
+          ],
+          [
+            50,
+            1
+          ]
+        ],
+        "index": 0,
+        "offset": -20,
+        "deriveIndexFromPosition": true
+      }
+    ],
+    "mediaPosition": 15,
+    "note": "Index=2 at axis position35, raw seek40 rather than offset-corrected20."
+  },
+  {
+    "name": "locked_bypassed_axis_remains_candidate",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0,
+        "locked": true,
+        "bypassScript": true
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            35,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1
+  },
+  {
+    "name": "linked_equal_keyframes_independent_indices",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            20,
+            1
+          ],
+          [
+            40,
+            1
+          ],
+          [
+            50,
+            0
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            20,
+            1
+          ],
+          [
+            40,
+            1
+          ],
+          [
+            50,
+            0
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 15,
+    "note": "Structural linked-like bindings have separate index; raw10 blocks40. Actual LinkedScriptResource lifecycle is outside host."
+  },
+  {
+    "name": "duration_clamp_occurs_after_threshold",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            30,
+            0
+          ],
+          [
+            35,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 9,
+    "mediaDuration": 10,
+    "minimumSkip": 5,
+    "note": "Gap threshold21 passes then original seek clamps30 to10, despite final distance1."
+  },
+  {
+    "name": "nan_media_position_original_seeks",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": "NaN",
+    "note": "Intentional portable safety divergence: OHOS may reject nonfinite current clock."
+  },
+  {
+    "name": "nan_media_duration_no_seek",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1,
+    "mediaDuration": "NaN"
+  },
+  {
+    "name": "infinite_media_duration_no_seek",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1,
+    "mediaDuration": "Infinity"
+  },
+  {
+    "name": "nan_minimum_direct_typed_call",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 9.5,
+    "minimumSkip": "NaN",
+    "note": "Typed callback bypasses numeric input validation; portable payload rejects NaN."
+  },
+  {
+    "name": "negative_minimum_direct_typed_call",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 9.5,
+    "minimumSkip": -1,
+    "note": "Portable payload rejects negative threshold."
+  },
+  {
+    "name": "negative_duration_direct_typed_call_throws",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1,
+    "mediaDuration": -1
+  },
+  {
+    "name": "sweep_00",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -2,
+    "minimumSkip": 0,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_01",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -1,
+    "minimumSkip": 1,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_02",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 0,
+    "minimumSkip": 2,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_03",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ]
+        ],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1,
+    "minimumSkip": 3,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_04",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 2,
+    "minimumSkip": 4,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_05",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            20,
+            0
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 3,
+    "minimumSkip": 0,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_06",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0.5
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ]
+        ],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 4,
+    "minimumSkip": 1,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_07",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0.0,
+            0
+          ],
+          [
+            0.0005,
+            0.5
+          ],
+          [
+            0.001,
+            0.5
+          ],
+          [
+            0.0015,
+            0.5
+          ],
+          [
+            0.002,
+            0.5
+          ],
+          [
+            0.0025,
+            0.5
+          ],
+          [
+            0.003,
+            0.5
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 5,
+    "minimumSkip": 2,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_08",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ],
+          [
+            35,
+            0.5
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 6,
+    "minimumSkip": 3,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_09",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 7,
+    "minimumSkip": 4,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_10",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 8,
+    "minimumSkip": 0,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_11",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -2,
+    "minimumSkip": 1,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_12",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0.5
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ]
+        ],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -1,
+    "minimumSkip": 2,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_13",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 0,
+    "minimumSkip": 3,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_14",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0.0,
+            0
+          ],
+          [
+            0.0005,
+            0
+          ],
+          [
+            0.001,
+            0.5
+          ],
+          [
+            0.0015,
+            0.5
+          ],
+          [
+            0.002,
+            0.5
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1,
+    "minimumSkip": 4,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_15",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ]
+        ],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 2,
+    "minimumSkip": 0,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_16",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 3,
+    "minimumSkip": 1,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_17",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ],
+          [
+            35,
+            0.5
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 4,
+    "minimumSkip": 2,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_18",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 5,
+    "minimumSkip": 3,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_19",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 6,
+    "minimumSkip": 4,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_20",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 7,
+    "minimumSkip": 0,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_21",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0.0,
+            0
+          ],
+          [
+            0.0005,
+            0
+          ],
+          [
+            0.001,
+            0
+          ]
+        ],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 8,
+    "minimumSkip": 1,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_22",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -2,
+    "minimumSkip": 2,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_23",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            20,
+            0
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -1,
+    "minimumSkip": 3,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_24",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0.5
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ]
+        ],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 0,
+    "minimumSkip": 4,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_25",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1,
+    "minimumSkip": 0,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_26",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ],
+          [
+            35,
+            0.5
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 2,
+    "minimumSkip": 1,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_27",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 3,
+    "minimumSkip": 2,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_28",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0.0,
+            0
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 4,
+    "minimumSkip": 3,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_29",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 5,
+    "minimumSkip": 4,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_30",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0.5
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ]
+        ],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 6,
+    "minimumSkip": 0,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_31",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 7,
+    "minimumSkip": 1,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_32",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 8,
+    "minimumSkip": 2,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_33",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ]
+        ],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -2,
+    "minimumSkip": 3,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_34",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -1,
+    "minimumSkip": 4,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_35",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0.0,
+            0
+          ],
+          [
+            0.0005,
+            0
+          ],
+          [
+            0.001,
+            0
+          ],
+          [
+            0.0015,
+            0
+          ],
+          [
+            0.002,
+            0
+          ],
+          [
+            0.0025,
+            0.5
+          ],
+          [
+            0.003,
+            0.5
+          ],
+          [
+            0.0035,
+            0.5
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 0,
+    "minimumSkip": 0,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_36",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1,
+    "minimumSkip": 1,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_37",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 2,
+    "minimumSkip": 2,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_38",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 3,
+    "minimumSkip": 3,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_39",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ]
+        ],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 4,
+    "minimumSkip": 4,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_40",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 5,
+    "minimumSkip": 0,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_41",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            20,
+            0
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 6,
+    "minimumSkip": 1,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_42",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0005,
+            0.5
+          ],
+          [
+            0.001,
+            0.5
+          ],
+          [
+            0.0015,
+            0.5
+          ],
+          [
+            0.002,
+            0.5
+          ],
+          [
+            0.0025,
+            0.5
+          ]
+        ],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 7,
+    "minimumSkip": 2,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_43",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 8,
+    "minimumSkip": 3,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_44",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ],
+          [
+            35,
+            0.5
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -2,
+    "minimumSkip": 4,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_45",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -1,
+    "minimumSkip": 0,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_46",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 0,
+    "minimumSkip": 1,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_47",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1,
+    "minimumSkip": 2,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_48",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0.5
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ]
+        ],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 2,
+    "minimumSkip": 3,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_49",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0.0,
+            0
+          ],
+          [
+            0.0005,
+            0.5
+          ],
+          [
+            0.001,
+            0.5
+          ],
+          [
+            0.0015,
+            0.5
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 3,
+    "minimumSkip": 4,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_50",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 4,
+    "minimumSkip": 0,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_51",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ]
+        ],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 5,
+    "minimumSkip": 1,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_52",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 6,
+    "minimumSkip": 2,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_53",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ],
+          [
+            35,
+            0.5
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 7,
+    "minimumSkip": 3,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_54",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 8,
+    "minimumSkip": 4,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_55",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -2,
+    "minimumSkip": 0,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_56",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0.0,
+            0
+          ],
+          [
+            0.0005,
+            0
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -1,
+    "minimumSkip": 1,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_57",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ]
+        ],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 0,
+    "minimumSkip": 2,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_58",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1,
+    "minimumSkip": 3,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_59",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            20,
+            0
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 2,
+    "minimumSkip": 4,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_60",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0.5
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ]
+        ],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 3,
+    "minimumSkip": 0,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_61",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 4,
+    "minimumSkip": 1,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_62",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ],
+          [
+            35,
+            0.5
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 5,
+    "minimumSkip": 2,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_63",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 6,
+    "minimumSkip": 3,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_64",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 7,
+    "minimumSkip": 4,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_65",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 8,
+    "minimumSkip": 0,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_66",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0.5
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ]
+        ],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -2,
+    "minimumSkip": 1,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_67",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -1,
+    "minimumSkip": 2,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_68",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 0,
+    "minimumSkip": 3,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_69",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ]
+        ],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 1,
+    "minimumSkip": 4,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_70",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0.0,
+            0
+          ],
+          [
+            0.0005,
+            0
+          ],
+          [
+            0.001,
+            0
+          ],
+          [
+            0.0015,
+            0
+          ],
+          [
+            0.002,
+            0.5
+          ],
+          [
+            0.0025,
+            0.5
+          ],
+          [
+            0.003,
+            0.5
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 2,
+    "minimumSkip": 0,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_71",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ],
+          [
+            35,
+            0.5
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 3,
+    "minimumSkip": 1,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_72",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 4,
+    "minimumSkip": 2,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_73",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 5,
+    "minimumSkip": 3,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_74",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "index": 0
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 6,
+    "minimumSkip": 4,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_75",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ]
+        ],
+        "index": 1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 7,
+    "minimumSkip": 0,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_76",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            10,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ],
+        "index": 2
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 8,
+    "minimumSkip": 1,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_77",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0.0,
+            0
+          ],
+          [
+            0.0005,
+            0
+          ],
+          [
+            0.001,
+            0
+          ],
+          [
+            0.0015,
+            0
+          ],
+          [
+            0.002,
+            0
+          ]
+        ],
+        "index": 2147483647
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            27,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -2,
+    "minimumSkip": 2,
+    "targetAxis": "R0"
+  },
+  {
+    "name": "sweep_78",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0.5
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ]
+        ],
+        "index": -2147483648
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            25,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": -1,
+    "minimumSkip": 3,
+    "targetAxis": null
+  },
+  {
+    "name": "sweep_79",
+    "axes": [
+      {
+        "name": "L0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            5,
+            0.5
+          ],
+          [
+            10,
+            0.5
+          ],
+          [
+            15,
+            0.5
+          ],
+          [
+            20,
+            0.5
+          ],
+          [
+            25,
+            0.5
+          ],
+          [
+            30,
+            0.5
+          ]
+        ],
+        "index": -1
+      },
+      {
+        "name": "R0",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            21,
+            0
+          ],
+          [
+            26,
+            1
+          ]
+        ],
+        "index": 0
+      }
+    ],
+    "mediaPosition": 0,
+    "minimumSkip": 4,
+    "targetAxis": "R0"
+  }
+]

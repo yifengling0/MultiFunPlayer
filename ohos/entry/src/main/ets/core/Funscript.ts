@@ -145,6 +145,7 @@ export class FunscriptParser {
     }
     const axes: FunscriptAxis[] = [];
     let inputActionCount: number = 0;
+    const embeddedNames: Set<string> = new Set<string>();
     if (raw.actions !== undefined) {
       axes.push(FunscriptParser.parseAxis('L0', raw.actions));
       inputActionCount += raw.actions.length;
@@ -163,6 +164,8 @@ export class FunscriptParser {
             throw new Error('Each axis requires a name and actions.');
           }
           const name: string = typeof axis.id === 'string' ? axis.id : axis.name as string;
+          if (embeddedNames.has(name)) { throw new Error('Duplicate embedded axis name: ' + name); }
+          embeddedNames.add(name);
           axes.push(FunscriptParser.parseAxis(name, axis.actions));
           inputActionCount += axis.actions.length;
           if (inputActionCount > FunscriptParser.MAX_ACTIONS) { throw new Error('Too many total actions.'); }
@@ -185,21 +188,24 @@ export class FunscriptParser {
     if (axes.length === 0 || axes.length > FunscriptParser.MAX_AXES) {
       throw new Error('Funscript requires 1 to 32 axes.');
     }
-    const seen: Set<string> = new Set<string>();
-    let count: number = 0;
+    const unique: FunscriptAxis[] = [];
     for (const axis of axes) {
-      if (seen.has(axis.name)) { throw new Error('Duplicate axis name: ' + axis.name); }
-      seen.add(axis.name);
-      count += axis.actions.length;
+      const index: number = unique.findIndex(existing => existing.name === axis.name);
+      if (index >= 0) { unique[index] = axis; } else { unique.push(axis); }
     }
-    if (count > FunscriptParser.MAX_ACTIONS) { throw new Error('Too many total actions.'); }
-    return new FunscriptDocument(axes, FunscriptParser.parseMetadata(raw.metadata));
+    // The bounded raw input budget counts overwritten resources too. Original
+    // FunscriptReader assigns Resources[axis], so embedded L0 overrides actions.
+    if (inputActionCount > FunscriptParser.MAX_ACTIONS) { throw new Error('Too many total actions.'); }
+    return new FunscriptDocument(unique, FunscriptParser.parseMetadata(raw.metadata));
   }
 
   /** Copy programmatic documents without trusting supplied duration or prototypes. */
   static cloneDocument(document: FunscriptDocument): FunscriptDocument {
     if (document === null || typeof document !== 'object' || Array.isArray(document)) {
       throw new Error('Invalid document.');
+    }
+    if (!Array.isArray(document.axes) || new Set(document.axes.map(axis => axis.name)).size !== document.axes.length) {
+      throw new Error('Duplicate or invalid document axes.');
     }
     const copy: FunscriptDocument = FunscriptParser.parse(JSON.stringify(new CloneAxesDocument(document.axes)));
     if (document.metadata !== undefined) {

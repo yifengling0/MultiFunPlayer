@@ -1,0 +1,341 @@
+{
+  "kind": "original-csharp-source-extracted-motion-providers",
+  "cases": [
+    {
+      "input": {
+        "name": "identical-points-reset-refreshes-deferred-loop-makima-tiles",
+        "provider": "custom",
+        "durationSeconds": 4,
+        "isLooping": false,
+        "points": [
+          [
+            1,
+            0
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        "frames": [
+          {
+            "deltaSeconds": 0
+          },
+          {
+            "deltaSeconds": 0,
+            "isLooping": true
+          },
+          {
+            "deltaSeconds": 0,
+            "interpolationMode": "Makima"
+          },
+          {
+            "deltaSeconds": 0,
+            "points": [
+              [
+                1,
+                0
+              ],
+              [
+                3,
+                1
+              ]
+            ]
+          },
+          {
+            "deltaSeconds": 0.5
+          },
+          {
+            "deltaSeconds": 0.5,
+            "points": [
+              [
+                1,
+                0
+              ],
+              [
+                3,
+                1
+              ]
+            ]
+          }
+        ]
+      },
+      "frames": [
+        {
+          "value": 0,
+          "timeSeconds": 0,
+          "syncRequests": 0,
+          "index": 0,
+          "playing": true
+        },
+        {
+          "value": 0,
+          "timeSeconds": 0,
+          "syncRequests": 0,
+          "index": 0,
+          "playing": true
+        },
+        {
+          "value": 0,
+          "timeSeconds": 0,
+          "syncRequests": 0,
+          "index": 0,
+          "playing": true
+        },
+        {
+          "value": 0.5,
+          "timeSeconds": 0,
+          "syncRequests": 0,
+          "index": 3,
+          "playing": true
+        },
+        {
+          "value": 0.5,
+          "timeSeconds": 0.5,
+          "syncRequests": 0,
+          "index": 3,
+          "playing": true
+        },
+        {
+          "value": 0.15625,
+          "timeSeconds": 1,
+          "syncRequests": 0,
+          "index": 3,
+          "playing": true
+        }
+      ]
+    },
+    {
+      "input": {
+        "name": "empty-resets-retain-phase-and-cache-until-restored",
+        "provider": "custom",
+        "durationSeconds": 4,
+        "points": [
+          [
+            0,
+            0.6
+          ]
+        ],
+        "frames": [
+          {
+            "deltaSeconds": 0.5
+          },
+          {
+            "deltaSeconds": 10,
+            "points": []
+          },
+          {
+            "deltaSeconds": 10,
+            "points": []
+          },
+          {
+            "deltaSeconds": 0.5,
+            "points": [
+              [
+                0,
+                0.8
+              ]
+            ]
+          },
+          {
+            "deltaSeconds": 0.5,
+            "points": [
+              [
+                2,
+                0.9
+              ],
+              [
+                -1,
+                0.1
+              ],
+              [
+                2,
+                0.4
+              ]
+            ]
+          }
+        ]
+      },
+      "frames": [
+        {
+          "value": 0.6,
+          "timeSeconds": 0.5,
+          "syncRequests": 0,
+          "index": 0,
+          "playing": true
+        },
+        {
+          "value": 0.6,
+          "timeSeconds": 0.5,
+          "syncRequests": 0,
+          "index": 0,
+          "playing": true
+        },
+        {
+          "value": 0.6,
+          "timeSeconds": 0.5,
+          "syncRequests": 0,
+          "index": 0,
+          "playing": true
+        },
+        {
+          "value": 0.8,
+          "timeSeconds": 1,
+          "syncRequests": 0,
+          "index": 0,
+          "playing": true
+        },
+        {
+          "value": 0.6333333333333333,
+          "timeSeconds": 1.5,
+          "syncRequests": 0,
+          "index": 1,
+          "playing": true
+        }
+      ]
+    },
+    {
+      "input": {
+        "name": "points-reset-does-not-restart-stopped-nonlooping-provider",
+        "provider": "custom",
+        "durationSeconds": 1,
+        "isLooping": false,
+        "points": [
+          [
+            0,
+            0.2
+          ],
+          [
+            1,
+            0.8
+          ]
+        ],
+        "frames": [
+          {
+            "deltaSeconds": 2
+          },
+          {
+            "deltaSeconds": 0.1
+          },
+          {
+            "deltaSeconds": 1,
+            "points": [
+              [
+                0,
+                0.2
+              ],
+              [
+                1,
+                0.8
+              ]
+            ]
+          },
+          {
+            "deltaSeconds": 1,
+            "durationSeconds": 4,
+            "interpolationMode": "Makima",
+            "points": [
+              [
+                0,
+                0.6
+              ],
+              [
+                2,
+                0.4
+              ]
+            ]
+          },
+          {
+            "deltaSeconds": 1,
+            "points": []
+          }
+        ]
+      },
+      "frames": [
+        {
+          "value": 0.2,
+          "timeSeconds": 2,
+          "syncRequests": 0,
+          "index": 0,
+          "playing": true
+        },
+        {
+          "value": "NaN",
+          "timeSeconds": 0,
+          "syncRequests": 1,
+          "index": -1,
+          "playing": false
+        },
+        {
+          "value": "NaN",
+          "timeSeconds": 0,
+          "syncRequests": 0,
+          "index": -1,
+          "playing": false
+        },
+        {
+          "value": "NaN",
+          "timeSeconds": 0,
+          "syncRequests": 0,
+          "index": -1,
+          "playing": false
+        },
+        {
+          "value": "NaN",
+          "timeSeconds": 0,
+          "syncRequests": 0,
+          "index": -1,
+          "playing": false
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "executedCSharp": true,
+    "kind": "original-csharp-source-extracted-with-host-shims",
+    "sdk": "9.0.319",
+    "runtime": "9.0.21 linux-x64",
+    "architecture": "X64",
+    "culture": "",
+    "sourceManifest": "tools/reference/source-manifest.json",
+    "sourceHashNormalization": "CRLF-to-LF; preserve UTF-8 BOM and all other bytes",
+    "sourceCommit": "36c08fbb99ac9398a63ff1cca1bbf68cd2228a94",
+    "sourceSha256": {
+      "Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs": "3104cecc1510ef394a786c04239bafc58d33af4465d2b3c04b0409995c19debe",
+      "Source/MultiFunPlayer/Common/Messages.cs": "8cfd1227c9253eb0bfd00a05d6811e0652e65d261709394fe6a6044b9ea72b47",
+      "Source/MultiFunPlayer/Common/IDeviceAxisValueProvider.cs": "93803198eee19d0fe10d4d716d87b57e16f7e23b3ef5e2182b99b24f239772aa",
+      "Source/MultiFunPlayer/Common/Extensions.cs": "8c275fe3b490b9b100e697abab88a9644d1f70cfa613d0c80ccd02752577ea02",
+      "Source/MultiFunPlayer/Common/Keyframe.cs": "78b24dadb0c0ac63e563f9a721fc2a01c08fbe6fa3a388ad48264eab93deb9e4",
+      "Source/MultiFunPlayer/Common/KeyframeCollection.cs": "28c26086eb35826d2a408530a82da726244bb3f1474b4ca549f5c60d80609045",
+      "Source/MultiFunPlayer/Common/Utils/MathUtils.cs": "aa30c767e098e17f05a68a0e37b560d8d6670f24987b06716efeb5350384f30b",
+      "Source/MultiFunPlayer/Common/DeviceAxis.cs": "c3d8f2193e68871e54b7889415dad681f01c9bbcbc947eabd8cccccaab3d4537",
+      "Source/MultiFunPlayer/Common/DeviceSettings.cs": "c21d300fc1e3b8828fb31afd62a271b89d2c16512685ec039ebf26ced4a53431",
+      "Source/MultiFunPlayer/Script/IScriptWriter.cs": "af83eb3b3c8479f04e7513837ba7492b95e69977bc673fec69416422c5049f77",
+      "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+      "Source/MultiFunPlayer/OutputTarget/DeviceAxisSettings.cs": "fc333331346fd3d9f8e1c4983c4804a1ac58213681811b9094e7df91063a8ff1",
+      "Source/MultiFunPlayer/Script/IScriptResource.cs": "99d37b6fbd23d861ebf6545ac25591a485deac52e72357ab2c4ef9c816db05d3",
+      "Source/MultiFunPlayer/Script/ChapterCollection.cs": "dde38d44512c94ecaff0e7a8104e3ba94fec7f605102efcf37ce5870fb4478dc",
+      "Source/MultiFunPlayer/Script/BookmarkCollection.cs": "24db17bf4dd2f8ed32a6491a107ae459a510ab6355904b142dc3c35447bc6d1a",
+      "Source/MultiFunPlayer/Script/Chapter.cs": "57ca63db5c2993965152f34f4d24b364c19f2317a58fb5ce69569ebf6e8a0ac7",
+      "Source/MultiFunPlayer/Script/Bookmark.cs": "c88df49de9e6a995de283d4498af1a0c88164ee833721a86d2b9fd6ae91bc0f5",
+      "Source/MultiFunPlayer/MotionProvider/ViewModels/CustomCurveMotionProvider.cs": "fb83c8ae42f9364a49b9528b04be0f847db1fc548d0c6701131d533c3a85ae4d",
+      "Source/MultiFunPlayer/MotionProvider/ViewModels/LoopingScriptMotionProvider.cs": "6b44886577814558b494916579e37e3e6af98f5557185e7e2c3571aa50c2925f",
+      "Source/MultiFunPlayer/MotionProvider/ViewModels/PatternMotionProvider.cs": "94db6501d556179b6c6713ce42541dba938d53ee34d79b60f5341358f400c5bf"
+    },
+    "shims": [
+      "System.Windows.Point: X/Y only",
+      "Stylet base and notification/JSON attributes inert",
+      "single-thread observable collection replaced with List",
+      "BroadcastEvent.Set captured synchronously; no wait/cancellation/transport",
+      "logger inert",
+      "original script resource/metadata classes compile-linked; host supplies resources; Link manager propagation/file resolution not executed",
+      "deterministic Motion values injected via source manager-shaped stub; provider algorithms not in pipeline oracle",
+      "host subtracts expected source media advancement before calling unchanged UpdateValues to sample specified confirmed position",
+      "Motion provider Update/Calculate/Reset bodies source-extracted; parameter refresh/readonly script supplied by host; general WPF/Fody property notifications not executed",
+      "Clock mode executes exact source position/playing/speed handlers and UpdateValues; host starts NaN, supplies TimeSpan observations and fake media-loop clear; no AVPlayer, wallclock, stale, buffer, or output gate",
+      "Range helper source bodies extracted; gesture shim returns configured target; middleSetAction wrapper copies original line306 expression"
+    ],
+    "settingNotifications": "Host changes do NOT invoke WPF/Fody property notifications; fixtures explicitly request resetSync when needed; Link/resource resolution outside oracle scope.",
+    "pointsCommandBoundary": "Original Update/ResetState/OnIsLoopingChanged bodies execute. ProviderRunner models collection Reset with equivalent pending-refresh flag, replacing its host collection; it does not execute Points.SetFrom, WPF, or Fody callbacks. Scalar and collection notification order is covered separately by source-derived tests."
+  }
+}

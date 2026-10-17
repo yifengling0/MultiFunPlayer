@@ -1,3 +1,4 @@
+import { DeviceProfile, DeviceProfiles } from './DeviceProfile';
 import { FunscriptDocument, FunscriptParser, FunscriptAxis } from './Funscript';
 
 class ScriptAxisPresence {
@@ -24,37 +25,26 @@ export class AxisMapping {
    * embedded axis IDs. Unknown or disabled suffixes preserve the parser's L0.
    * A second bounded JSON read inspects axis presence without changing metadata.
    */
-  static parseScript(json: string, fileName: string, profile: string = 'TCode-0.3'): FunscriptDocument {
+  static parseScript(json: string, fileName: string, profile: string | DeviceProfile = 'TCode-0.3'): FunscriptDocument {
     const document: FunscriptDocument = FunscriptParser.parse(json);
     const source: ScriptAxisPresence = JSON.parse(json) as ScriptAxisPresence;
     const matches: AxisDefinition[] = AxisMapping.findAxesMatchingName(fileName, profile);
     if (source.axes === undefined && document.axes.length === 1 && matches.length === 1) {
       document.axes[0].name = matches[0].name;
     }
+    if (typeof profile !== 'string') {
+      const enabled = DeviceProfiles.enabledAxes(profile).map(axis => axis.name);
+      document.axes = document.axes.filter(axis => enabled.indexOf(axis.name) >= 0);
+      return new FunscriptDocument(document.axes, document.metadata);
+    }
     return document;
   }
 
-  static defaultAxes(profile: string = 'TCode-0.3'): AxisDefinition[] {
-    if (profile !== 'TCode-0.2' && profile !== 'TCode-0.3') { throw new Error('Unknown axis profile.'); }
-    const axes: AxisDefinition[] = [
-      new AxisDefinition('L0', 'Up/Down', ['*', 'stroke', 'L0', 'up']),
-      new AxisDefinition('L1', 'Forward/Backward', ['surge', 'L1', 'forward']),
-      new AxisDefinition('L2', 'Left/Right', ['sway', 'L2', 'left']),
-      new AxisDefinition('R0', 'Twist', ['twist', 'R0', 'yaw']),
-      new AxisDefinition('R1', 'Roll', ['roll', 'R1']),
-      new AxisDefinition('R2', 'Pitch', ['pitch', 'R2']),
-      new AxisDefinition('V0', 'Vibrate', ['vib', 'V0'], false)
-    ];
-    if (profile === 'TCode-0.2') {
-      axes.push(new AxisDefinition('V1', 'Pump', ['pump', 'lube', 'V1'], false));
-      axes.push(new AxisDefinition('L3', 'Suction', ['suck', 'valve', 'L3'], false));
-    } else {
-      axes.push(new AxisDefinition('V1', 'Pump', ['pump', 'V1'], false));
-      axes.push(new AxisDefinition('A0', 'Valve', ['valve', 'A0'], false));
-      axes.push(new AxisDefinition('A1', 'Suction', ['suck', 'A1'], false));
-      axes.push(new AxisDefinition('A2', 'Lube', ['lube', 'A2'], false));
-    }
-    return axes;
+  static defaultAxes(profile: string | DeviceProfile = 'TCode-0.3'): AxisDefinition[] {
+    const selected: DeviceProfile = typeof profile === 'string' ? DeviceProfiles.getBuiltIn(profile) : profile;
+    const errors = DeviceProfiles.validate(selected).filter(item => item.severity === 'error');
+    if (errors.length > 0) { throw new Error(errors.map(item => item.message).join('; ')); }
+    return selected.axes.map(axis => new AxisDefinition(axis.name, axis.friendlyName || axis.name, axis.funscriptNames.slice(), axis.enabled));
   }
 
   /** Matches dot-delimited suffixes case-insensitively. Unknown suffixes use '*'.
@@ -62,12 +52,12 @@ export class AxisMapping {
    * their axis is absent or disabled in the selected profile.
    * Optional mediaName requires the stripped script basename to match the media.
    */
-  static findAxesMatchingName(scriptName: string, profile: string = 'TCode-0.3',
+  static findAxesMatchingName(scriptName: string, profile: string | DeviceProfile = 'TCode-0.3',
     includeDisabled: boolean = false, mediaName?: string): AxisDefinition[] {
     const axes: AxisDefinition[] = AxisMapping.defaultAxes(profile);
     const stem: string = AxisMapping.stem(scriptName).toLowerCase();
     if (stem.length === 0) { return []; }
-    const suffix: string = AxisMapping.knownSuffix(stem);
+    const suffix: string = AxisMapping.knownSuffix(stem, profile);
     let unnamed: boolean = suffix.length === 0;
     if (mediaName !== undefined) {
       const base: string = suffix.length > 0 ? stem.slice(0, -suffix.length) : stem;
@@ -87,6 +77,14 @@ export class AxisMapping {
     return matches;
   }
 
+  /** DeviceAxisUtils.GetBaseNameWithExtension, used by Internal companion search. */
+  static baseNameWithExtension(fileName: string, profile: string | DeviceProfile = 'TCode-0.3'): string {
+    const stem = AxisMapping.stem(fileName);
+    const suffix = AxisMapping.knownSuffix(stem.toLowerCase(), profile);
+    const dot = fileName.lastIndexOf('.');
+    return suffix.length === 0 ? fileName : stem.slice(0, -suffix.length) + (dot < 0 ? '' : fileName.slice(dot));
+  }
+
   private static stem(fileName: string): string {
     if (typeof fileName !== 'string' || fileName.length > 4096) { throw new Error('Invalid filename.'); }
     const name: string = fileName.replace(/\\/g, '/').split('/').pop() as string;
@@ -94,8 +92,8 @@ export class AxisMapping {
     return dot >= 0 ? name.slice(0, dot) : name;
   }
 
-  private static knownSuffix(stem: string): string {
-    for (const profile of ['TCode-0.2', 'TCode-0.3']) {
+  private static knownSuffix(stem: string, selected: string | DeviceProfile): string {
+    for (const profile of [selected, 'TCode-0.2', 'TCode-0.3']) {
       for (const axis of AxisMapping.defaultAxes(profile)) {
         for (const alias of axis.funscriptNames) {
           const suffix: string = '.' + alias.toLowerCase();

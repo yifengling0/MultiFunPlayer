@@ -1,0 +1,161 @@
+// Numeric/collection harness. Every @@ placeholder is an unchanged source span.
+// Structural shims do not execute WPF, bindings, the dispatcher or Fody.
+global using System;
+global using System.Linq;
+global using System.Collections.Generic;
+global using System.Threading;
+using System.Collections;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Windows;
+using MultiFunPlayer.Common;
+
+namespace PropertyChanged { [AttributeUsage(AttributeTargets.All)] public sealed class DoNotNotifyAttribute : Attribute { } }
+namespace System.Windows.Data {
+ public static class BindingOperations {
+  public static void EnableCollectionSynchronization(IEnumerable collection, object context,
+   Action<IEnumerable, object, Action, bool> callback) { }
+ }
+}
+namespace System.Windows {
+ public struct Point { public double X, Y; public Point(double x, double y) { X = x; Y = y; } }
+ // Deliberately bounded to the two zero-origin positive finite source viewports.
+ // This is a structural containment shim, not the WPF Rect implementation.
+ public readonly struct Rect {
+  public double Width { get; }
+  public double Height { get; }
+  public Rect(double x, double y, double width, double height) {
+   if (x != 0 || y != 0 || !double.IsFinite(width) || !double.IsFinite(height) || width <= 0 || height <= 0)
+    throw new ArgumentException("The oracle only supports finite positive zero-origin viewports.");
+   Width = width; Height = height;
+  }
+  public bool Contains(Point point) => point.X >= 0 && point.X <= Width && point.Y >= 0 && point.Y <= Height;
+ }
+ public class DependencyObject { }
+ public sealed class DependencyProperty { public string Name { get; init; } }
+ public sealed class DependencyPropertyChangedEventArgs : EventArgs {
+  public object OldValue { get; init; }
+  public object NewValue { get; init; }
+  public DependencyProperty Property { get; init; }
+ }
+ public sealed class SizeChangedEventArgs : EventArgs { }
+ public class UIElement {
+  public event EventHandler MouseEnter;
+  public event EventHandler MouseLeave;
+ }
+}
+sealed class DraggablePoint : UIElement { public Point Position { get; set; } }
+sealed class InlineContext : SynchronizationContext {
+ public int Sends;
+ public override void Send(SendOrPostCallback callback, object state) { Sends++; callback(state); }
+}
+sealed class Geometry {
+ public bool attached { get; set; }
+ public double actualWidth { get; set; }
+ public double actualHeight { get; set; }
+ public double viewportWidth { get; set; }
+ public double viewportHeight { get; set; }
+}
+sealed class Step {
+ public string @event { get; set; }
+ public Geometry geometry { get; set; }
+ public double[][] points { get; set; }
+}
+sealed class Input {
+ public string name { get; set; }
+ public string note { get; set; }
+ public double[][] initialPoints { get; set; }
+ public Step[] steps { get; set; }
+}
+sealed class DraggablePointCanvas : DependencyObject {
+ private bool _ignorePointsCollectionChanged;
+ public ObservableConcurrentCollection<Point> Points { get; set; }
+ public List<UIElement> PointElements { get; } = [];
+ public double ActualWidth { get; set; }
+ public double ActualHeight { get; set; }
+ public Rect Viewport { get; set; }
+ public event PropertyChangedEventHandler PropertyChanged;
+ private void RefreshLine() { }
+ private void RefreshScrubber() { }
+ private void OnElementMouseEnter(object sender, EventArgs e) { }
+ private void OnElementMouseLeave(object sender, EventArgs e) { }
+@@POINTS_PROPERTY_CHANGED@@
+@@POINTS_COLLECTION_CHANGED@@
+@@SIZE_CHANGED@@
+@@REMOVE_ELEMENT@@
+@@ADD_ELEMENT@@
+@@UPDATE_VIEWPORT@@
+@@ELEMENTS_FROM_POINTS@@
+@@POINTS_FROM_ELEMENTS@@
+@@FROM_CANVAS@@
+@@FROM_CANVAS_X@@
+@@FROM_CANVAS_Y@@
+@@TO_CANVAS@@
+@@TO_CANVAS_X@@
+@@TO_CANVAS_Y@@
+ public object Run(Input input, InlineContext context) {
+  Points = new ObservableConcurrentCollection<Point>(input.initialPoints.Select(p => new Point(p[0], p[1])));
+  var originalCollection = Points;
+  var mutations = new List<string>();
+  int countNotifications = 0, itemNotifications = 0, pointPropertyNotifications = 0;
+  Points.CollectionChanged += (_, e) => mutations.Add(e.Action.ToString());
+  Points.PropertyChanged += (_, e) => {
+   if (e.PropertyName == "Count") countNotifications++;
+   if (e.PropertyName == "Item[]") itemNotifications++;
+  };
+  PropertyChanged += (_, e) => { if (e.PropertyName == "Points") pointPropertyNotifications++; };
+  var snapshots = new List<object>();
+  foreach (var step in input.steps) {
+   // The schedule and attachment are explicit test inputs, not inferred WPF behavior.
+   Points.CollectionChanged -= OnPointsCollectionChanged;
+   var previousViewport = Viewport;
+   var geometry = step.geometry;
+   ActualWidth = geometry.actualWidth; ActualHeight = geometry.actualHeight;
+   Viewport = new Rect(0, 0, geometry.viewportWidth, geometry.viewportHeight);
+   mutations.Clear(); countNotifications = 0; itemNotifications = 0;
+   pointPropertyNotifications = 0; context.Sends = 0;
+   if (step.@event == "points-bound") {
+    if (geometry.attached) OnPointsPropertyChanged(this, new DependencyPropertyChangedEventArgs {
+     OldValue = null, NewValue = Points, Property = new DependencyProperty { Name = "Points" }
+    });
+   } else {
+    if (geometry.attached) Points.CollectionChanged += OnPointsCollectionChanged;
+    switch (step.@event) {
+     case "collection-reset":
+      // A distinct copied argument avoids the original self-alias-clear edge case.
+      var incoming = step.points == null ? Points.ToArray() : step.points.Select(p => new Point(p[0], p[1])).ToArray();
+      Points.SetFrom(incoming);
+      break;
+     case "viewport-change": if (geometry.attached) UpdateViewport(previousViewport, Viewport); break;
+     case "synchronize": if (geometry.attached) OnSizeChanged(this, new SizeChangedEventArgs()); break;
+     default: throw new ArgumentException("Unknown event " + step.@event);
+    }
+   }
+   bool measured = geometry.attached && ActualWidth != 0 && ActualHeight != 0;
+   snapshots.Add(new {
+    points = Points.Select(p => new[] { p.X, p.Y }).ToArray(),
+    canvasPoints = measured ? PointElements.Cast<DraggablePoint>().Select(p => new[] { p.Position.X, p.Position.Y }).ToArray() : null,
+    collectionResetCount = mutations.Count(m => m == "Reset"),
+    removedPointCount = mutations.Count(m => m == "Remove"),
+    pointWriteBackCount = mutations.Count(m => m == "Replace"),
+    countNotificationCount = countNotifications,
+    itemNotificationCount = itemNotifications,
+    contextSendCount = context.Sends,
+    pointPropertyNotifications,
+    collectionIdentityPreserved = ReferenceEquals(originalCollection, Points),
+    collectionEvents = mutations.ToArray()
+   });
+  }
+  return new { name = input.name, steps = snapshots };
+ }
+}
+static class Program {
+ static void Main() {
+  var context = new InlineContext(); SynchronizationContext.SetSynchronizationContext(context);
+  var options = new JsonSerializerOptions { NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals };
+  var inputs = JsonSerializer.Deserialize<Input[]>(Console.In.ReadToEnd(), options);
+  Console.Write(JsonSerializer.Serialize(inputs.Select(input => new DraggablePointCanvas().Run(input, context)).ToArray(), options));
+ }
+}

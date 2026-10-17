@@ -1,0 +1,92 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Text;
+using MultiFunPlayer.Common;
+using MultiFunPlayer.OutputTarget;
+using MultiFunPlayer.Shortcut;
+using MultiFunPlayer.Input;
+class Program {
+ static void Main() {
+  var inputs=JsonSerializer.Deserialize<Input[]>(Console.In.ReadToEnd());
+  var rows=new List<object>();
+  foreach(var input in inputs) {
+   var host=new Host();var manager=new Capture();host.RegisterActions(manager);
+   host.AxisSettings[DeviceAxis.All[0]].Minimum=input.minimum;
+   host.AxisSettings[DeviceAxis.All[0]].Maximum=input.maximum;
+   var action=manager.Actions[host.Identifier+"::Axis::Range::"+input.operation];
+   var args=new List<object>{input.axis==null?null:DeviceAxis.All.FirstOrDefault(a=>a.Name==input.axis),input.value};
+   if(input.operation=="Minimum::Offset")args.Add(input.minimumLimit);
+   if(input.operation=="Maximum::Offset")args.Add(input.maximumLimit);
+   if(input.operation=="Middle::Offset"||input.operation=="Size::Offset"){args.Add(input.minimumLimit);args.Add(input.maximumLimit);}
+   action.DynamicInvoke(args.ToArray());
+   var range=host.AxisSettings[DeviceAxis.All[0]];
+   rows.Add(new { input, minimum=range.Minimum, maximum=range.Maximum });
+  }
+  var mapping=new List<object>();
+  foreach(var endpoints in new[]{new[]{.8,.2},new[]{1d,0d},new[]{.99,.01},new[]{.5,.5},new[]{0d,1d},new[]{.1,.7}})
+  foreach(var value in new[]{0d,double.Epsilon,.00005,.125,.5,.875,.9999999999999999,1d})
+  foreach(var precision in Enumerable.Range(1,9)) {
+   LegacyWire.Initialize(precision);
+   var mapped=MathUtils.Lerp(endpoints[0],endpoints[1],value);
+   var values=new[]{new KeyValuePair<DeviceAxis,double>(DeviceAxis.All[0],mapped)};
+   mapping.Add(new {minimum=endpoints[0],maximum=endpoints[1],value,precision,mapped,
+    fixedBytes=LegacyWire.ToString(values,10.25),polledBytes=LegacyWire.ToString(DeviceAxis.All[0],mapped,10.25)+"\n",
+    dirtyFromHalf=LegacyWire.IsValueDirty(mapped,.5)});
+  }
+  Console.WriteLine(JsonSerializer.Serialize(new {rows,mapping}));
+ }
+}
+class Input { public string operation{get;set;} public string axis{get;set;} public double minimum{get;set;} public double maximum{get;set;} public double value{get;set;} public double minimumLimit{get;set;} public double maximumLimit{get;set;} }
+class Host {
+ public string Identifier=>"TCP/0";public bool AutoConnectEnabled{get;set;}
+ public Dictionary<DeviceAxis,DeviceAxisSettings> AxisSettings{get;}=DeviceAxis.All.ToDictionary(a=>a,_=>new DeviceAxisSettings());
+@@REGISTER_ACTIONS@@
+}
+namespace MultiFunPlayer.Common {
+ public sealed record DeviceAxis(string Name) { public override string ToString()=>Name; public static DeviceAxis[] All{get;}=[new("L0"),new("R0")]; }
+ public static class MathUtils { @@CLAMP_SAFE@@ @@LERP@@ }
+ public static class LegacyWire {
+  private static int _outputMaximum;private static CompositeFormat _outputFormat;
+  public static void Initialize(int precision){_outputMaximum=(int)(Math.Pow(10,precision)-1);_outputFormat=CompositeFormat.Parse("{0:"+new string('0',precision)+"}");}
+  @@WIRE_VALUE@@
+  @@WIRE_EVENT@@
+  @@WIRE_FIXED@@
+  @@DIRTY@@
+ }
+}
+namespace MultiFunPlayer.Input { public interface IAxisInputGestureData { double ApplyTo(double value); } }
+namespace Newtonsoft.Json {
+ public enum MemberSerialization{OptIn}
+ [AttributeUsage(AttributeTargets.Class)]public class JsonObjectAttribute:Attribute{public JsonObjectAttribute(MemberSerialization value){}}
+ [AttributeUsage(AttributeTargets.Property)]public class JsonPropertyAttribute:Attribute{}
+}
+namespace Stylet { public class PropertyChangedBase{} }
+namespace MultiFunPlayer.Shortcut {
+ public class Builder<T> {
+  public Builder<T> WithLabel(string value)=>this;
+  public Builder<T> WithItemsSource(IEnumerable<T> value)=>this;
+  public Builder<T> WithDefaultValue(T value)=>this;
+  public Builder<T> AsNumericUpDown(double minimum,double maximum,double interval,string format)=>this;
+ }
+ public interface IShortcutManager {
+  void RegisterAction(string name,Action action);
+  void RegisterAction<T1>(string name,Action<Builder<T1>> a,Action<T1> action);
+  void RegisterAction<T1,T2>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<T1,T2> action);
+  void RegisterAction<T1,T2,T3>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<T1,T2,T3> action);
+  void RegisterAction<T1,T2,T3>(string name,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<T1,T2,T3> action);
+  void RegisterAction<T1,T2,T3,T4>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<Builder<T4>> d,Action<T1,T2,T3,T4> action);
+  void RegisterAction<T1,T2,T3,T4>(string name,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<Builder<T4>> d,Action<T1,T2,T3,T4> action);
+ }
+ public class Capture:IShortcutManager {
+  public Dictionary<string,Delegate> Actions{get;}=new();
+  public void RegisterAction(string name,Action action)=>Actions[name]=action;
+  public void RegisterAction<T1>(string name,Action<Builder<T1>> a,Action<T1> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<T1,T2> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2,T3>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<T1,T2,T3> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2,T3>(string name,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<T1,T2,T3> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2,T3,T4>(string name,Action<Builder<T1>> a,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<Builder<T4>> d,Action<T1,T2,T3,T4> action)=>Actions[name]=action;
+  public void RegisterAction<T1,T2,T3,T4>(string name,Action<Builder<T2>> b,Action<Builder<T3>> c,Action<Builder<T4>> d,Action<T1,T2,T3,T4> action)=>Actions[name]=action;
+ }
+}

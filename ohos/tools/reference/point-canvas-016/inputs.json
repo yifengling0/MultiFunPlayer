@@ -1,0 +1,8089 @@
+[
+  {
+    "name": "detached_reset_preserves_order_duplicates_outside",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        },
+        "points": [
+          [
+            8,
+            0.7
+          ],
+          [
+            2,
+            0.2
+          ],
+          [
+            2,
+            0.8
+          ],
+          [
+            -1,
+            0.3
+          ],
+          [
+            12,
+            0.9
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "zero_width_reset_preserves_order",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        },
+        "points": [
+          [
+            8,
+            0.7
+          ],
+          [
+            2,
+            0.2
+          ],
+          [
+            2,
+            0.8
+          ],
+          [
+            -1,
+            0.3
+          ],
+          [
+            12,
+            0.9
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "zero_height_reset_preserves_order",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 0,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        },
+        "points": [
+          [
+            8,
+            0.7
+          ],
+          [
+            2,
+            0.2
+          ],
+          [
+            2,
+            0.8
+          ],
+          [
+            -1,
+            0.3
+          ],
+          [
+            12,
+            0.9
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "measured_reset_sorts_without_pruning",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        },
+        "points": [
+          [
+            8,
+            0.7
+          ],
+          [
+            2,
+            0.2
+          ],
+          [
+            2,
+            0.8
+          ],
+          [
+            -1,
+            0.3
+          ],
+          [
+            12,
+            0.9
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "viewport_prunes_before_zero_width_return",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "viewport_prunes_before_zero_height_return",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 0,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "detached_viewport_is_inert",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "measured_viewport_prunes_then_sorts",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "closed_edges_and_nearest_outside",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        0
+      ],
+      [
+        10,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        -5e-324,
+        0.5
+      ],
+      [
+        10.000000000000002,
+        0.5
+      ],
+      [
+        5,
+        -5e-324
+      ],
+      [
+        5,
+        1.0000000000000002
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "duplicate_x_stable_no_deduplication",
+    "note": "",
+    "initialPoints": [
+      [
+        4,
+        0.8
+      ],
+      [
+        2,
+        0.6
+      ],
+      [
+        4,
+        0.1
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        4,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "pixel_underflow_ties_preserve_first_model_sort",
+    "note": "All canvas X values underflow to zero; second stable sort retains model-X order.",
+    "initialPoints": [
+      [
+        2e-308,
+        0.8
+      ],
+      [
+        1e-308,
+        0.2
+      ],
+      [
+        1e-308,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1e-308,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "zero_and_negative_zero_x_tie",
+    "note": "",
+    "initialPoints": [
+      [
+        -0.0,
+        0.2
+      ],
+      [
+        0,
+        0.8
+      ],
+      [
+        -0.0,
+        0.4
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "fractional_roundtrip_changes_value",
+    "note": "",
+    "initialPoints": [
+      [
+        0.1,
+        0.1
+      ],
+      [
+        0.3333333333333333,
+        0.3333333333333333
+      ],
+      [
+        0.7,
+        0.7
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "reset_y_outside_is_not_clamped",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        -1
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "viewport_prunes_y_outside",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        -1
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        5,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "empty_reset_still_notifies",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "empty_synchronize_no_collection_notifications",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "singleton_equal_reset_writes_each_time",
+    "note": "",
+    "initialPoints": [
+      [
+        5,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "equal_points_repeated_synchronize_writes_each_time",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        0
+      ],
+      [
+        10,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "initial_points_binding_measured",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "initial_points_binding_unmeasured_then_resize",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 0,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "initial_viewport_before_binding_schedule",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 0,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 0,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "initial_binding_before_viewport_schedule",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "duration_before_incoming_reset_keeps_new_outside",
+    "note": "Source action assigns Duration before SetFrom; a delivered viewport event can prune old points only.",
+    "initialPoints": [
+      [
+        2,
+        0.2
+      ],
+      [
+        8,
+        0.8
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        },
+        "points": [
+          [
+            7,
+            0.7
+          ],
+          [
+            1,
+            0.1
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "deferred_viewport_after_incoming_reset_prunes_new",
+    "note": "Alternative explicitly supplied delivery schedule, not a claim about actual WPF scheduling.",
+    "initialPoints": [
+      [
+        2,
+        0.2
+      ],
+      [
+        8,
+        0.8
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        },
+        "points": [
+          [
+            7,
+            0.7
+          ],
+          [
+            1,
+            0.1
+          ]
+        ]
+      },
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "resize_does_not_prune_offviewport",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 0,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "detach_reset_reattach_resize",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        },
+        "points": [
+          [
+            9,
+            0.1
+          ],
+          [
+            2,
+            0.9
+          ],
+          [
+            2,
+            0.6
+          ]
+        ]
+      },
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 321,
+          "actualHeight": 151,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "clear_existing_elements_then_repopulate",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        },
+        "points": []
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        },
+        "points": [
+          [
+            1,
+            0.25
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "zero_size_reset_retains_elements_until_resize",
+    "note": "",
+    "initialPoints": [
+      [
+        8,
+        0.7
+      ],
+      [
+        2,
+        0.2
+      ],
+      [
+        2,
+        0.8
+      ],
+      [
+        -1,
+        0.3
+      ],
+      [
+        12,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        },
+        "points": []
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 300,
+          "actualHeight": 150,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "smart_limit_percent_reset_duplicates",
+    "note": "",
+    "initialPoints": [
+      [
+        90,
+        0
+      ],
+      [
+        25,
+        100
+      ],
+      [
+        25,
+        30
+      ],
+      [
+        50,
+        50
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "smart_limit_closed_edges",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        100
+      ],
+      [
+        100,
+        0
+      ],
+      [
+        -1,
+        50
+      ],
+      [
+        101,
+        50
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "very_large_finite_conversion",
+    "note": "",
+    "initialPoints": [
+      [
+        1e+150,
+        0.25
+      ],
+      [
+        -1e+150,
+        0.75
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1e+100,
+          "actualHeight": 1e+100,
+          "viewportWidth": 1e+150,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "tiny_positive_viewport_finite_conversion",
+    "note": "",
+    "initialPoints": [
+      [
+        1e-300,
+        0.25
+      ],
+      [
+        5e-301,
+        0.75
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 2e-200,
+          "actualHeight": 3e-100,
+          "viewportWidth": 1e-300,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_00",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 1,
+          "actualHeight": 1,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_01",
+    "note": "",
+    "initialPoints": [
+      [
+        1,
+        0
+      ],
+      [
+        0.7,
+        0
+      ],
+      [
+        1.25,
+        0
+      ],
+      [
+        0.7,
+        0.1
+      ],
+      [
+        0.1,
+        0.25
+      ],
+      [
+        0.1,
+        0.1
+      ],
+      [
+        0.2,
+        0
+      ],
+      [
+        0.2,
+        0
+      ],
+      [
+        0.1,
+        0.5
+      ],
+      [
+        0.1,
+        0.1
+      ],
+      [
+        0.7,
+        0.9
+      ],
+      [
+        0.2,
+        0
+      ],
+      [
+        0.2,
+        0.5
+      ],
+      [
+        -1,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_02",
+    "note": "",
+    "initialPoints": [
+      [
+        2.0999999999999996,
+        0.5
+      ],
+      [
+        -3,
+        0.25
+      ],
+      [
+        0.30000000000000004,
+        0.5
+      ],
+      [
+        3,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 0,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_03",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        0.25
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        0.6000000000000001,
+        0.1
+      ],
+      [
+        -3,
+        0.1
+      ],
+      [
+        2.0999999999999996,
+        0.25
+      ],
+      [
+        3.75,
+        0.5
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        -3,
+        0
+      ],
+      [
+        3,
+        0.9
+      ],
+      [
+        3.75,
+        0.5
+      ],
+      [
+        3,
+        0.9
+      ],
+      [
+        -3,
+        1
+      ],
+      [
+        -3,
+        0.25
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_04",
+    "note": "",
+    "initialPoints": [
+      [
+        -60,
+        0
+      ],
+      [
+        75.0,
+        0.1
+      ],
+      [
+        6.0,
+        0.5
+      ],
+      [
+        12.0,
+        0.9
+      ],
+      [
+        60,
+        1
+      ],
+      [
+        0,
+        0.9
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        -60,
+        0.5
+      ],
+      [
+        6.0,
+        0.25
+      ],
+      [
+        60,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_05",
+    "note": "",
+    "initialPoints": [
+      [
+        0.6000000000000001,
+        0.9
+      ],
+      [
+        0.6000000000000001,
+        0.9
+      ],
+      [
+        2.0999999999999996,
+        0.25
+      ],
+      [
+        3.75,
+        0.25
+      ],
+      [
+        0.30000000000000004,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 0,
+          "actualHeight": 0,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_06",
+    "note": "",
+    "initialPoints": [
+      [
+        12.5,
+        0
+      ],
+      [
+        2.0,
+        0.1
+      ],
+      [
+        7.0,
+        0.1
+      ],
+      [
+        2.0,
+        0.5
+      ],
+      [
+        12.5,
+        0.9
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        7.0,
+        0.5
+      ],
+      [
+        1.0,
+        0.25
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        7.0,
+        0.9
+      ],
+      [
+        2.0,
+        0
+      ],
+      [
+        10,
+        1
+      ],
+      [
+        12.5,
+        1
+      ],
+      [
+        12.5,
+        1
+      ],
+      [
+        2.0,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_07",
+    "note": "",
+    "initialPoints": [
+      [
+        0.7,
+        0.1
+      ],
+      [
+        1.25,
+        0.1
+      ],
+      [
+        1.25,
+        0.9
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        0.7,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0.1,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_08",
+    "note": "",
+    "initialPoints": [
+      [
+        0.2,
+        0.5
+      ],
+      [
+        1,
+        0.25
+      ],
+      [
+        0.2,
+        0.1
+      ],
+      [
+        0.1,
+        1
+      ],
+      [
+        0.7,
+        0
+      ],
+      [
+        1.25,
+        0.25
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        -1,
+        0.9
+      ],
+      [
+        0.2,
+        1
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_09",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_10",
+    "note": "",
+    "initialPoints": [
+      [
+        0.2,
+        0.25
+      ],
+      [
+        0.2,
+        0.25
+      ],
+      [
+        1.25,
+        0
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0.7,
+        0
+      ],
+      [
+        0.2,
+        0.1
+      ],
+      [
+        0.7,
+        0.9
+      ],
+      [
+        1.25,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 0,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_11",
+    "note": "",
+    "initialPoints": [
+      [
+        125.0,
+        90.0
+      ],
+      [
+        20.0,
+        100
+      ],
+      [
+        100,
+        100
+      ],
+      [
+        0,
+        50.0
+      ],
+      [
+        125.0,
+        10.0
+      ],
+      [
+        100,
+        100
+      ],
+      [
+        20.0,
+        25.0
+      ],
+      [
+        0,
+        100
+      ],
+      [
+        20.0,
+        0
+      ],
+      [
+        70.0,
+        90.0
+      ],
+      [
+        70.0,
+        25.0
+      ],
+      [
+        -100,
+        90.0
+      ],
+      [
+        100,
+        10.0
+      ],
+      [
+        20.0,
+        100
+      ],
+      [
+        20.0,
+        25.0
+      ],
+      [
+        -100,
+        90.0
+      ],
+      [
+        100,
+        10.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_12",
+    "note": "",
+    "initialPoints": [
+      [
+        20.0,
+        90.0
+      ],
+      [
+        0,
+        90.0
+      ],
+      [
+        20.0,
+        90.0
+      ],
+      [
+        0,
+        100
+      ],
+      [
+        125.0,
+        25.0
+      ],
+      [
+        -100,
+        50.0
+      ],
+      [
+        0,
+        10.0
+      ],
+      [
+        70.0,
+        0
+      ],
+      [
+        70.0,
+        90.0
+      ],
+      [
+        125.0,
+        50.0
+      ],
+      [
+        20.0,
+        25.0
+      ],
+      [
+        20.0,
+        90.0
+      ],
+      [
+        100,
+        10.0
+      ],
+      [
+        20.0,
+        25.0
+      ],
+      [
+        -100,
+        25.0
+      ],
+      [
+        10.0,
+        90.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 1,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_13",
+    "note": "",
+    "initialPoints": [
+      [
+        1,
+        0.25
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0.2,
+        0.5
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        0.1,
+        1
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0.25
+      ],
+      [
+        0,
+        0.25
+      ],
+      [
+        0.1,
+        0.9
+      ],
+      [
+        0.1,
+        0.5
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0.7,
+        0
+      ],
+      [
+        0,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 1,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_14",
+    "note": "",
+    "initialPoints": [
+      [
+        0.1,
+        0.5
+      ],
+      [
+        1.25,
+        0.9
+      ],
+      [
+        0.2,
+        0.9
+      ],
+      [
+        0.1,
+        0
+      ],
+      [
+        1.25,
+        0.9
+      ],
+      [
+        0.1,
+        0
+      ],
+      [
+        1.25,
+        0.25
+      ],
+      [
+        0.2,
+        0.25
+      ],
+      [
+        -1,
+        0.25
+      ],
+      [
+        -1,
+        1
+      ],
+      [
+        0.7,
+        1
+      ],
+      [
+        -1,
+        0.1
+      ],
+      [
+        0.2,
+        0
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        1.25,
+        0.25
+      ],
+      [
+        0.7,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_15",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_16",
+    "note": "",
+    "initialPoints": [
+      [
+        2.0999999999999996,
+        0.1
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3.75,
+        0.1
+      ],
+      [
+        0,
+        0.25
+      ],
+      [
+        3.75,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 1,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_17",
+    "note": "",
+    "initialPoints": [
+      [
+        1,
+        1
+      ],
+      [
+        0.2,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        0.9
+      ],
+      [
+        0.2,
+        0.25
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 1,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_18",
+    "note": "",
+    "initialPoints": [
+      [
+        3,
+        1
+      ],
+      [
+        0.6000000000000001,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 0,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_19",
+    "note": "",
+    "initialPoints": [
+      [
+        2.0,
+        0.9
+      ],
+      [
+        12.5,
+        1
+      ],
+      [
+        12.5,
+        0.1
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        -10,
+        1
+      ],
+      [
+        12.5,
+        0.1
+      ],
+      [
+        7.0,
+        0.1
+      ],
+      [
+        0,
+        0.9
+      ],
+      [
+        -10,
+        0.9
+      ],
+      [
+        7.0,
+        0.9
+      ],
+      [
+        12.5,
+        0.9
+      ],
+      [
+        2.0,
+        0.9
+      ],
+      [
+        2.0,
+        0.1
+      ],
+      [
+        7.0,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_20",
+    "note": "",
+    "initialPoints": [
+      [
+        1.0,
+        0.5
+      ],
+      [
+        7.0,
+        0.5
+      ],
+      [
+        2.0,
+        0
+      ],
+      [
+        -10,
+        1
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        2.0,
+        1
+      ],
+      [
+        12.5,
+        1
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        2.0,
+        1
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        7.0,
+        0.1
+      ],
+      [
+        1.0,
+        0.9
+      ],
+      [
+        2.0,
+        1
+      ],
+      [
+        -10,
+        0.1
+      ],
+      [
+        2.0,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 125,
+          "actualHeight": 0,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_21",
+    "note": "",
+    "initialPoints": [
+      [
+        10,
+        0.1
+      ],
+      [
+        1.0,
+        1
+      ],
+      [
+        7.0,
+        0.5
+      ],
+      [
+        12.5,
+        0.9
+      ],
+      [
+        1.0,
+        0
+      ],
+      [
+        10,
+        0.25
+      ],
+      [
+        12.5,
+        0.5
+      ],
+      [
+        2.0,
+        0
+      ],
+      [
+        2.0,
+        0
+      ],
+      [
+        1.0,
+        1
+      ],
+      [
+        2.0,
+        0.5
+      ],
+      [
+        10,
+        0.25
+      ],
+      [
+        12.5,
+        1
+      ],
+      [
+        12.5,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 1,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_22",
+    "note": "",
+    "initialPoints": [
+      [
+        75.0,
+        0
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        6.0,
+        0
+      ],
+      [
+        12.0,
+        0.5
+      ],
+      [
+        -60,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 0,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_23",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 1,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_24",
+    "note": "",
+    "initialPoints": [
+      [
+        1.0,
+        0.1
+      ],
+      [
+        0,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 0,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_25",
+    "note": "",
+    "initialPoints": [
+      [
+        1.25,
+        0.25
+      ],
+      [
+        0.2,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_26",
+    "note": "",
+    "initialPoints": [
+      [
+        0.6000000000000001,
+        1
+      ],
+      [
+        0.6000000000000001,
+        0.9
+      ],
+      [
+        0.6000000000000001,
+        0.1
+      ],
+      [
+        -3,
+        1
+      ],
+      [
+        0.6000000000000001,
+        0.1
+      ],
+      [
+        -3,
+        1
+      ],
+      [
+        2.0999999999999996,
+        0.9
+      ],
+      [
+        0.6000000000000001,
+        0.9
+      ],
+      [
+        0.6000000000000001,
+        0
+      ],
+      [
+        -3,
+        0.9
+      ],
+      [
+        0.30000000000000004,
+        0.1
+      ],
+      [
+        2.0999999999999996,
+        0.1
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        0.30000000000000004,
+        0.25
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 1,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_27",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        0.1
+      ],
+      [
+        1,
+        0.9
+      ],
+      [
+        0.1,
+        0.5
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        0.2,
+        0
+      ],
+      [
+        0.2,
+        1
+      ],
+      [
+        0.2,
+        0.9
+      ],
+      [
+        0.2,
+        0.1
+      ],
+      [
+        1.25,
+        0.1
+      ],
+      [
+        0.2,
+        0.1
+      ],
+      [
+        0.2,
+        0.9
+      ],
+      [
+        -1,
+        0.9
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        0.2,
+        0.9
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        -1,
+        0.9
+      ],
+      [
+        0.2,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_28",
+    "note": "",
+    "initialPoints": [
+      [
+        -100,
+        10.0
+      ],
+      [
+        70.0,
+        90.0
+      ],
+      [
+        -100,
+        10.0
+      ],
+      [
+        70.0,
+        10.0
+      ],
+      [
+        10.0,
+        50.0
+      ],
+      [
+        20.0,
+        90.0
+      ],
+      [
+        20.0,
+        25.0
+      ],
+      [
+        20.0,
+        0
+      ],
+      [
+        20.0,
+        90.0
+      ],
+      [
+        -100,
+        10.0
+      ],
+      [
+        0,
+        90.0
+      ],
+      [
+        10.0,
+        50.0
+      ],
+      [
+        125.0,
+        50.0
+      ],
+      [
+        -100,
+        90.0
+      ],
+      [
+        0,
+        90.0
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_29",
+    "note": "",
+    "initialPoints": [
+      [
+        0.1,
+        0.9
+      ],
+      [
+        0.2,
+        0.9
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        0.2,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_30",
+    "note": "",
+    "initialPoints": [
+      [
+        -1,
+        0.1
+      ],
+      [
+        0.7,
+        1
+      ],
+      [
+        0.2,
+        0.25
+      ],
+      [
+        0.2,
+        0.25
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        0.2,
+        0.25
+      ],
+      [
+        0.7,
+        0.5
+      ],
+      [
+        0,
+        0.25
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 1,
+          "actualHeight": 1,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_31",
+    "note": "",
+    "initialPoints": [
+      [
+        1,
+        0.1
+      ],
+      [
+        0.2,
+        0.9
+      ],
+      [
+        1.25,
+        0.5
+      ],
+      [
+        1,
+        0.5
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0.1,
+        0.5
+      ],
+      [
+        0.1,
+        0.9
+      ],
+      [
+        0.2,
+        0.9
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        -1,
+        1
+      ],
+      [
+        -1,
+        0.25
+      ],
+      [
+        0.7,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 1,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_32",
+    "note": "",
+    "initialPoints": [
+      [
+        -10,
+        1
+      ],
+      [
+        12.5,
+        0.25
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        -10,
+        0
+      ],
+      [
+        2.0,
+        0.1
+      ],
+      [
+        2.0,
+        0.25
+      ],
+      [
+        10,
+        0.9
+      ],
+      [
+        2.0,
+        1
+      ],
+      [
+        2.0,
+        0.1
+      ],
+      [
+        -10,
+        0.1
+      ],
+      [
+        -10,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_33",
+    "note": "",
+    "initialPoints": [
+      [
+        -60,
+        1
+      ],
+      [
+        12.0,
+        0.5
+      ],
+      [
+        42.0,
+        0.9
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        60,
+        1
+      ],
+      [
+        75.0,
+        0.5
+      ],
+      [
+        42.0,
+        0
+      ],
+      [
+        12.0,
+        1
+      ],
+      [
+        12.0,
+        0.9
+      ],
+      [
+        12.0,
+        0.9
+      ],
+      [
+        60,
+        0
+      ],
+      [
+        6.0,
+        0.25
+      ],
+      [
+        -60,
+        0.9
+      ],
+      [
+        -60,
+        0.5
+      ],
+      [
+        60,
+        1
+      ],
+      [
+        42.0,
+        0.1
+      ],
+      [
+        -60,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 1,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_34",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 0,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_35",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        0.5
+      ],
+      [
+        0.6000000000000001,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0.30000000000000004,
+        0.9
+      ],
+      [
+        3.75,
+        0.9
+      ],
+      [
+        -3,
+        0
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        0.6000000000000001,
+        0.9
+      ],
+      [
+        2.0999999999999996,
+        0.25
+      ],
+      [
+        2.0999999999999996,
+        1
+      ],
+      [
+        -3,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_36",
+    "note": "",
+    "initialPoints": [
+      [
+        0.30000000000000004,
+        0.5
+      ],
+      [
+        0.6000000000000001,
+        0.5
+      ],
+      [
+        -3,
+        0.25
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_37",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        1
+      ],
+      [
+        0.6000000000000001,
+        0.9
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        3.75,
+        1
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        3.75,
+        0.1
+      ],
+      [
+        -3,
+        0.9
+      ],
+      [
+        0.6000000000000001,
+        1
+      ],
+      [
+        -3,
+        0.25
+      ],
+      [
+        0.6000000000000001,
+        0.9
+      ],
+      [
+        0.6000000000000001,
+        0
+      ],
+      [
+        -3,
+        0.1
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0.6000000000000001,
+        0.25
+      ],
+      [
+        3,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_38",
+    "note": "",
+    "initialPoints": [
+      [
+        42.0,
+        0.25
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        12.0,
+        1
+      ],
+      [
+        60,
+        0
+      ],
+      [
+        6.0,
+        0.9
+      ],
+      [
+        12.0,
+        0.25
+      ],
+      [
+        12.0,
+        1
+      ],
+      [
+        75.0,
+        0.1
+      ],
+      [
+        12.0,
+        0.25
+      ],
+      [
+        60,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 1,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_39",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        0
+      ],
+      [
+        42.0,
+        0.25
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        0.25
+      ],
+      [
+        12.0,
+        0.25
+      ],
+      [
+        -60,
+        0.25
+      ],
+      [
+        60,
+        0
+      ],
+      [
+        60,
+        0.25
+      ],
+      [
+        -60,
+        0.25
+      ],
+      [
+        12.0,
+        0.1
+      ],
+      [
+        75.0,
+        0.25
+      ],
+      [
+        -60,
+        0.25
+      ],
+      [
+        12.0,
+        0.25
+      ],
+      [
+        6.0,
+        0.25
+      ],
+      [
+        6.0,
+        0.5
+      ],
+      [
+        0,
+        0.25
+      ],
+      [
+        6.0,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_40",
+    "note": "",
+    "initialPoints": [
+      [
+        -3,
+        0.1
+      ],
+      [
+        3.75,
+        0
+      ],
+      [
+        3.75,
+        1
+      ],
+      [
+        -3,
+        0.5
+      ],
+      [
+        2.0999999999999996,
+        1
+      ],
+      [
+        0.30000000000000004,
+        0.25
+      ],
+      [
+        -3,
+        1
+      ],
+      [
+        -3,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_41",
+    "note": "",
+    "initialPoints": [
+      [
+        3,
+        0.9
+      ],
+      [
+        2.0999999999999996,
+        0
+      ],
+      [
+        0.6000000000000001,
+        0.25
+      ],
+      [
+        0.6000000000000001,
+        0.25
+      ],
+      [
+        2.0999999999999996,
+        0.25
+      ],
+      [
+        2.0999999999999996,
+        1
+      ],
+      [
+        3.75,
+        0.9
+      ],
+      [
+        0.6000000000000001,
+        0.9
+      ],
+      [
+        -3,
+        0
+      ],
+      [
+        0.6000000000000001,
+        0.5
+      ],
+      [
+        0,
+        0.25
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        2.0999999999999996,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_42",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        0
+      ],
+      [
+        0.30000000000000004,
+        0.25
+      ],
+      [
+        -3,
+        0.5
+      ],
+      [
+        0.30000000000000004,
+        0.1
+      ],
+      [
+        3,
+        0.9
+      ],
+      [
+        -3,
+        0.25
+      ],
+      [
+        3,
+        1
+      ],
+      [
+        0,
+        0.25
+      ],
+      [
+        0,
+        0.9
+      ],
+      [
+        3.75,
+        0.25
+      ],
+      [
+        0.6000000000000001,
+        0.25
+      ],
+      [
+        0.6000000000000001,
+        0
+      ],
+      [
+        0.6000000000000001,
+        0.1
+      ],
+      [
+        0.30000000000000004,
+        0.5
+      ],
+      [
+        0.6000000000000001,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_43",
+    "note": "",
+    "initialPoints": [
+      [
+        0.2,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_44",
+    "note": "",
+    "initialPoints": [
+      [
+        100,
+        10.0
+      ],
+      [
+        70.0,
+        25.0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        90.0
+      ],
+      [
+        10.0,
+        10.0
+      ],
+      [
+        125.0,
+        50.0
+      ],
+      [
+        125.0,
+        90.0
+      ],
+      [
+        20.0,
+        25.0
+      ],
+      [
+        70.0,
+        10.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 1,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_45",
+    "note": "",
+    "initialPoints": [
+      [
+        0.7,
+        0.9
+      ],
+      [
+        0.2,
+        0.5
+      ],
+      [
+        0.2,
+        0.25
+      ],
+      [
+        -1,
+        0.25
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_46",
+    "note": "",
+    "initialPoints": [
+      [
+        3,
+        0.5
+      ],
+      [
+        2.0999999999999996,
+        0.25
+      ],
+      [
+        3,
+        0.1
+      ],
+      [
+        0.6000000000000001,
+        1
+      ],
+      [
+        3,
+        0.5
+      ],
+      [
+        -3,
+        0.5
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        -3,
+        0.25
+      ],
+      [
+        -3,
+        0.25
+      ],
+      [
+        3.75,
+        0.1
+      ],
+      [
+        3,
+        0
+      ],
+      [
+        -3,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_47",
+    "note": "",
+    "initialPoints": [
+      [
+        2.0,
+        0.1
+      ],
+      [
+        -10,
+        0.25
+      ],
+      [
+        -10,
+        0.25
+      ],
+      [
+        10,
+        0.25
+      ],
+      [
+        7.0,
+        0.1
+      ],
+      [
+        1.0,
+        1
+      ],
+      [
+        -10,
+        0.9
+      ],
+      [
+        2.0,
+        0.5
+      ],
+      [
+        12.5,
+        0.5
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        -10,
+        0
+      ],
+      [
+        7.0,
+        0.25
+      ],
+      [
+        12.5,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_48",
+    "note": "",
+    "initialPoints": [
+      [
+        0.7,
+        0
+      ],
+      [
+        0.2,
+        0.1
+      ],
+      [
+        0.2,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_49",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        0
+      ],
+      [
+        0,
+        0.9
+      ],
+      [
+        -60,
+        0
+      ],
+      [
+        12.0,
+        0.25
+      ],
+      [
+        60,
+        0
+      ],
+      [
+        12.0,
+        0.25
+      ],
+      [
+        42.0,
+        0.1
+      ],
+      [
+        -60,
+        0.5
+      ],
+      [
+        6.0,
+        1
+      ],
+      [
+        12.0,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 0,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_50",
+    "note": "",
+    "initialPoints": [
+      [
+        60,
+        0
+      ],
+      [
+        12.0,
+        0.25
+      ],
+      [
+        42.0,
+        1
+      ],
+      [
+        42.0,
+        0.1
+      ],
+      [
+        12.0,
+        0
+      ],
+      [
+        6.0,
+        1
+      ],
+      [
+        -60,
+        0.25
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        6.0,
+        0.25
+      ],
+      [
+        12.0,
+        1
+      ],
+      [
+        12.0,
+        0.25
+      ],
+      [
+        60,
+        1
+      ],
+      [
+        75.0,
+        0.1
+      ],
+      [
+        12.0,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 0,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_51",
+    "note": "",
+    "initialPoints": [
+      [
+        3,
+        0.5
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        0.6000000000000001,
+        0
+      ],
+      [
+        0.6000000000000001,
+        0
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        0.6000000000000001,
+        0.1
+      ],
+      [
+        0,
+        0.25
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_52",
+    "note": "",
+    "initialPoints": [
+      [
+        20.0,
+        100
+      ],
+      [
+        70.0,
+        50.0
+      ],
+      [
+        10.0,
+        10.0
+      ],
+      [
+        125.0,
+        50.0
+      ],
+      [
+        10.0,
+        50.0
+      ],
+      [
+        10.0,
+        100
+      ],
+      [
+        -100,
+        100
+      ],
+      [
+        20.0,
+        0
+      ],
+      [
+        20.0,
+        25.0
+      ],
+      [
+        20.0,
+        100
+      ],
+      [
+        125.0,
+        50.0
+      ],
+      [
+        0,
+        10.0
+      ],
+      [
+        125.0,
+        50.0
+      ],
+      [
+        100,
+        25.0
+      ],
+      [
+        20.0,
+        10.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_53",
+    "note": "",
+    "initialPoints": [
+      [
+        20.0,
+        25.0
+      ],
+      [
+        20.0,
+        0
+      ],
+      [
+        20.0,
+        90.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 1,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_54",
+    "note": "",
+    "initialPoints": [
+      [
+        125.0,
+        0
+      ],
+      [
+        70.0,
+        10.0
+      ],
+      [
+        -100,
+        100
+      ],
+      [
+        20.0,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 0,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_55",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_56",
+    "note": "",
+    "initialPoints": [
+      [
+        0.7,
+        0.25
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 0,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_57",
+    "note": "",
+    "initialPoints": [
+      [
+        -10,
+        0.9
+      ],
+      [
+        2.0,
+        1
+      ],
+      [
+        -10,
+        0.25
+      ],
+      [
+        10,
+        0.9
+      ],
+      [
+        10,
+        0
+      ],
+      [
+        1.0,
+        0
+      ],
+      [
+        2.0,
+        0.9
+      ],
+      [
+        2.0,
+        0.1
+      ],
+      [
+        12.5,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_58",
+    "note": "",
+    "initialPoints": [
+      [
+        -60,
+        0.25
+      ],
+      [
+        75.0,
+        0
+      ],
+      [
+        75.0,
+        0.1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        75.0,
+        1
+      ],
+      [
+        6.0,
+        0.1
+      ],
+      [
+        60,
+        0
+      ],
+      [
+        12.0,
+        0.9
+      ],
+      [
+        -60,
+        0
+      ],
+      [
+        -60,
+        0.1
+      ],
+      [
+        42.0,
+        0.1
+      ],
+      [
+        0,
+        0.25
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        -60,
+        1
+      ],
+      [
+        75.0,
+        0.9
+      ],
+      [
+        42.0,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_59",
+    "note": "",
+    "initialPoints": [
+      [
+        10,
+        0.5
+      ],
+      [
+        -10,
+        0.1
+      ],
+      [
+        2.0,
+        1
+      ],
+      [
+        2.0,
+        0.9
+      ],
+      [
+        7.0,
+        0.5
+      ],
+      [
+        10,
+        0.1
+      ],
+      [
+        -10,
+        0.5
+      ],
+      [
+        1.0,
+        0
+      ],
+      [
+        2.0,
+        0.25
+      ],
+      [
+        1.0,
+        0.25
+      ],
+      [
+        7.0,
+        0.9
+      ],
+      [
+        7.0,
+        0.25
+      ],
+      [
+        10,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_60",
+    "note": "",
+    "initialPoints": [
+      [
+        10,
+        0.5
+      ],
+      [
+        2.0,
+        0.5
+      ],
+      [
+        1.0,
+        0.25
+      ],
+      [
+        1.0,
+        0.1
+      ],
+      [
+        2.0,
+        0.25
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        1.0,
+        0
+      ],
+      [
+        10,
+        0.25
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 125,
+          "actualHeight": 0,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_61",
+    "note": "",
+    "initialPoints": [
+      [
+        125.0,
+        90.0
+      ],
+      [
+        70.0,
+        25.0
+      ],
+      [
+        0,
+        100
+      ],
+      [
+        20.0,
+        90.0
+      ],
+      [
+        125.0,
+        25.0
+      ],
+      [
+        0,
+        25.0
+      ],
+      [
+        20.0,
+        90.0
+      ],
+      [
+        20.0,
+        50.0
+      ],
+      [
+        100,
+        90.0
+      ],
+      [
+        70.0,
+        90.0
+      ],
+      [
+        10.0,
+        25.0
+      ],
+      [
+        -100,
+        50.0
+      ],
+      [
+        125.0,
+        50.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_62",
+    "note": "",
+    "initialPoints": [
+      [
+        6.0,
+        0.9
+      ],
+      [
+        75.0,
+        0
+      ],
+      [
+        42.0,
+        0.5
+      ],
+      [
+        60,
+        0
+      ],
+      [
+        60,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_63",
+    "note": "",
+    "initialPoints": [
+      [
+        10,
+        0.9
+      ],
+      [
+        7.0,
+        0.25
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        2.0,
+        0.25
+      ],
+      [
+        12.5,
+        0
+      ],
+      [
+        7.0,
+        0
+      ],
+      [
+        10,
+        0.25
+      ],
+      [
+        -10,
+        0.1
+      ],
+      [
+        -10,
+        0
+      ],
+      [
+        1.0,
+        0.5
+      ],
+      [
+        10,
+        0.5
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        12.5,
+        0.9
+      ],
+      [
+        1.0,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_64",
+    "note": "",
+    "initialPoints": [
+      [
+        3,
+        0.5
+      ],
+      [
+        0,
+        0.9
+      ],
+      [
+        3.75,
+        0.5
+      ],
+      [
+        0.6000000000000001,
+        0.5
+      ],
+      [
+        0.6000000000000001,
+        0.1
+      ],
+      [
+        0,
+        0.25
+      ],
+      [
+        3,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_65",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        50.0
+      ],
+      [
+        -100,
+        10.0
+      ],
+      [
+        10.0,
+        10.0
+      ],
+      [
+        70.0,
+        100
+      ],
+      [
+        -100,
+        90.0
+      ],
+      [
+        20.0,
+        25.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_66",
+    "note": "",
+    "initialPoints": [
+      [
+        20.0,
+        25.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_67",
+    "note": "",
+    "initialPoints": [
+      [
+        1,
+        0.1
+      ],
+      [
+        0.2,
+        0.5
+      ],
+      [
+        0.2,
+        0.5
+      ],
+      [
+        1.25,
+        0.9
+      ],
+      [
+        0.1,
+        1
+      ],
+      [
+        1,
+        0.25
+      ],
+      [
+        0.2,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 0,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_68",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        0.25
+      ],
+      [
+        0.7,
+        0
+      ],
+      [
+        0.2,
+        1
+      ],
+      [
+        0.2,
+        0.1
+      ],
+      [
+        1.25,
+        0
+      ],
+      [
+        0.2,
+        0.25
+      ],
+      [
+        0.2,
+        0.25
+      ],
+      [
+        1,
+        0.9
+      ],
+      [
+        0.1,
+        0.5
+      ],
+      [
+        0.2,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_69",
+    "note": "",
+    "initialPoints": [
+      [
+        0.7,
+        0.25
+      ],
+      [
+        0.2,
+        0.1
+      ],
+      [
+        0,
+        0.25
+      ],
+      [
+        0.7,
+        0.25
+      ],
+      [
+        0.2,
+        0.25
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        1,
+        0.5
+      ],
+      [
+        1.25,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_70",
+    "note": "",
+    "initialPoints": [
+      [
+        -100,
+        90.0
+      ],
+      [
+        20.0,
+        25.0
+      ],
+      [
+        0,
+        10.0
+      ],
+      [
+        10.0,
+        25.0
+      ],
+      [
+        0,
+        90.0
+      ],
+      [
+        20.0,
+        100
+      ],
+      [
+        100,
+        25.0
+      ],
+      [
+        20.0,
+        25.0
+      ],
+      [
+        20.0,
+        10.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 1,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_71",
+    "note": "",
+    "initialPoints": [
+      [
+        7.0,
+        1
+      ],
+      [
+        12.5,
+        0.5
+      ],
+      [
+        12.5,
+        0
+      ],
+      [
+        -10,
+        1
+      ],
+      [
+        2.0,
+        1
+      ],
+      [
+        10,
+        0.9
+      ],
+      [
+        0,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 1,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_72",
+    "note": "",
+    "initialPoints": [
+      [
+        0,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 1,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_73",
+    "note": "",
+    "initialPoints": [
+      [
+        -3,
+        0.5
+      ],
+      [
+        -3,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_74",
+    "note": "",
+    "initialPoints": [
+      [
+        0.6000000000000001,
+        0.5
+      ],
+      [
+        0.6000000000000001,
+        0
+      ],
+      [
+        3,
+        0.25
+      ],
+      [
+        2.0999999999999996,
+        1
+      ],
+      [
+        2.0999999999999996,
+        0.1
+      ],
+      [
+        3.75,
+        0.25
+      ],
+      [
+        0.30000000000000004,
+        0.9
+      ],
+      [
+        -3,
+        0.25
+      ],
+      [
+        2.0999999999999996,
+        0.9
+      ],
+      [
+        3,
+        0.1
+      ],
+      [
+        3.75,
+        0.25
+      ],
+      [
+        0,
+        0.25
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 0,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_75",
+    "note": "",
+    "initialPoints": [
+      [
+        75.0,
+        0.25
+      ],
+      [
+        42.0,
+        0.9
+      ],
+      [
+        75.0,
+        0
+      ],
+      [
+        -60,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 0,
+          "actualHeight": 219,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_76",
+    "note": "",
+    "initialPoints": [
+      [
+        1.25,
+        0.1
+      ],
+      [
+        1.25,
+        0.1
+      ],
+      [
+        1.25,
+        0
+      ],
+      [
+        0.1,
+        1
+      ],
+      [
+        1.25,
+        0.9
+      ],
+      [
+        1.25,
+        1
+      ],
+      [
+        0.1,
+        0.1
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        -1,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 1,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_77",
+    "note": "",
+    "initialPoints": [
+      [
+        2.0,
+        0.5
+      ],
+      [
+        7.0,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_78",
+    "note": "",
+    "initialPoints": [
+      [
+        10,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_79",
+    "note": "",
+    "initialPoints": [
+      [
+        2.0999999999999996,
+        0.1
+      ],
+      [
+        -3,
+        0.1
+      ],
+      [
+        2.0999999999999996,
+        0.1
+      ],
+      [
+        2.0999999999999996,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 0,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_80",
+    "note": "",
+    "initialPoints": [
+      [
+        20.0,
+        25.0
+      ],
+      [
+        20.0,
+        10.0
+      ],
+      [
+        10.0,
+        25.0
+      ],
+      [
+        10.0,
+        50.0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 1,
+          "actualHeight": 0,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_81",
+    "note": "",
+    "initialPoints": [
+      [
+        1.0,
+        1
+      ],
+      [
+        2.0,
+        0.5
+      ],
+      [
+        7.0,
+        1
+      ],
+      [
+        2.0,
+        0.1
+      ],
+      [
+        12.5,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_82",
+    "note": "",
+    "initialPoints": [
+      [
+        3,
+        0.9
+      ],
+      [
+        0.6000000000000001,
+        0
+      ],
+      [
+        2.0999999999999996,
+        0.1
+      ],
+      [
+        3,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_83",
+    "note": "",
+    "initialPoints": [
+      [
+        3.75,
+        0.9
+      ],
+      [
+        3,
+        0.9
+      ],
+      [
+        3.75,
+        1
+      ],
+      [
+        2.0999999999999996,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "viewport-change",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_84",
+    "note": "",
+    "initialPoints": [],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_85",
+    "note": "",
+    "initialPoints": [
+      [
+        75.0,
+        0.25
+      ],
+      [
+        12.0,
+        0.5
+      ],
+      [
+        60,
+        1
+      ],
+      [
+        -60,
+        0
+      ],
+      [
+        75.0,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_86",
+    "note": "",
+    "initialPoints": [
+      [
+        12.5,
+        0.1
+      ],
+      [
+        2.0,
+        0.9
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        2.0,
+        0.25
+      ],
+      [
+        7.0,
+        0.9
+      ],
+      [
+        1.0,
+        0.25
+      ],
+      [
+        12.5,
+        0
+      ],
+      [
+        2.0,
+        0
+      ],
+      [
+        1.0,
+        0.1
+      ],
+      [
+        -10,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 0,
+          "actualHeight": 1,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_87",
+    "note": "",
+    "initialPoints": [
+      [
+        0.2,
+        0.5
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        1.25,
+        0
+      ],
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0.25
+      ],
+      [
+        0.2,
+        1
+      ],
+      [
+        1,
+        0.25
+      ],
+      [
+        0.1,
+        0.25
+      ],
+      [
+        1,
+        0.25
+      ],
+      [
+        -1,
+        0
+      ],
+      [
+        0,
+        0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 1,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 1,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_88",
+    "note": "",
+    "initialPoints": [
+      [
+        125.0,
+        10.0
+      ],
+      [
+        20.0,
+        50.0
+      ],
+      [
+        20.0,
+        90.0
+      ],
+      [
+        10.0,
+        0
+      ],
+      [
+        20.0,
+        0
+      ],
+      [
+        0,
+        25.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_89",
+    "note": "",
+    "initialPoints": [
+      [
+        7.0,
+        0.5
+      ],
+      [
+        2.0,
+        0.25
+      ],
+      [
+        1.0,
+        0
+      ],
+      [
+        7.0,
+        0
+      ],
+      [
+        2.0,
+        0
+      ],
+      [
+        2.0,
+        0
+      ],
+      [
+        10,
+        0.9
+      ],
+      [
+        1.0,
+        0.5
+      ],
+      [
+        -10,
+        0
+      ],
+      [
+        1.0,
+        0.1
+      ],
+      [
+        10,
+        1
+      ],
+      [
+        -10,
+        0
+      ],
+      [
+        0,
+        0.9
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 1,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 219,
+          "viewportWidth": 10,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_90",
+    "note": "",
+    "initialPoints": [
+      [
+        20.0,
+        0
+      ],
+      [
+        0,
+        10.0
+      ],
+      [
+        20.0,
+        25.0
+      ],
+      [
+        100,
+        100
+      ],
+      [
+        -100,
+        100
+      ],
+      [
+        0,
+        0
+      ],
+      [
+        20.0,
+        50.0
+      ],
+      [
+        100,
+        100
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 1,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 317,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_91",
+    "note": "",
+    "initialPoints": [
+      [
+        6.0,
+        0.5
+      ],
+      [
+        12.0,
+        0.1
+      ],
+      [
+        60,
+        1
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        -60,
+        0
+      ],
+      [
+        -60,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_92",
+    "note": "",
+    "initialPoints": [
+      [
+        12.0,
+        0.5
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        -60,
+        0.5
+      ],
+      [
+        42.0,
+        0.1
+      ],
+      [
+        42.0,
+        0.25
+      ],
+      [
+        -60,
+        0.1
+      ],
+      [
+        12.0,
+        0.5
+      ],
+      [
+        0,
+        0.1
+      ],
+      [
+        75.0,
+        0.5
+      ],
+      [
+        12.0,
+        0.1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_93",
+    "note": "",
+    "initialPoints": [
+      [
+        75.0,
+        0.5
+      ],
+      [
+        6.0,
+        1
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 125,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 60,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_94",
+    "note": "",
+    "initialPoints": [
+      [
+        100,
+        0
+      ],
+      [
+        10.0,
+        50.0
+      ],
+      [
+        -100,
+        0
+      ],
+      [
+        -100,
+        100
+      ],
+      [
+        20.0,
+        10.0
+      ],
+      [
+        -100,
+        50.0
+      ],
+      [
+        10.0,
+        0
+      ],
+      [
+        -100,
+        0
+      ],
+      [
+        125.0,
+        0
+      ],
+      [
+        0,
+        25.0
+      ],
+      [
+        -100,
+        50.0
+      ],
+      [
+        125.0,
+        90.0
+      ]
+    ],
+    "steps": [
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 641,
+          "actualHeight": 149,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 100,
+          "viewportHeight": 100
+        }
+      }
+    ]
+  },
+  {
+    "name": "sweep_95",
+    "note": "",
+    "initialPoints": [
+      [
+        0.30000000000000004,
+        0.5
+      ],
+      [
+        0.6000000000000001,
+        0.9
+      ],
+      [
+        3.75,
+        0.1
+      ],
+      [
+        3.75,
+        0.1
+      ],
+      [
+        0,
+        0.5
+      ],
+      [
+        3,
+        0.1
+      ],
+      [
+        0.30000000000000004,
+        0.25
+      ],
+      [
+        3.75,
+        0.5
+      ],
+      [
+        2.0999999999999996,
+        0.25
+      ],
+      [
+        0.30000000000000004,
+        0.25
+      ],
+      [
+        3,
+        0.9
+      ],
+      [
+        2.0999999999999996,
+        0.25
+      ],
+      [
+        0,
+        0.5
+      ]
+    ],
+    "steps": [
+      {
+        "event": "points-bound",
+        "geometry": {
+          "attached": false,
+          "actualWidth": 125,
+          "actualHeight": 219,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "synchronize",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      },
+      {
+        "event": "collection-reset",
+        "geometry": {
+          "attached": true,
+          "actualWidth": 125,
+          "actualHeight": 149,
+          "viewportWidth": 3,
+          "viewportHeight": 1
+        }
+      }
+    ]
+  }
+]

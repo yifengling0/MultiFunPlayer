@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-10-16",
+  "files": [
+    {
+      "file": "upstream/RangeSlider.cs",
+      "gitBlobSha1": "e341a995420c3747288a472078b11cdd055eb87d",
+      "url": "https://github.com/MahApps/MahApps.Metro/blob/2.4.9/src/MahApps.Metro/Controls/RangeSlider.cs",
+      "version": "2.4.9 exact project PackageReference"
+    },
+    {
+      "file": "upstream/NumericUpDown.cs",
+      "gitBlobSha1": "522b5b963cfb3a322b31ce59a7dadccb554e51cc",
+      "url": "https://github.com/MahApps/MahApps.Metro/blob/2.4.9/src/MahApps.Metro/Controls/NumericUpDown.cs",
+      "version": "2.4.9 exact project PackageReference"
+    },
+    {
+      "file": "upstream/BindingExpression.cs",
+      "gitBlobSha1": "ced9291429a105ab2a6218f96a92a1e45669e1e9",
+      "url": "https://github.com/dotnet/wpf/blob/v9.0.0/src/Microsoft.DotNet.Wpf/src/PresentationFramework/System/Windows/Data/BindingExpression.cs",
+      "version": "v9.0.0 baseline; actual Windows runtime not locked"
+    },
+    {
+      "file": "upstream/BindingExpressionBase.cs",
+      "gitBlobSha1": "21915f798018fc38e9f2aed26a6d6cb316a31c0a",
+      "url": "https://github.com/dotnet/wpf/blob/v9.0.0/src/Microsoft.DotNet.Wpf/src/PresentationFramework/System/Windows/Data/BindingExpressionBase.cs",
+      "version": "v9.0.0 baseline; actual Windows runtime not locked"
+    },
+    {
+      "file": "upstream/DependencyObject.cs",
+      "gitBlobSha1": "ccda5318a81b5b1b6c77d57b3dc4e4cc02ef5d34",
+      "url": "https://github.com/dotnet/wpf/blob/v9.0.0/src/Microsoft.DotNet.Wpf/src/WindowsBase/System/Windows/DependencyObject.cs",
+      "version": "v9.0.0 baseline; actual Windows runtime not locked"
+    },
+    {
+      "file": "upstream/MahApps.LICENSE",
+      "gitBlobSha1": "fe02a7018abd1760e5ae5112ef85117ebf8da16a",
+      "url": "https://github.com/MahApps/MahApps.Metro/blob/2.4.9/LICENSE",
+      "version": "2.4.9 exact project PackageReference"
+    },
+    {
+      "file": "upstream/Wpf.LICENSE",
+      "gitBlobSha1": "a616ed188dfce68ee308f674350ad242d8588c2b",
+      "url": "https://github.com/dotnet/wpf/blob/v9.0.0/LICENSE.TXT",
+      "version": "v9.0.0 baseline; actual Windows runtime not locked"
+    },
+    {
+      "file": "upstream/MaterialDesignTheme.MahApps.NumericUpDown.xaml",
+      "gitBlobSha1": "c871450abb148fe1bd07c097921305b0463c8a24",
+      "url": "https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit/blob/v4.7.0/MaterialDesignThemes.MahApps/Themes/MaterialDesignTheme.MahApps.NumericUpDown.xaml",
+      "version": "v4.7.0 release workflow declares MaterialDesignThemes.MahApps 0.2.6"
+    },
+    {
+      "file": "upstream/MaterialDesign.get_versions.yml",
+      "gitBlobSha1": "5a9e75f24eb689bed07044776aa6c2bec005cf57",
+      "url": "https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit/blob/v4.7.0/.github/workflows/get_versions.yml",
+      "version": "v4.7.0 release workflow declares MaterialDesignThemes.MahApps 0.2.6"
+    },
+    {
+      "file": "upstream/MaterialDesignTheme.MahApps.Defaults.xaml",
+      "gitBlobSha1": "6e9116ddde78b64c4ac5d902847037fc5f5880ec",
+      "url": "https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit/blob/v4.7.0/MaterialDesignThemes.MahApps/Themes/MaterialDesignTheme.MahApps.Defaults.xaml",
+      "version": "v4.7.0 release workflow declares MaterialDesignThemes.MahApps 0.2.6"
+    },
+    {
+      "file": "upstream/MaterialDesign.LICENSE",
+      "gitBlobSha1": "320040e619e0a102dd2d015ade6f9c03e4fe802d",
+      "url": "https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit/blob/v4.7.0/LICENSE",
+      "version": "v4.7.0 release workflow declares MaterialDesignThemes.MahApps 0.2.6"
+    },
+    {
+      "file": "upstream/FrameworkPropertyMetadata.cs",
+      "gitBlobSha1": "6958326b22fd4aee11962f1f03eca5dc759840d6",
+      "url": "https://github.com/dotnet/wpf/blob/v9.0.0/src/Microsoft.DotNet.Wpf/src/PresentationFramework/System/Windows/FrameworkPropertyMetadata.cs",
+      "version": "v9.0.0 baseline; actual Windows runtime not locked"
+    }
+  ]
+}

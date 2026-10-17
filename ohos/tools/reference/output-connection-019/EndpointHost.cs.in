@@ -1,0 +1,99 @@
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+
+// The original registration bodies, auto-property initializers and parser are
+// extracted unchanged. Only the shortcut builder/base and target host are inert
+// substitutes; no transport, DNS, WPF, Fody or connection lifecycle is executed.
+public sealed class SettingBuilder<T>
+{
+    public SettingBuilder<T> WithLabel(string label) => this;
+    public SettingBuilder<T> WithDescription(string description) => this;
+}
+public interface IShortcutManager
+{
+    void RegisterAction<T>(string name, Action<SettingBuilder<T>> configure, Action<T> callback);
+}
+public sealed class ShortcutManager : IShortcutManager
+{
+    public Dictionary<string, Action<string>> Actions { get; } = new();
+    public void RegisterAction<T>(string name, Action<SettingBuilder<T>> configure, Action<T> callback)
+    {
+        configure(new SettingBuilder<T>());
+        Actions.Add(name, text => callback((T)(object)text));
+    }
+}
+public class BaseTarget
+{
+    public string Identifier { get; set; }
+    public virtual void RegisterActions(IShortcutManager s) { }
+}
+public sealed class TcpOutputTarget : BaseTarget
+{
+    @@TCP_PROPERTY@@
+    @@TCP_REGISTER@@
+}
+public sealed class UdpOutputTarget : BaseTarget
+{
+    @@UDP_PROPERTY@@
+    @@UDP_REGISTER@@
+}
+public sealed class WebSocketOutputTarget : BaseTarget
+{
+    @@WS_PROPERTY@@
+    @@WS_REGISTER@@
+}
+public static partial class NetUtils
+{
+    @@PARSE@@
+    @@TRY_PARSE@@
+    @@REGEX@@
+}
+public sealed class Input
+{
+    public string kind { get; set; }
+    public string text { get; set; }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        var inputs = JsonSerializer.Deserialize<List<Input>>(Console.In.ReadToEnd());
+        var rows = new List<object>();
+        foreach (var input in inputs)
+        {
+            BaseTarget target = input.kind == "tcp" ? new TcpOutputTarget() : input.kind == "udp" ? new UdpOutputTarget() : new WebSocketOutputTarget();
+            target.Identifier = input.kind + "/3";
+            var manager = new ShortcutManager(); target.RegisterActions(manager);
+            object before = Value(target); string error = null;
+            var id = target.Identifier + (input.kind == "webSocket" ? "::Uri::Set" : "::Endpoint::Set");
+            try { manager.Actions[id](input.text); } catch (Exception e) { error = e.GetType().Name; }
+            object after = Value(target);
+            string host = null, scheme = null, path = null, uri = null, endpointType = null, family = null;
+            int port = -1;
+            if (after is IPEndPoint ip)
+            {
+                host = ip.Address.ToString(); port = ip.Port; endpointType = nameof(IPEndPoint); family = ip.AddressFamily.ToString();
+            }
+            else if (after is DnsEndPoint dns)
+            {
+                host = dns.Host; port = dns.Port; endpointType = nameof(DnsEndPoint); family = dns.AddressFamily.ToString();
+            }
+            else if (after is Uri value)
+            {
+                host = value.Host; port = value.Port; scheme = value.Scheme; path = value.PathAndQuery; uri = value.AbsoluteUri;
+            }
+            rows.Add(new { input, id, error, assignedNewObject = !ReferenceEquals(before, after), host, port, scheme, path, uri, endpointType, family });
+        }
+        Console.Write(JsonSerializer.Serialize(new { rows }));
+    }
+    private static object Value(BaseTarget target) => target switch
+    {
+        TcpOutputTarget tcp => tcp.Endpoint,
+        UdpOutputTarget udp => udp.Endpoint,
+        WebSocketOutputTarget ws => ws.Uri,
+        _ => throw new InvalidOperationException()
+    };
+}

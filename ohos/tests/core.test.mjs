@@ -48,7 +48,7 @@ test('hostile nested shapes, names and duplicate axis names rejected', () => {
     { axes: 2 }, { axes: null }, { axes: [null] }, { axes: [{ id: 'L0' }] },
     { axes: [{ id: '<script>', actions: [] }] }, { axes: { L1: null } },
     { axes: [{ id: 'constructor', actions: [] }] },
-    { actions: [], axes: [{ id: 'L0', actions: [] }] }
+    { axes: [{ id: 'L0', actions: [] }, { id: 'L0', actions: [] }] }
   ]) { assert.throws(() => parse(value)); }
   assert.throws(() => Parser.parse('{"axes":{"__proto__":{"actions":[]}}}'));
   assert.equal({}.polluted, undefined);

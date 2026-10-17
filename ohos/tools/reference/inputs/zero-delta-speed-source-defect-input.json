@@ -1,0 +1,1 @@
+{"axes":[{"name":"L0","defaultValue":0.5}],"syncSettings":{"Duration":0},"settings":{"L0":{"InterpolationType":"Linear","AutoHomeEnabled":false,"SpeedLimitEnabled":true,"SpeedLimitUnitsPerSecond":"Infinity"}},"scripts":{"L0":[[0,0.5],[1,0.5]]},"frames":[{"deltaSeconds":0,"positionSeconds":0,"playing":true},{"deltaSeconds":0,"positionSeconds":0,"playing":true}]}

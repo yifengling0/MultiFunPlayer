@@ -1,6 +1,10 @@
 import { ConfigurationDiagnostic, DeviceAxisDefinition, DeviceProfile, DeviceProfiles } from '../core/DeviceProfile';
 import { AxisConfiguration, AxisConfigurationEntry, AxisConfigurationJson, SyncConfiguration } from '../core/AxisConfiguration';
 import { AxisMotionConfiguration, DeviceMotionConfiguration, MotionConfigurations, MotionProviderConfiguration } from '../core/MotionConfiguration';
+import { OutputConfiguration } from './OutputConfiguration';
+import { GeneralConfiguration } from './GeneralConfiguration';
+import { MediaSourceConfiguration } from './MediaSourceConfiguration';
+import { KeyboardShortcutConfiguration } from '../input/ShortcutConfiguration';
 
 export class DeviceAxisConfiguration {
   deviceId: string;
@@ -11,8 +15,75 @@ export class DeviceAxisConfiguration {
   }
 }
 
+/** Playback preferences only. Associations are case-sensitive relative paths in a
+ * freshly authorized Download catalog, never URIs, grants, or openable paths.
+ * internalAutoConnect concerns only the internal script clock source; restoring
+ * it MUST NOT connect a device/network output or arm/resume physical playback.
+ * A/B bounds, current item, position, playing and connections are session-only. */
+export class PlaybackConfiguration {
+  static readonly MAX_ASSOCIATIONS: number = 256;
+  static readonly MAX_ASSOCIATION_LENGTH: number = 4096;
+  static readonly MIN_AUTO_SKIP_OFFSET_SECONDS: number = -86400;
+  playlistAssociations: string[] | null = null;
+  internalLooping: boolean = false;
+  internalShuffling: boolean = false;
+  internalAutoConnect: boolean = false;
+  loadAdditionalScripts: boolean = false;
+  autoSkipEnabled: boolean = true;
+  autoSkipOffsetSeconds: number = -5;
+
+  static validate(value: PlaybackConfiguration): ConfigurationDiagnostic[] {
+    const diagnostics: ConfigurationDiagnostic[] = [];
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+      return [new ConfigurationDiagnostic('playback', 'invalid_playback', 'Playback must be an object.')];
+    }
+    if (value.playlistAssociations !== null) {
+      if (!Array.isArray(value.playlistAssociations) || value.playlistAssociations.length > PlaybackConfiguration.MAX_ASSOCIATIONS) {
+        diagnostics.push(new ConfigurationDiagnostic('playback.playlistAssociations', 'invalid_associations', 'Playlist must be null or an array of at most 256 associations.'));
+      } else {
+        for (const id of value.playlistAssociations) {
+          if (typeof id !== 'string' || id.length === 0 || id.length > PlaybackConfiguration.MAX_ASSOCIATION_LENGTH ||
+            /[\x00-\x1f\x7f-\x9f\\:]/.test(id) || id.split('/').some(part => part === '' || part === '.' || part === '..')) {
+            diagnostics.push(new ConfigurationDiagnostic('playback.playlistAssociations', 'invalid_association', 'Associations must be bounded relative catalog identities, never absolute paths or URIs.'));
+            break;
+          }
+        }
+      }
+    }
+    if (typeof value.internalLooping !== 'boolean' || typeof value.internalShuffling !== 'boolean' ||
+      typeof value.internalAutoConnect !== 'boolean' || typeof value.loadAdditionalScripts !== 'boolean' ||
+      typeof value.autoSkipEnabled !== 'boolean') {
+      diagnostics.push(new ConfigurationDiagnostic('playback', 'invalid_boolean', 'Playback switches must be boolean.'));
+    }
+    if (typeof value.autoSkipOffsetSeconds !== 'number' || !Number.isFinite(value.autoSkipOffsetSeconds)) {
+      diagnostics.push(new ConfigurationDiagnostic('playback.autoSkipOffsetSeconds', 'invalid_offset', 'Auto-skip offset must be finite; original shortcut actions permit either sign.'));
+    }
+    return diagnostics;
+  }
+
+  /** Defensive, whitelisted copy. Upstream restores shuffle first, then loop. */
+  static clone(value: PlaybackConfiguration): PlaybackConfiguration {
+    const errors = PlaybackConfiguration.validate(value);
+    if (errors.length > 0) { throw new Error(errors.map(error => error.message).join('; ')); }
+    const result = new PlaybackConfiguration();
+    result.playlistAssociations = value.playlistAssociations === null ? null : value.playlistAssociations.slice();
+    result.internalLooping = value.internalLooping;
+    result.internalShuffling = value.internalShuffling && !value.internalLooping;
+    result.internalAutoConnect = value.internalAutoConnect;
+    result.loadAdditionalScripts = value.loadAdditionalScripts;
+    result.autoSkipEnabled = value.autoSkipEnabled;
+    result.autoSkipOffsetSeconds = value.autoSkipOffsetSeconds;
+    return result;
+  }
+}
+
 export class AppConfiguration {
   schemaVersion: number = 1;
+  playback: PlaybackConfiguration = new PlaybackConfiguration();
+  outputs: OutputConfiguration = new OutputConfiguration();
+  keyboard: KeyboardShortcutConfiguration = new KeyboardShortcutConfiguration();
+  general: GeneralConfiguration = new GeneralConfiguration();
+  mediaSources: MediaSourceConfiguration = new MediaSourceConfiguration();
   selectedDeviceId: string = 'TCode-0.3';
   devices: DeviceProfile[];
   axisSettingsByDevice: DeviceAxisConfiguration[];
@@ -39,6 +110,11 @@ class JsonDeviceAxes {
 }
 class JsonAppConfiguration {
   schemaVersion: number = 1;
+  playback: PlaybackConfiguration = new PlaybackConfiguration();
+  outputs: OutputConfiguration = new OutputConfiguration();
+  keyboard: KeyboardShortcutConfiguration = new KeyboardShortcutConfiguration();
+  general: GeneralConfiguration = new GeneralConfiguration();
+  mediaSources: MediaSourceConfiguration = new MediaSourceConfiguration();
   selectedDeviceId: string = 'TCode-0.3';
   devices: DeviceProfile[] = [];
   axisSettingsByDevice: JsonDeviceAxes[] = [];
@@ -94,6 +170,11 @@ export class SettingsSchema {
         if (!Number.isFinite(raw.globalOffsetSeconds)) { throw new Error('globalOffsetSeconds must be finite.'); }
         result.globalOffsetSeconds = raw.globalOffsetSeconds;
       }
+      result.playback = SettingsSchema.playback(raw.playback, diagnostics);
+      result.outputs = OutputConfiguration.fromJson(raw.outputs);
+      result.keyboard = KeyboardShortcutConfiguration.fromJson(raw.keyboard);
+      result.general = GeneralConfiguration.fromJson(raw.general);
+      result.mediaSources = MediaSourceConfiguration.fromJson(raw.mediaSources);
       result.sync = SettingsSchema.sync(raw.sync, diagnostics);
       result.axisSettingsByDevice = SettingsSchema.axisSettings(raw.axisSettingsByDevice, result.devices, diagnostics);
       result.motionSettingsByDevice = SettingsSchema.motionSettings(raw.motionSettingsByDevice, result.devices, diagnostics);
@@ -133,6 +214,11 @@ export class SettingsSchema {
     SettingsSchema.array(configuration.motionSettingsByDevice, SettingsSchema.MAX_DEVICES, 'motionSettingsByDevice');
     if (!Number.isFinite(configuration.globalOffsetSeconds)) { throw new Error('globalOffsetSeconds must be finite.'); }
     const result = new JsonAppConfiguration();
+    result.playback = PlaybackConfiguration.clone(configuration.playback);
+    result.outputs = OutputConfiguration.clone(configuration.outputs);
+    result.keyboard = KeyboardShortcutConfiguration.clone(configuration.keyboard);
+    result.general = GeneralConfiguration.clone(configuration.general);
+    result.mediaSources = MediaSourceConfiguration.clone(configuration.mediaSources);
     result.selectedDeviceId = configuration.selectedDeviceId;
     result.globalOffsetSeconds = configuration.globalOffsetSeconds;
     result.devices = configuration.devices.map(profile => {
@@ -158,6 +244,25 @@ export class SettingsSchema {
       }));
     });
     return result;
+  }
+
+  private static playback(raw: PlaybackConfiguration | undefined,
+    diagnostics: ConfigurationDiagnostic[]): PlaybackConfiguration {
+    const result = new PlaybackConfiguration();
+    if (raw === undefined) { return result; }
+    SettingsSchema.object(raw, 'playback'); SettingsSchema.missing(raw, result, 'playback', diagnostics);
+    if (raw.playlistAssociations !== undefined) { result.playlistAssociations = raw.playlistAssociations; }
+    if (raw.internalLooping !== undefined) { result.internalLooping = raw.internalLooping; }
+    if (raw.internalShuffling !== undefined) { result.internalShuffling = raw.internalShuffling; }
+    if (raw.internalAutoConnect !== undefined) { result.internalAutoConnect = raw.internalAutoConnect; }
+    if (raw.loadAdditionalScripts !== undefined) { result.loadAdditionalScripts = raw.loadAdditionalScripts; }
+    if (raw.autoSkipEnabled !== undefined) { result.autoSkipEnabled = raw.autoSkipEnabled; }
+    if (raw.autoSkipOffsetSeconds !== undefined) { result.autoSkipOffsetSeconds = raw.autoSkipOffsetSeconds; }
+    SettingsSchema.errors(PlaybackConfiguration.validate(result));
+    if (result.internalLooping && result.internalShuffling) {
+      SettingsSchema.warning(diagnostics, 'playback.internalShuffling', 'loop_precedes_shuffle', 'Looping takes precedence over shuffle, matching upstream restore order.');
+    }
+    return PlaybackConfiguration.clone(result);
   }
 
   private static devices(raw: DeviceProfile[], diagnostics: ConfigurationDiagnostic[]): DeviceProfile[] {

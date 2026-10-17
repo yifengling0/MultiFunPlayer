@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems><OutputType>Exe</OutputType><TargetFramework>net9.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable><LangVersion>13.0</LangVersion><CheckForOverflowUnderflow>false</CheckForOverflowUnderflow><NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="*.cs" /><Compile Include=".work/generated/*.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Common/Keyframe.cs" Link="Original/Keyframe.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Common/KeyframeCollection.cs" Link="Original/KeyframeCollection.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Common/Utils/MathUtils.cs" Link="Original/MathUtils.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Common/DeviceAxis.cs" Link="Original/DeviceAxis.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Common/DeviceSettings.cs" Link="Original/DeviceSettings.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Script/IScriptWriter.cs" Link="Original/IScriptWriter.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/OutputTarget/DeviceAxisSettings.cs" Link="Original/OutputAxisSettings.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Script/IScriptResource.cs" Link="Original/IScriptResource.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Script/ChapterCollection.cs" Link="Original/ChapterCollection.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Script/BookmarkCollection.cs" Link="Original/BookmarkCollection.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Script/Chapter.cs" Link="Original/Chapter.cs" />
+    <Compile Include="../../../Source/MultiFunPlayer/Script/Bookmark.cs" Link="Original/Bookmark.cs" />
+  </ItemGroup>
+</Project>

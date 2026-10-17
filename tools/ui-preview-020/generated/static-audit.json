@@ -1,0 +1,308 @@
+{
+  "kind": "Static token, source-label and geometry audit. NO browser screenshots or native render.",
+  "sourceManifestSha256": "a08d1f6559d5363e7a4c6317f0c736376ec78ad150ba56fb1802b3200dcf3796",
+  "tokens": {
+    "page": "#E8EFF2",
+    "card": "#F8FAFB",
+    "field": "#FFFFFF",
+    "ink": "#142D3A",
+    "muted": "#536875",
+    "edge": "#C6D8DF",
+    "edgeLight": "#F4FFFF",
+    "accent": "#087E8B",
+    "accentSoft": "#DEEFF2",
+    "danger": "#B53C42",
+    "dangerSoft": "#FCECEF",
+    "warning": "#805415",
+    "success": "#216646",
+    "heading": 22,
+    "helper": 14,
+    "control": 52,
+    "radius": 12,
+    "body": 18,
+    "compactBody": 16,
+    "gap": 12,
+    "compactGap": 8,
+    "padding": 16,
+    "compactPadding": 12
+  },
+  "density": {
+    "default": "readable",
+    "explicitCompactOnly": true
+  },
+  "contrasts": [
+    {
+      "pair": "body/card",
+      "foreground": "#142D3A",
+      "background": "#F8FAFB",
+      "ratio": 13.681,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "helper/card",
+      "foreground": "#536875",
+      "background": "#F8FAFB",
+      "ratio": 5.564,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "helper/page",
+      "foreground": "#536875",
+      "background": "#E8EFF2",
+      "ratio": 5.01,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "button/soft",
+      "foreground": "#142D3A",
+      "background": "#DEEFF2",
+      "ratio": 12.096,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "danger/soft",
+      "foreground": "#B53C42",
+      "background": "#FCECEF",
+      "ratio": 4.982,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "warning/card",
+      "foreground": "#805415",
+      "background": "#F8FAFB",
+      "ratio": 6.275,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "success/card",
+      "foreground": "#216646",
+      "background": "#F8FAFB",
+      "ratio": 6.569,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "white/accent",
+      "foreground": "#FFFFFF",
+      "background": "#087E8B",
+      "ratio": 4.808,
+      "required": 4.5,
+      "pass": true
+    },
+    {
+      "pair": "white/danger",
+      "foreground": "#FFFFFF",
+      "background": "#B53C42",
+      "ratio": 5.691,
+      "required": 4.5,
+      "pass": true
+    }
+  ],
+  "geometry": [
+    {
+      "id": "phone-320",
+      "width": 320,
+      "height": 568,
+      "headerHeight": 72,
+      "sideBySide": false,
+      "videoSurface": {
+        "width": 320,
+        "height": 161.28
+      },
+      "controlsHeight": 52,
+      "settings": {
+        "x": 0,
+        "y": 293.28,
+        "width": 320,
+        "height": 274.72
+      },
+      "inBounds": true,
+      "dialogHeight": 544,
+      "snackbarTextHeight": 120
+    },
+    {
+      "id": "phone-360",
+      "width": 360,
+      "height": 640,
+      "headerHeight": 72,
+      "sideBySide": false,
+      "videoSurface": {
+        "width": 360,
+        "height": 140.24
+      },
+      "controlsHeight": 104,
+      "settings": {
+        "x": 0,
+        "y": 324.24,
+        "width": 360,
+        "height": 315.76
+      },
+      "inBounds": true,
+      "dialogHeight": 616,
+      "snackbarTextHeight": 120
+    },
+    {
+      "id": "phone-390",
+      "width": 390,
+      "height": 844,
+      "headerHeight": 72,
+      "sideBySide": false,
+      "videoSurface": {
+        "width": 390,
+        "height": 219.375
+      },
+      "controlsHeight": 104,
+      "settings": {
+        "x": 0,
+        "y": 403.375,
+        "width": 390,
+        "height": 440.625
+      },
+      "inBounds": true,
+      "dialogHeight": 620,
+      "snackbarTextHeight": 120
+    },
+    {
+      "id": "landscape-568",
+      "width": 568,
+      "height": 320,
+      "headerHeight": 72,
+      "sideBySide": true,
+      "videoSurface": {
+        "width": 240,
+        "height": 196
+      },
+      "controlsHeight": 52,
+      "settings": {
+        "x": 248,
+        "y": 72,
+        "width": 320,
+        "height": 248
+      },
+      "inBounds": true,
+      "dialogHeight": 296,
+      "snackbarTextHeight": 70.4
+    },
+    {
+      "id": "landscape-640",
+      "width": 640,
+      "height": 360,
+      "headerHeight": 72,
+      "sideBySide": true,
+      "videoSurface": {
+        "width": 312,
+        "height": 236
+      },
+      "controlsHeight": 52,
+      "settings": {
+        "x": 320,
+        "y": 72,
+        "width": 320,
+        "height": 288
+      },
+      "inBounds": true,
+      "dialogHeight": 336,
+      "snackbarTextHeight": 79.2
+    },
+    {
+      "id": "tablet-768",
+      "width": 768,
+      "height": 1024,
+      "headerHeight": 72,
+      "sideBySide": false,
+      "videoSurface": {
+        "width": 768,
+        "height": 305.36
+      },
+      "controlsHeight": 104,
+      "settings": {
+        "x": 0,
+        "y": 489.36,
+        "width": 768,
+        "height": 534.64
+      },
+      "inBounds": true,
+      "dialogHeight": 620,
+      "snackbarTextHeight": 120
+    },
+    {
+      "id": "tablet-1024",
+      "width": 1024,
+      "height": 768,
+      "headerHeight": 72,
+      "sideBySide": true,
+      "videoSurface": {
+        "width": 606.4,
+        "height": 592
+      },
+      "controlsHeight": 104,
+      "settings": {
+        "x": 614.4,
+        "y": 72,
+        "width": 409.6,
+        "height": 696
+      },
+      "inBounds": true,
+      "dialogHeight": 620,
+      "snackbarTextHeight": 120
+    },
+    {
+      "id": "pc-1280",
+      "width": 1280,
+      "height": 800,
+      "headerHeight": 72,
+      "sideBySide": true,
+      "videoSurface": {
+        "width": 760,
+        "height": 624
+      },
+      "controlsHeight": 104,
+      "settings": {
+        "x": 768,
+        "y": 72,
+        "width": 512,
+        "height": 728
+      },
+      "inBounds": true,
+      "dialogHeight": 620,
+      "snackbarTextHeight": 120
+    },
+    {
+      "id": "window-320",
+      "width": 320,
+      "height": 480,
+      "headerHeight": 72,
+      "sideBySide": false,
+      "videoSurface": {
+        "width": 320,
+        "height": 123.44
+      },
+      "controlsHeight": 52,
+      "settings": {
+        "x": 0,
+        "y": 255.44,
+        "width": 320,
+        "height": 224.56
+      },
+      "inBounds": true,
+      "dialogHeight": 456,
+      "snackbarTextHeight": 105.6
+    }
+  ],
+  "screenshotStatus": "NOT GENERATED. Local Chromium blocked by sandbox socket restrictions; escalated execution failed during environment setup. Cloud browser file URL explicitly denied. Rendering stopped; no bypass route attempted.",
+  "limitations": [
+    "HTML mirrors representative ArkUI builder sections; it does not execute ArkUI, native Select, XComponent or player callbacks.",
+    "Actual UiStyle values and VideoLayout/horizontalWorkspace functions are imported without copying their numeric values.",
+    "Chinese fixture filenames, paths, long errors and endpoint names are deliberately synthetic. No real endpoint is contacted.",
+    "CSS line wrapping, font fallback, measurement and safe-area behavior differ from HarmonyOS. Native IME, touch, accessibility and hardware require device acceptance.",
+    "Screenshot checks prove only this browser approximation. SHA256 fingerprints allow a stale preview to be detected.",
+    "Numeric box bounds and contrast checks cannot detect glyph clipping, ArkUI min-content measurement, image composition, control hit testing, or platform Select/IME behavior."
+  ],
+  "pass": true
+}

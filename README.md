@@ -1,3 +1,5 @@
+> OHOS local candidate **0.20.0 / code21**: [scope/evidence](ohos/README.md), [Chinese usage](ohos/USAGE_ZH.md), [network receiver/diagnostic guide](ohos/tools/network-diagnostics/README.md), [runnable UI preview](tools/ui-preview-020/README.md). Readable typography and52vp controls now default on every device class; TCP/UDP production logic has actual Linux socket-loopback evidence and a reachable native in-app diagnostic. OHOS device networking and native visual acceptance still require local testing. Original action coverage is unchanged:178IDs /153 of188 sites,110full-portable,43partial,35unwired. This remains incomplete1:1 parity. Unsigned HAP/source support official local signing/deployment/testing; upstream Windows features below are not blanket OHOS availability claims.
+
 <div align="center">
     <h1>MultiFunPlayer</h1>
     <br/>

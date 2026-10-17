@@ -1,3 +1,61 @@
+# 0.19 状态增量
+
+- DeoVR普通Play/Pause/Speed：既有Arm可经明确事务保留，先关闭gate/清队列，实际同源观测及新合法frame后继续；暂停无活动维持待命。协议没有因果ACK/服务器时间戳，不能证明迟到服务器缓存的因果新鲜度。Seek/Path/AB/AutoSkip仍撤销。
+- 六个输出注册点已走真实Index/实例owner：TCP/UDP端点、WS URI、Connect/Disconnect/Toggle。仅支持现有三种网络目标；端点草稿不迁移旧socket，连接不Arm，原严格域/WPF/独立权限差异继续partial。
+- 178ID=160原具体名+14实例别名+4扩展；153/188=110 full-portable+43 partial，35未接。旧partial没有因新增ID被升级。
+- 未接35分为18媒体源/生命周期、9Drive、7输出发现/协议/自动连接、1日志。更多原产品能力及平台验收缺项见NEXT_PARITY_STEPS.md；动作目录统计不是整体功能完成率。
+- 源码控制器/实际C#和官方SDK证据可支持本地复现；手机/平板/PC视觉/触控/IME、真实播放器/输出设备尚无验收。File特殊审查仍阻断，未换路重试。
+
+## Historical record
+
+# 0.18 状态增量
+
+- DeoVR源：实际native TCP、framing/JSON、命令与keepalive、接收时钟、原事件次序、受管脚本匹配、页面控制和持久偏好已接。状态为有界部分适配，真实设备未验。
+- 媒体控制：Play/Pause/Seek/Speed/Path和AB/AutoSkip走真实远端源；无seek ACK，seek解除物理Arm，不伪造确认或自动恢复。
+- 生命周期：后台/销毁/Stop即时关门、异步关闭、晚包/晚读取/晚发送隔离、失败close quarantine已由实际控制器与mock SDK验证。
+- 原动作账本：172具体ID映射147/188原模板；110 full-portable、37 partial、41未接。8新增ID仅对应5原注册点，旧partial保持。详见ACTION_COVERAGE_018.md。
+- 原始平台、域、数值预算和物理验证边界保留；File和其他协议未因包内存在模块而宣称完成。
+
+## Historical record
+
+## 0.17 增量：9个模板进入真实但受限的执行路径
+
+- 164目录ID=152原具体名+8逐实例输出模板适配名+4扩展；142/188原模板有实际接线，110完整可移植/32部分/46未接。不把实例或provider展开重复算模板。
+- 受管Looping Set有真实Download catalog读取、同URI新资源、相位/缓存/同步副作用与取消所有权；原任意文件域未开放，所以仍partial。
+- 8个输出范围Set/Offset通过原C# delegate及编码oracle，逐目标保存/实时映射，有限反向范围保持。支持TCP/UDP/WebSocket，原其他目标族/无限范围/动态注册域仍缺，所以仍partial。
+- 新UI路径覆盖触摸与键盘，旧frame、队列、迟到回执及被删除重建的目标均不可被范围动作重新授权。未知物理设备、Windows绑定、原生触控视觉未验证。
+- 剩余46按依赖为23外部源/生命周期/切媒体、9Drive连续输入、13输出连接/发现/协议、1日志；详见ACTION_COVERAGE_017.md与REMAINING_ORIGINAL_DEPENDENCIES_017.md。
+
+## 0.16 增量：收敛已接动作依赖，数量不变
+
+- 155具体动作/133原模板仍为110完整可移植、23部分、55未接。实际挂载且测量的Custom Curve画布已接原同步/视区删除/Reset顺序；与隐藏provider、相同Duration明确区分。
+- 固定MahApps/WPF源码及C#方法oracle纠正Range/Octaves原“coerce必回写”推测：普通source transfer只改变控件有效值，显式用户提交才改模型。四provider范围与Random Octaves已接受控UI，显示raw/effective差异，保留反向模型范围和128预算。
+- 点数字草稿、删除/添加、拖动和Reset均有上下文/生命周期守卫；4096点使用单一快照和短revision key。手机48vp源码路径与控制器有回归，不宣称真机触摸/视觉。
+- Windows首次绑定/缓存隐藏页/Fody调度、动态MinRange/双thumb、Smart点域和原有预算仍未完全闭合，因此不无证据提升partial。完整证据见ACTION_COVERAGE_016.md及VALIDATION.md。
+
+## 0.15 增量：真实执行路径与剩余差距
+
+- 155具体动作（151原名+4扩展）映射133/188模板：110完整可移植、23部分、55未接。五个新增模板均已接真实Index/session/provider路径，点编辑不是执行按钮的替身。
+- Manual独立默认关闭权限、明确预览与Arm待命、真实Transition固定输出；Stop/后台/断连撤销，未造Polled事件。手动原状态数值、时长、优先级及溢出安全边界有回归。
+- SkipGap实际.NET116场景和生产对照；所选轴被原算法忽略等奇点保留，非法/非有限媒体状态明确拒绝。
+- 既有21部分项没有被数量升级；新Smart点域和Custom已加载画布差异仍partial。完整逐项见ACTION_COVERAGE_015.md，优先依赖工作见NEXT_PARITY_STEPS.md。真实SDK/输入hash/测试以VALIDATION.md最终记录为准。
+
+## 0.14 增量（code15）
+
+150具体动作=146原名+4OHOS，覆盖128/188原模板；107完整可移植、21部分、60未接。16Motion模板展开34动作，Internal按名播放、2Shortcut Enabled及真实同根Download重载/Link已接；保持原数值、锁、无匹配、同步次序与明确取消/Arm生命周期。1731/1731实际.NET全测和官方cleanHAP通过，111输入SHA一致。两阶段独立审查各44例通过；WPF绑定差异及受管范围仍见ACTION_COVERAGE_014.md。无真机、物理ACK或完整1:1声明，File未接且审查仍阻断。
+
+以下历史增量保留。
+
+## 0.13 增量（code 14）
+
+真实快捷/触摸执行器现113动作：109原注册模板+4OHOS扩展。完整188模板逐项分为97本地完整、12部分、79未接，详见ACTION_COVERAGE_013.md；0.12的22动作实际为18原模板+4扩展，不能计成22原模板。显式轴、Axis/Sync参数、绝对/百分比定位、标记名/索引、AB和Internal/AutoSkip已接真实核心；13触摸分类、明确拒绝/结果、旧回调/Stop与设置→Cancel次序有测试。1514/1514实际.NET全测及官方clean HAP通过；110输入SHA一致。未做真机、IME、物理设备或完整WPF事件调度验证。DeoVR仅协议评估；File仍受阻未接。
+
+以下历史增量保留。
+
+## 0.12 增量（code 13）
+
+本地键盘/触摸命令已接真实Index：4类按钮触发、22项有序动作、持久映射、空默认列表、F12安全Stop、焦点/IME与旧回调/捕获所有权门控。General已有真实响应式方向和3种错误提示策略。原版清单188动作模板/10触发/8+8设置已逐项审计，但不代表全部实现；其余输入设备/全局监听/动作参数/6项General仍未接。1277/1277测试及官方clean HAP通过，真机视觉/键盘/IME未验。详见INPUT_GENERAL_CONTRACT.md和VALIDATION.md。
+
 # MultiFunPlayer WPF → OHOS 功能对照与验收矩阵
 
 审计日期：2026-10-16。本文检查的是**实际调用链和行为**，不是按钮数量、界面截图或编译成功率。
@@ -204,6 +262,18 @@ node --test tests/*.test.mjs
 - 配套安全修复：video-only清旧轴但能播放；损坏配对不退化为沿用旧源；刷新关闭旧视频/脚本；过期回调不重新打开输出门。
 
 以上是实现增量，**仍未实机验收**。最终本地回归数量、SDK构建及交付哈希见 `VALIDATION.md` 的 M7。其他90项基线差距不会因为完成这些使用修复而一并标为完成。
+
+### 8.2 配置基础中间提交（64511e4）
+
+提交：`64511e406136f4d4a5ee7f85cf230c73c135078b`。只包含设备/轴/Motion 配置模型、持久层和测试，共 12 个文件，不包含尚在集成的页面、运行流水线或物理输出。
+
+- 设备模型：两套内置 TCode 配置、启用轴投影、自定义配置及禁用轴设置保留。未启用的引用在运行投影中明确诊断，持久数据不被清除。
+- 参数模型：29 项轴设置、8 项同步设置及四种 Motion 参数；仅速度上限允许专用编码的正无穷，其余非有限值拒绝。
+- 持久化：串行写入、临时文件同步后重命名、已验证备份；读取失败或未来版本只读；损坏配置回退需要显式接受后才能写入。启动读取不自动覆盖文件。
+- 验证：隔离提交快照全仓 304 项通过；配置专项 60 项和独立补充审查 6 项通过；官方 SDK 原生 `.ets` 类型检查与 ArkTS lint 均为 0 诊断。
+- 远端 [OHOS CI](https://github.com/yifengling0/MultiFunPlayer/actions/runs/38922500696) 为 success，304 通过、0 失败、0 跳过。通用 CI 中 Windows 构建和文档任务因路径过滤跳过，不能作为 Windows 验证。
+
+这次提交是后续 E05/E06、C06–C18 的公共基础，**不代表这些整项功能已经验收**。尚未为此提交生成新 HAP，也没有真机持久化、断电或完整 UI 验收。页面和运行时集成将在后续提交单独记录。
 
 ## 9. 实施优先级与依赖
 

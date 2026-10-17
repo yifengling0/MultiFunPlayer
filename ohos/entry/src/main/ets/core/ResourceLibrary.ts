@@ -1,3 +1,4 @@
+import { DeviceProfile } from './DeviceProfile';
 import { AxisMapping, AxisDefinition } from './AxisMapping';
 import { FunscriptAction, FunscriptAxis, FunscriptDocument, FunscriptParser } from './Funscript';
 
@@ -92,7 +93,17 @@ export class ResourceScriptCandidate {
   }
 }
 
+export class ResourceAxisSelection {
+  axisName: string;
+  file: ResourceFileEntry;
+  document: FunscriptDocument;
+  constructor(axisName: string, file: ResourceFileEntry, document: FunscriptDocument) {
+    this.axisName = axisName; this.file = file; this.document = document;
+  }
+}
+
 export class ResourceSelectionResult {
+  axisSources: ResourceAxisSelection[] = [];
   document?: FunscriptDocument;
   selectedFiles: ResourceFileEntry[] = [];
   blockedAxes: string[] = [];
@@ -136,7 +147,7 @@ export class ResourceLibrary {
   static readonly MAX_STRING_LENGTH: number = 4096;
   static readonly MAX_TOTAL_TEXT_LENGTH: number = 2 * 1024 * 1024;
 
-  static build(entries: ResourceFileEntry[], profile: string = 'TCode-0.3'): ResourceLibraryResult {
+  static build(entries: ResourceFileEntry[], profile: string | DeviceProfile = 'TCode-0.3'): ResourceLibraryResult {
     AxisMapping.defaultAxes(profile); // Validate even an empty catalog's profile.
     if (!Array.isArray(entries) || entries.length > ResourceLibrary.MAX_FILES) {
       throw new Error('A resource library allows at most 2000 file entries.');
@@ -184,7 +195,7 @@ export class ResourceLibrary {
         }
       });
       if (!matched) {
-        const suffix: string = ResourceLibrary.knownSuffix(file.stem);
+        const suffix: string = ResourceLibrary.knownSuffix(file.stem, profile);
         const baseStem: string = suffix.length > 0 ? file.stem.slice(0, -suffix.length) : file.stem;
         const item: ResourceLibraryItem = ResourceLibrary.getGroup(groups, file.parentPath, baseStem);
         ResourceLibrary.addScript(item, file, suffix.length === 0, profile, uriCounts);
@@ -277,7 +288,7 @@ export class ResourceLibrary {
   /** Follows FunscriptReader's distinction between a conventional source and
    * embedded axis resources. The existing OHOS parser remains stricter than
    * upstream for malformed data, duplicate IDs and out-of-range actions. */
-  static parseCandidate(json: string, file: ResourceFileEntry, profile: string = 'TCode-0.3'): ResourceScriptCandidate {
+  static parseCandidate(json: string, file: ResourceFileEntry, profile: string | DeviceProfile = 'TCode-0.3'): ResourceScriptCandidate {
     const checkedFile: ResourceFileEntry = ResourceLibrary.validateEntry(file).file;
     const document: FunscriptDocument = FunscriptParser.parse(json);
     const raw: RawResourceDocument = JSON.parse(json) as RawResourceDocument;
@@ -313,7 +324,7 @@ export class ResourceLibrary {
    * otherwise the first selected axis. Upstream retains metadata per resource.
    */
   static selectDocuments(mediaName: string, candidates: ResourceScriptCandidate[],
-    profile: string = 'TCode-0.3'): ResourceSelectionResult {
+    profile: string | DeviceProfile = 'TCode-0.3'): ResourceSelectionResult {
     ResourceLibrary.validateMediaName(mediaName);
     const definitions: AxisDefinition[] = AxisMapping.defaultAxes(profile);
     if (!Array.isArray(candidates) || candidates.length > ResourceLibrary.MAX_FILES) {
@@ -349,7 +360,7 @@ export class ResourceLibrary {
         if (!definition.enabled) { continue; }
         const axis: FunscriptAxis | undefined = multi.document.axes.find((value: FunscriptAxis): boolean =>
           value.name === definition.name && multi.resourceAxes.indexOf(value.name) >= 0);
-        if (axis !== undefined) { selectedAxes.push(axis); }
+        if (axis !== undefined) { selectedAxes.push(axis); result.axisSources.push(new ResourceAxisSelection(axis.name, multi.file, new FunscriptDocument([axis], multi.document.metadata))); }
         else { result.blockedAxes.push(definition.name); }
       }
     } else {
@@ -358,7 +369,7 @@ export class ResourceLibrary {
         let winner: ResourceScriptCandidate | undefined = undefined;
         for (const alias of definition.funscriptNames) {
           winner = checked.find((candidate: ResourceScriptCandidate): boolean =>
-            ResourceLibrary.matchesAlias(candidate.file.name, mediaName, alias));
+            ResourceLibrary.matchesAlias(candidate.file.name, mediaName, alias, profile));
           if (winner !== undefined) { break; }
         }
         if (winner === undefined) { continue; }
@@ -371,7 +382,9 @@ export class ResourceLibrary {
           result.blockedAxes.push(definition.name);
           continue;
         }
-        selectedAxes.push(new FunscriptAxis(definition.name, winner.document.axes[0].actions));
+        const selectedAxis = new FunscriptAxis(definition.name, winner.document.axes[0].actions);
+        selectedAxes.push(selectedAxis);
+        result.axisSources.push(new ResourceAxisSelection(definition.name, winner.file, new FunscriptDocument([selectedAxis], winner.document.metadata)));
         if (metadataSource === undefined) { metadataSource = winner.document; }
       }
     }
@@ -451,9 +464,9 @@ export class ResourceLibrary {
     return dot >= 0 ? leaf.slice(0, dot) : leaf;
   }
 
-  private static matchesAlias(scriptName: string, mediaName: string, alias: string): boolean {
+  private static matchesAlias(scriptName: string, mediaName: string, alias: string, profile: string | DeviceProfile): boolean {
     const stem: string = ResourceLibrary.fileStem(scriptName).toLowerCase();
-    const suffix: string = ResourceLibrary.knownSuffix(stem);
+    const suffix: string = ResourceLibrary.knownSuffix(stem, profile);
     const base: string = suffix.length > 0 ? stem.slice(0, -suffix.length) : stem;
     const media: string = ResourceLibrary.fileStem(mediaName).toLowerCase();
     if (base !== media) { return false; }
@@ -474,9 +487,9 @@ export class ResourceLibrary {
     return item;
   }
 
-  private static knownSuffix(stem: string): string {
+  private static knownSuffix(stem: string, selected: string | DeviceProfile = 'TCode-0.3'): string {
     const lower: string = stem.toLowerCase();
-    for (const profile of ['TCode-0.2', 'TCode-0.3']) {
+    for (const profile of [selected, 'TCode-0.2', 'TCode-0.3']) {
       for (const axis of AxisMapping.defaultAxes(profile)) {
         for (const alias of axis.funscriptNames) {
           const suffix: string = '.' + alias.toLowerCase();
@@ -488,7 +501,7 @@ export class ResourceLibrary {
   }
 
   private static addScript(item: ResourceLibraryItem, file: ParsedResourceFile, isBase: boolean,
-    profile: string, uriCounts: Map<string, number>): void {
+    profile: string | DeviceProfile, uriCounts: Map<string, number>): void {
     let axisName: string = 'L0';
     let enabled: boolean = true;
     if (!isBase || item.videos.length > 0) {

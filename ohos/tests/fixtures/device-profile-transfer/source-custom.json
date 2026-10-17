@@ -1,0 +1,28 @@
+{
+  "Name": "Desktop custom",
+  "OutputPrecision": 4,
+  "Axes": [
+    {
+      "Name": "L0",
+      "FriendlyName": "Up/Down",
+      "FunscriptNames": [
+        "*",
+        "stroke",
+        "L0",
+        "up"
+      ],
+      "DefaultValue": 0.5,
+      "Enabled": true
+    },
+    {
+      "Name": "A2",
+      "FriendlyName": null,
+      "FunscriptNames": [
+        "lube",
+        "A2"
+      ],
+      "DefaultValue": 0,
+      "Enabled": false
+    }
+  ]
+}

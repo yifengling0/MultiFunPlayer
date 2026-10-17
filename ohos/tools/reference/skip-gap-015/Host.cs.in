@@ -1,0 +1,94 @@
+// Structural test host only. Algorithm placeholders contain unchanged source spans.
+global using System;
+global using System.Linq;
+global using System.Collections.Generic;
+global using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using MultiFunPlayer.Common;
+
+namespace System.Windows { public struct Point { public double X, Y; public Point(double x, double y) { X=x;Y=y; } } }
+namespace MultiFunPlayer.Common {
+ public static class Extensions {
+@@VALIDATE_INDEX@@
+ }
+}
+sealed record DeviceAxis(string Name) { public static IReadOnlyList<DeviceAxis> All { get; set; } = []; }
+sealed class AxisState {
+ public int Index { get; set; }
+@@INDEX_CONSTANTS@@
+@@INSIDE_SCRIPT@@
+}
+sealed class AxisSettings { public double Offset { get; set; } }
+sealed record MediaSeekMessage(TimeSpan Position);
+sealed class CaptureEventAggregator {
+ public List<double> Positions { get; } = [];
+ public void Publish(MediaSeekMessage message) => Positions.Add(message.Position.TotalSeconds);
+}
+sealed class InputAxis {
+ public string name { get; set; }
+ public double[][] points { get; set; }
+ public int index { get; set; } = int.MinValue;
+ public double offset { get; set; }
+ public bool deriveIndexFromPosition { get; set; }
+ public bool locked { get; set; }
+ public bool bypassScript { get; set; }
+}
+sealed class Input {
+ public string name { get; set; }
+ public string note { get; set; }
+ public string invocation { get; set; } = "action";
+ public string targetAxis { get; set; }
+ public double minimumSkip { get; set; } = 2;
+ public double mediaPosition { get; set; }
+ public double mediaDuration { get; set; } = 100;
+ public double globalOffset { get; set; }
+ public InputAxis[] axes { get; set; } = [];
+}
+sealed class Subject {
+ readonly Dictionary<DeviceAxis, KeyframeCollection> AxisKeyframes = [];
+ readonly Dictionary<DeviceAxis, AxisState> AxisStates = [];
+ readonly Dictionary<DeviceAxis, AxisSettings> AxisSettings = [];
+ readonly CaptureEventAggregator _eventAggregator = new();
+ double MediaPosition;
+ double MediaDuration;
+ double GlobalOffset;
+@@GET_AXIS_POSITION@@
+@@SKIP_GAP_OVERLOAD@@
+@@SKIP_GAP@@
+@@SEEK_MEDIA@@
+ public object Run(Input input) {
+  MediaPosition = input.mediaPosition; MediaDuration = input.mediaDuration; GlobalOffset = input.globalOffset;
+  foreach (var a in input.axes) {
+   var axis = new DeviceAxis(a.name);
+   var keys = a.points == null ? null : new KeyframeCollection(a.points.Select(p => new Keyframe(p[0], p[1])));
+   AxisKeyframes.Add(axis, keys); AxisSettings.Add(axis, new AxisSettings { Offset = a.offset });
+   // Explicit host state preparation, using the ORIGINAL index/search helpers.
+   // Not a replacement for original UpdateScript's full lifecycle.
+   var index = a.index;
+   if (a.deriveIndexFromPosition && keys != null)
+    index = keys.AdvanceIndex(keys.SearchForIndexBefore(GetAxisPosition(axis)), GetAxisPosition(axis));
+   AxisStates.Add(axis, new AxisState { Index = index });
+  }
+  DeviceAxis.All = AxisKeyframes.Keys.ToArray();
+  string exceptionType = null;
+  try {
+   if (input.invocation == "empty") SkipGap(Array.Empty<DeviceAxis>(), input.minimumSkip);
+   else if (input.invocation == "all") SkipGap((IEnumerable<DeviceAxis>)null, input.minimumSkip);
+   else {
+    var axis = input.targetAxis == null ? null : new DeviceAxis(input.targetAxis);
+    SkipGap(input.minimumSkip, axis); // same call expression as registered callback
+   }
+  } catch (Exception exception) { exceptionType = exception.GetType().Name; }
+  return new { name = input.name, seeks = _eventAggregator.Positions, exceptionType,
+   axes = AxisKeyframes.Keys.Select(a => new { name = a.Name, index = AxisStates[a].Index,
+    insideScript = AxisStates[a].InsideScript, axisPosition = GetAxisPosition(a) }).ToArray() };
+ }
+}
+static class Program {
+ static void Main() {
+  var options = new JsonSerializerOptions { NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals };
+  var inputs = JsonSerializer.Deserialize<Input[]>(Console.In.ReadToEnd(), options);
+  Console.Write(JsonSerializer.Serialize(inputs.Select(input => new Subject().Run(input)).ToArray(), options));
+ }
+}

@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {setup,edit,playing,connect}from './multi-output-helpers.mjs';
+const {OutputEndpoint}=await import('../entry/src/main/ets/output/OutputCoordinator.ts');
+for(const field of['host','port','family','localPort','scheme','path','token-path','kind','targetId','profile','scope','mode','interval','pausedMotion','pausedManual'])test('submitted '+field+' mismatch fails before transport construction',async()=>{
+ const s=setup();s.page.addOutputTarget('webSocket');const id=s.page.selectedOutputId;edit(s,id);playing(s);const d=s.Owner.draftSnapshot(id),c=d.model.config(s.page.outputProfile,id),e=new OutputEndpoint();Object.assign(e,{host:d.host,port:d.port,family:Number(d.family),localPort:d.localPort,scheme:d.scheme,path:d.path});
+ if(field==='host')e.host='elsewhere.local';if(field==='port')e.port++;if(field==='family')e.family=2;if(field==='localPort')e.localPort=42;if(field==='scheme')e.scheme='wss';if(field==='path')e.path='/different';if(field==='token-path')e.path='/token/secret';
+ if(field==='kind')c.kind='tcp';if(field==='targetId')c.targetId='udp:0';if(field==='profile')c.protocolProfile.revision++;if(field==='scope')c.axisRanges[0].maximum=.5;if(field==='mode')c.updateContext={kind:'polled'};if(field==='interval')c.updateContext.intervalMs++;if(field==='pausedMotion')c.allowPausedMotion=true;if(field==='pausedManual')c.allowPausedManual=true;
+ assert.equal(await s.page.applyOutputConfiguration(c,e,d.targetGeneration),0);assert.equal(s.ports.length,0);assert.equal(s.Owner.draftSnapshot(id).applicationId,0);await s.page.output.dispose();
+});

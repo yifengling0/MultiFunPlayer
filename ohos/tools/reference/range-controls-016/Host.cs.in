@@ -1,0 +1,99 @@
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
+
+// Structural hosts only. No WPF DependencyObject, BindingExpression, dispatcher,
+// Fody, XAML, template, layout, or actual control lifetime is executed here.
+class DependencyObject { public virtual void CoerceValue(string property) {} }
+class DependencyPropertyChangedEventArgs {}
+class RoutedPropertyChangedEventArgs<T> {
+    public string Event { get; }
+    public T OldValue { get; }
+    public T NewValue { get; }
+    public RoutedPropertyChangedEventArgs(T oldValue, T newValue, string name) {
+        OldValue = oldValue; NewValue = newValue; Event = name;
+    }
+}
+class RangeSelectionChangedEventArgs<T> {
+    public string Event { get; }
+    public T OldLower { get; }
+    public T Lower { get; }
+    public T OldUpper { get; }
+    public T Upper { get; }
+    public RangeSelectionChangedEventArgs(T oldLower, T lower, T oldUpper, T upper, string name) {
+        OldLower = oldLower; Lower = lower; OldUpper = oldUpper; Upper = upper; Event = name;
+    }
+}
+class Change {
+    public string field { get; set; }
+    public double previous { get; set; }
+    public double value { get; set; }
+}
+class RangeSlider : DependencyObject {
+    const string LowerValueProperty = "minimum", UpperValueProperty = "maximum";
+    const string RangeSelectionChangedEvent = "range", LowerValueChangedEvent = "lower", UpperValueChangedEvent = "upper";
+    public double Minimum = 0, Maximum = 1, MinRange = .01;
+    public double LowerValue = 0, UpperValue = 1, BaseLower = 0, BaseUpper = 1;
+    double _oldLower = 0, _oldUpper = 1;
+    bool _internalUpdate = false;
+    public List<Change> Changes = new();
+    public List<string> Calls = new();
+    public List<object> Events = new();
+    public override void CoerceValue(string property) {
+        Calls.Add(property);
+        double oldValue = property == "minimum" ? LowerValue : UpperValue;
+        double value = property == "minimum" ? (double)CoerceLowerValue(this, BaseLower) : (double)CoerceUpperValue(this, BaseUpper);
+        if (oldValue == value) return;
+        if (property == "minimum") LowerValue = value; else UpperValue = value;
+        Changes.Add(new Change { field = property, previous = oldValue, value = value });
+        RangesChanged(this, new DependencyPropertyChangedEventArgs());
+    }
+    public void Transfer(string field, double value) {
+        if (field == "minimum") BaseLower = value; else BaseUpper = value;
+        CoerceValue(field);
+    }
+    void RaiseEvent(object value) { Events.Add(value); }
+    void ReCalculateSize() { /* Only geometry is omitted; original method has no endpoint assignments. */ }
+    @@LOWER@@
+    @@UPPER@@
+    @@RANGES_CHANGED@@
+    @@COERCE_BOTH@@
+    @@RAISE_EVENTS@@
+}
+[Flags] enum NumericInput { Decimal = 1, All = 3 }
+class NumericUpDown : DependencyObject {
+    public double Minimum = 1, Maximum = 8;
+    public NumericInput NumericInputMode = NumericInput.All;
+    public static double Project(double value) { return (double)CoerceValue(new NumericUpDown(), value); }
+    @@NUMERIC@@
+}
+class Program {
+    static void Main() {
+        using var doc = JsonDocument.Parse(Console.In.ReadToEnd());
+        var cases = new List<object>();
+        foreach (var test in doc.RootElement.EnumerateArray()) {
+            var range = new RangeSlider();
+            double octaves = 1, sourceOctaves = 1;
+            var steps = new List<object>();
+            foreach (var op in test.GetProperty("operations").EnumerateArray()) {
+                range.Changes.Clear(); range.Calls.Clear(); range.Events.Clear();
+                string field = op.GetProperty("field").GetString();
+                double value = op.GetProperty("value").GetDouble();
+                if (field == "octaves") {
+                    sourceOctaves = value;
+                    double projected = NumericUpDown.Project(value);
+                    if (octaves != projected) range.Changes.Add(new Change { field = field, previous = octaves, value = projected });
+                    octaves = projected;
+                } else { range.Transfer(field, value); }
+                steps.Add(new {
+                    state = new { minimum = range.LowerValue, maximum = range.UpperValue, octaves,
+                        sourceMinimum = range.BaseLower, sourceMaximum = range.BaseUpper, sourceOctaves },
+                    valueChanges = range.Changes.ToArray(), coercionOrder = range.Calls.ToArray(),
+                    routedEvents = range.Events.ToArray()
+                });
+            }
+            cases.Add(new { name = test.GetProperty("name").GetString(), steps });
+        }
+        Console.Write(JsonSerializer.Serialize(cases));
+    }
+}

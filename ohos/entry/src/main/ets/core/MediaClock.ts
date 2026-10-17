@@ -11,6 +11,9 @@ export class MediaClockSnapshot {
   failure: string = '';
   generation: number = 0;
   safetyGateOpen: boolean = false;
+  observationSequence: number = 0;
+  observedMonotonicMs: number = -1;
+  seekSequence: number = 0;
 }
 
 export class MediaClock {
@@ -42,6 +45,7 @@ export class MediaClock {
       this.value.valid = false; this.intent = false; this.updateGate(); return;
     }
     this.value.positionMs = positionMs; this.lastObservation = now;
+    this.value.observationSequence++; this.value.observedMonotonicMs = now;
     this.value.valid = true; this.updateGate();
   }
   requestPlay(): boolean {
@@ -60,7 +64,7 @@ export class MediaClock {
   beginSeek(): void { this.pause(); this.value.seeking = true; this.value.valid = false; this.updateGate(); }
   endSeek(generation: number, actualPositionMs: number, now: number): void {
     if (!this.accepts(generation)) { return; }
-    this.value.seeking = false; this.observe(generation, actualPositionMs, now);
+    this.value.seeking = false; this.value.seekSequence++; this.observe(generation, actualPositionMs, now);
   }
   setBuffering(generation: number, buffering: boolean): void {
     if (!this.accepts(generation)) { return; }
@@ -91,7 +95,9 @@ export class MediaClock {
     copy.ready = this.value.ready; copy.playing = this.value.playing;
     copy.seeking = this.value.seeking; copy.valid = this.value.valid;
     copy.failure = this.value.failure; copy.generation = this.value.generation;
-    copy.safetyGateOpen = this.value.safetyGateOpen; return copy;
+    copy.safetyGateOpen = this.value.safetyGateOpen;
+    copy.observationSequence = this.value.observationSequence; copy.observedMonotonicMs = this.value.observedMonotonicMs;
+    copy.seekSequence = this.value.seekSequence; return copy;
   }
   private updateGate(): void {
     this.value.safetyGateOpen = this.intent && this.value.playing && this.value.ready &&

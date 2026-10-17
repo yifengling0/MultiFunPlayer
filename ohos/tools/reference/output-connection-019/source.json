@@ -1,0 +1,537 @@
+{
+  "auditDateUtc": "2026-10-16T22:36:22.054765+00:00",
+  "scope": "Source/dependency audit and optional existing mocked baseline; no new action implementation or new coverage credit.",
+  "retainedOriginalCommit": "36c08fbb99ac9398a63ff1cca1bbf68cd2228a94",
+  "baselineLedger": "ohos/tools/reference/action-coverage-018-source.json",
+  "baselineLedgerSha256": "4db6269f2aa7d3266d8c98f60dae46aff7a2dbf7eefc5264890138e9865b233e",
+  "registrationSiteCount": 13,
+  "recommendedPartialCandidateSites": [
+    72,
+    75,
+    76,
+    80,
+    81,
+    82
+  ],
+  "keepUnwiredSites": [
+    55,
+    56,
+    69,
+    70,
+    71,
+    73,
+    74
+  ],
+  "registrationEvidence": [
+    {
+      "templateIndex": 55,
+      "registrationId": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs:255",
+      "nameExpression": "$\"{Identifier}::AutoConnectEnabled::Set\"",
+      "template": "{Identifier}::AutoConnectEnabled::Set",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs",
+        "lineStart": 255,
+        "lineEnd": 255,
+        "sha256": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+        "registrationSource": "s.RegisterAction<bool>($\"{Identifier}::AutoConnectEnabled::Set\", s => s.WithLabel(\"Enable auto connect\"), enabled => AutoConnectEnabled = enabled);",
+        "argumentTypes": [
+          "bool"
+        ],
+        "parameters": [
+          {
+            "type": "bool",
+            "labelSource": "\"Enable auto connect\"",
+            "builderSource": "s => s.WithLabel(\"Enable auto connect\")",
+            "defaultSource": "false",
+            "numericSource": null,
+            "itemsSource": null
+          }
+        ],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "enabled => AutoConnectEnabled = enabled",
+        "registrationTextSha256": "6d30a060039cc8a7b6271c30d552735e3a4c8f35786651e1942a9514c935d4e5",
+        "callbackWhitespaceNormalizedSha256": "dea5b146359121f0aeb30c7f9cf6a741494eb8aa72431b05c59359aa747bd713"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 56,
+      "registrationId": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs:256",
+      "nameExpression": "$\"{Identifier}::AutoConnectEnabled::Toggle\"",
+      "template": "{Identifier}::AutoConnectEnabled::Toggle",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs",
+        "lineStart": 256,
+        "lineEnd": 256,
+        "sha256": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+        "registrationSource": "s.RegisterAction($\"{Identifier}::AutoConnectEnabled::Toggle\", () => AutoConnectEnabled = !AutoConnectEnabled);",
+        "argumentTypes": [],
+        "parameters": [],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "() => AutoConnectEnabled = !AutoConnectEnabled",
+        "registrationTextSha256": "a5e7f441d5eedaee08980471ab762296db986bbebca78d520628865feb4c030a",
+        "callbackWhitespaceNormalizedSha256": "0b0dd63fccdfbc8b4e1b620e28b61dfdf2b96265e93b72c3d0ac63568354d0f9"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 69,
+      "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/ButtplugOutputTarget.cs:409",
+      "nameExpression": "$\"{Identifier}::Endpoint::Set\"",
+      "template": "{Identifier}::Endpoint::Set",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/ButtplugOutputTarget.cs",
+        "lineStart": 409,
+        "lineEnd": 413,
+        "sha256": "eaef0c8976b630f0dde89c554b3a28124ba64b99d1da68cc0330d37777d2cb30",
+        "registrationSource": "s.RegisterAction<string>($\"{Identifier}::Endpoint::Set\", s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\"), endpointString =>\n        {\n            if (NetUtils.TryParseEndpoint(endpointString, out var endpoint))\n                Endpoint = endpoint;\n        });",
+        "argumentTypes": [
+          "string"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "labelSource": "\"Endpoint\"",
+            "builderSource": "s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\")",
+            "defaultSource": "default(string)",
+            "numericSource": null,
+            "itemsSource": null
+          }
+        ],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "endpointString => { if (NetUtils.TryParseEndpoint(endpointString, out var endpoint)) Endpoint = endpoint; }",
+        "registrationTextSha256": "e8f8a5c2edaf252fce69f418751780c474ae0da2b35710eaf9231b8946d6f238",
+        "callbackWhitespaceNormalizedSha256": "2c5713a0c9fbe74e2d7561c07e4cce4add1c543d6fdb77b1454b8a2bcfb62b51"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 70,
+      "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/PipeOutputTarget.cs:158",
+      "nameExpression": "$\"{Identifier}::PipeName::Set\"",
+      "template": "{Identifier}::PipeName::Set",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/PipeOutputTarget.cs",
+        "lineStart": 158,
+        "lineEnd": 158,
+        "sha256": "545a7b1d5ea52843d7bf00dc371c365021b420ae6f9a0b04067fc5a50d6ce1cd",
+        "registrationSource": "s.RegisterAction<string>($\"{Identifier}::PipeName::Set\", s => s.WithLabel(\"Pipe name\"), pipeName => PipeName = pipeName);",
+        "argumentTypes": [
+          "string"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "labelSource": "\"Pipe name\"",
+            "builderSource": "s => s.WithLabel(\"Pipe name\")",
+            "defaultSource": "default(string)",
+            "numericSource": null,
+            "itemsSource": null
+          }
+        ],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "pipeName => PipeName = pipeName",
+        "registrationTextSha256": "14d31cdbead6196385575ee1a208d77828447d68276470114d4995143c356d2b",
+        "callbackWhitespaceNormalizedSha256": "419e7dc67c359e47deaa4e666d43d195caae11342e9041d69f6ee873793cc5bf"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 71,
+      "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/SerialOutputTarget.cs:319",
+      "nameExpression": "$\"{Identifier}::SerialPort::Set\"",
+      "template": "{Identifier}::SerialPort::Set",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/SerialOutputTarget.cs",
+        "lineStart": 319,
+        "lineEnd": 319,
+        "sha256": "af1e4f5512d6786e117d151dc65b75cf39bea850de6e07b2a192c8aee106551d",
+        "registrationSource": "s.RegisterAction<string>($\"{Identifier}::SerialPort::Set\", s => s.WithLabel(\"Device ID\"), SelectSerialPortByDeviceId);",
+        "argumentTypes": [
+          "string"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "labelSource": "\"Device ID\"",
+            "builderSource": "s => s.WithLabel(\"Device ID\")",
+            "defaultSource": "default(string)",
+            "numericSource": null,
+            "itemsSource": null
+          }
+        ],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "SelectSerialPortByDeviceId",
+        "registrationTextSha256": "83093d2a3d7c53a002f87792441bda6f7c04d7e1ad9a74daccb39bda31a2f8b8",
+        "callbackWhitespaceNormalizedSha256": "990c3a70c8d0ee32379f49cfaf5990aa27db9efb122556b4fee20be3235460c4"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 72,
+      "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/TcpOutputTarget.cs:181",
+      "nameExpression": "$\"{Identifier}::Endpoint::Set\"",
+      "template": "{Identifier}::Endpoint::Set",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/TcpOutputTarget.cs",
+        "lineStart": 181,
+        "lineEnd": 185,
+        "sha256": "4a0e887ef245ab2c41b740bf8c8e516de8f54ba6eb604ce5b5e5b09295882440",
+        "registrationSource": "s.RegisterAction<string>($\"{Identifier}::Endpoint::Set\", s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\"), endpointString =>\n        {\n            if (NetUtils.TryParseEndpoint(endpointString, out var endpoint))\n                Endpoint = endpoint;\n        });",
+        "argumentTypes": [
+          "string"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "labelSource": "\"Endpoint\"",
+            "builderSource": "s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\")",
+            "defaultSource": "default(string)",
+            "numericSource": null,
+            "itemsSource": null
+          }
+        ],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "endpointString => { if (NetUtils.TryParseEndpoint(endpointString, out var endpoint)) Endpoint = endpoint; }",
+        "registrationTextSha256": "e8f8a5c2edaf252fce69f418751780c474ae0da2b35710eaf9231b8946d6f238",
+        "callbackWhitespaceNormalizedSha256": "2c5713a0c9fbe74e2d7561c07e4cce4add1c543d6fdb77b1454b8a2bcfb62b51"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 73,
+      "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/TheHandyOutputTarget.cs:202",
+      "nameExpression": "$\"{Identifier}::ConnectionKey::Set\"",
+      "template": "{Identifier}::ConnectionKey::Set",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/TheHandyOutputTarget.cs",
+        "lineStart": 202,
+        "lineEnd": 202,
+        "sha256": "0c68fc83d0917ccf525224f482fa40a3a0cae0854633f60ffd64ca92254be033",
+        "registrationSource": "s.RegisterAction<string>($\"{Identifier}::ConnectionKey::Set\", s => s.WithLabel(\"Connection key\"), connectionKey => ConnectionKey = connectionKey);",
+        "argumentTypes": [
+          "string"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "labelSource": "\"Connection key\"",
+            "builderSource": "s => s.WithLabel(\"Connection key\")",
+            "defaultSource": "default(string)",
+            "numericSource": null,
+            "itemsSource": null
+          }
+        ],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "connectionKey => ConnectionKey = connectionKey",
+        "registrationTextSha256": "b20cbafb2d1fc4c28d3ac31a15be94440d6f7fd377b7f57c3cf1b4679479e6b0",
+        "callbackWhitespaceNormalizedSha256": "fb58aaccbcc0f1032c8de3139bdfa563e1ade7136e838414d6316e29288827e5"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 74,
+      "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/TheHandyOutputTarget.cs:206",
+      "nameExpression": "$\"{Identifier}::SourceAxis::Set\"",
+      "template": "{Identifier}::SourceAxis::Set",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/TheHandyOutputTarget.cs",
+        "lineStart": 206,
+        "lineEnd": 206,
+        "sha256": "0c68fc83d0917ccf525224f482fa40a3a0cae0854633f60ffd64ca92254be033",
+        "registrationSource": "s.RegisterAction<DeviceAxis>($\"{Identifier}::SourceAxis::Set\", s => s.WithLabel(\"Source axis\").WithItemsSource(DeviceAxis.All), axis => SourceAxis = axis);",
+        "argumentTypes": [
+          "DeviceAxis"
+        ],
+        "parameters": [
+          {
+            "type": "DeviceAxis",
+            "labelSource": "\"Source axis\"",
+            "builderSource": "s => s.WithLabel(\"Source axis\").WithItemsSource(DeviceAxis.All)",
+            "defaultSource": "default(DeviceAxis)",
+            "numericSource": null,
+            "itemsSource": "DeviceAxis.All"
+          }
+        ],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "axis => SourceAxis = axis",
+        "registrationTextSha256": "0db19b341a8def4bde2ecfae7cbd764a047d7999e08beb7bc6b56cdddf194881",
+        "callbackWhitespaceNormalizedSha256": "945135ff35264e1e1b2b51080e60337b5f31ddf1fc4684d821d6e5e8b79d6aad"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 75,
+      "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/UdpOutputTarget.cs:180",
+      "nameExpression": "$\"{Identifier}::Endpoint::Set\"",
+      "template": "{Identifier}::Endpoint::Set",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/UdpOutputTarget.cs",
+        "lineStart": 180,
+        "lineEnd": 184,
+        "sha256": "d77da588b0e8dbe447804d5c2d6bb0f4e3b5520a91adf0130eafcdf234383a74",
+        "registrationSource": "s.RegisterAction<string>($\"{Identifier}::Endpoint::Set\", s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\"), endpointString =>\n        {\n            if (NetUtils.TryParseEndpoint(endpointString, out var endpoint))\n                Endpoint = endpoint;\n        });",
+        "argumentTypes": [
+          "string"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "labelSource": "\"Endpoint\"",
+            "builderSource": "s => s.WithLabel(\"Endpoint\").WithDescription(\"ipOrHost:port\")",
+            "defaultSource": "default(string)",
+            "numericSource": null,
+            "itemsSource": null
+          }
+        ],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "endpointString => { if (NetUtils.TryParseEndpoint(endpointString, out var endpoint)) Endpoint = endpoint; }",
+        "registrationTextSha256": "e8f8a5c2edaf252fce69f418751780c474ae0da2b35710eaf9231b8946d6f238",
+        "callbackWhitespaceNormalizedSha256": "2c5713a0c9fbe74e2d7561c07e4cce4add1c543d6fdb77b1454b8a2bcfb62b51"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 76,
+      "registrationId": "Source/MultiFunPlayer/OutputTarget/ViewModels/WebSocketOutputTarget.cs:186",
+      "nameExpression": "$\"{Identifier}::Uri::Set\"",
+      "template": "{Identifier}::Uri::Set",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/OutputTarget/ViewModels/WebSocketOutputTarget.cs",
+        "lineStart": 186,
+        "lineEnd": 190,
+        "sha256": "9e917c6c67e48e62169e27fbc91656052997d9ba8f6dddc6d4b41f613a60ca64",
+        "registrationSource": "s.RegisterAction<string>($\"{Identifier}::Uri::Set\", s => s.WithLabel(\"Uri\").WithDescription(\"websocket uri\"), uriString =>\n        {\n            if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri))\n                Uri = uri;\n        });",
+        "argumentTypes": [
+          "string"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "labelSource": "\"Uri\"",
+            "builderSource": "s => s.WithLabel(\"Uri\").WithDescription(\"websocket uri\")",
+            "defaultSource": "default(string)",
+            "numericSource": null,
+            "itemsSource": null
+          }
+        ],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "uriString => { if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri)) Uri = uri; }",
+        "registrationTextSha256": "d9571915cd4f0c879e293ac2a67c01ed2df3dd4dd3582cd43d445f8e409db423",
+        "callbackWhitespaceNormalizedSha256": "a36d6cc7ce8ccc4e5f4d80a33f01198c01e2f7d604b3994f072651c85c551af9"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 80,
+      "registrationId": "Source/MultiFunPlayer/UI/Controls/ViewModels/OutputTargetViewModel.cs:212",
+      "nameExpression": "$\"{target.Identifier}::Connection::Toggle\"",
+      "template": "{target.Identifier}::Connection::Toggle",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/UI/Controls/ViewModels/OutputTargetViewModel.cs",
+        "lineStart": 212,
+        "lineEnd": 212,
+        "sha256": "81694ba56c5665eefbd2795ecd5cfb8176e50c23d4c00a61520f8701abec23ab",
+        "registrationSource": "s.RegisterAction($\"{target.Identifier}::Connection::Toggle\", async () => await ToggleConnectAsync(target));",
+        "argumentTypes": [],
+        "parameters": [],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "async () => await ToggleConnectAsync(target)",
+        "registrationTextSha256": "aec54dc00f2e7160ad3209c15b76d1ccd0ac36d0905deece2594f83867fbe896",
+        "callbackWhitespaceNormalizedSha256": "60d99b529fd187d1c5e8b03fc43a7697e07e40909dab44ed848b6bac758eded0"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 81,
+      "registrationId": "Source/MultiFunPlayer/UI/Controls/ViewModels/OutputTargetViewModel.cs:213",
+      "nameExpression": "$\"{target.Identifier}::Connection::Connect\"",
+      "template": "{target.Identifier}::Connection::Connect",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/UI/Controls/ViewModels/OutputTargetViewModel.cs",
+        "lineStart": 213,
+        "lineEnd": 219,
+        "sha256": "81694ba56c5665eefbd2795ecd5cfb8176e50c23d4c00a61520f8701abec23ab",
+        "registrationSource": "s.RegisterAction($\"{target.Identifier}::Connection::Connect\", async () =>\n        {\n            await _semaphores[target].WaitAsync(token);\n            if (target.Status == ConnectionStatus.Disconnected)\n                await ConnectAsync(target, ConnectionType.Manual, token);\n            _semaphores[target].Release();\n        });",
+        "argumentTypes": [],
+        "parameters": [],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "async () => { await _semaphores[target].WaitAsync(token); if (target.Status == ConnectionStatus.Disconnected) await ConnectAsync(target, ConnectionType.Manual, token); _semaphores[target].Release(); }",
+        "registrationTextSha256": "3baae7ca82000b7556b25cd39946ac720d9edb7433805cf06c0e8c7364c4201f",
+        "callbackWhitespaceNormalizedSha256": "52dad6fd65af4f36df66b96592c835aade68bad7f559af908514c6d7c461c422"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    },
+    {
+      "templateIndex": 82,
+      "registrationId": "Source/MultiFunPlayer/UI/Controls/ViewModels/OutputTargetViewModel.cs:220",
+      "nameExpression": "$\"{target.Identifier}::Connection::Disconnect\"",
+      "template": "{target.Identifier}::Connection::Disconnect",
+      "knownConcreteNames": [],
+      "runtimeExpansion": true,
+      "source": {
+        "path": "Source/MultiFunPlayer/UI/Controls/ViewModels/OutputTargetViewModel.cs",
+        "lineStart": 220,
+        "lineEnd": 226,
+        "sha256": "81694ba56c5665eefbd2795ecd5cfb8176e50c23d4c00a61520f8701abec23ab",
+        "registrationSource": "s.RegisterAction($\"{target.Identifier}::Connection::Disconnect\", async () =>\n        {\n            await _semaphores[target].WaitAsync(token);\n            if (target.Status == ConnectionStatus.Connected)\n                await DisconnectAsync(target, token);\n            _semaphores[target].Release();\n        });",
+        "argumentTypes": [],
+        "parameters": [],
+        "triggerSuppliedTypes": [],
+        "callbackSource": "async () => { await _semaphores[target].WaitAsync(token); if (target.Status == ConnectionStatus.Connected) await DisconnectAsync(target, token); _semaphores[target].Release(); }",
+        "registrationTextSha256": "7c83e5624119bcdb4eb927b3ee67332091f42031159d6c923eb94820e6019985",
+        "callbackWhitespaceNormalizedSha256": "c53cca05b193ef4e14d8b267a72ec77b8f16a01bd2fb63b08315c173e0286138"
+      },
+      "registrationAndCallbackVerified": true,
+      "reverified017": true,
+      "reverified018": true
+    }
+  ],
+  "originalSourceSha256": {
+    "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+    "Source/MultiFunPlayer/OutputTarget/IOutputTarget.cs": "a266465f7bc3509882777886d142c2f9966679c11ababa887f727cd17c259f3a",
+    "Source/MultiFunPlayer/OutputTarget/IOutputTargetFactory.cs": "48f4c4cd430bd19339bf0d38dd31050cb7eb82e933c5e03385cc579bebce8143",
+    "Source/MultiFunPlayer/UI/Controls/ViewModels/OutputTargetViewModel.cs": "81694ba56c5665eefbd2795ecd5cfb8176e50c23d4c00a61520f8701abec23ab",
+    "Source/MultiFunPlayer/Common/IConnectable.cs": "0bd33104206e113d2a94127211d46bd951f1a5cbf19acfc637b452a914b7aa8a",
+    "Source/MultiFunPlayer/Common/Extensions.cs": "8c275fe3b490b9b100e697abab88a9644d1f70cfa613d0c80ccd02752577ea02",
+    "Source/MultiFunPlayer/Common/Utils/NetUtils.cs": "27add404f9d05a18ded0b313132e0aa1b16f0aaea4b63e7ce969e6f14b3694c1",
+    "Source/MultiFunPlayer/Shortcut/IShortcutManager.cs": "87cc02de49578e7bb7cf34f87c379f8f6916711204664a67ee5f640d19efe2f4",
+    "Source/MultiFunPlayer/Shortcut/IShortcutSettingBuilder.cs": "da4ead76f5c1691fdcf32c000bd1e2b7f2410bbd7e971f1cace3808e63f4e36c",
+    "Source/MultiFunPlayer/UI/Controls/EndPointBox.xaml": "a8b77b1551af8aaea4cb7c43f6cc097b327b0b566d6b0e52685b8539edbdead8",
+    "Source/MultiFunPlayer/UI/Controls/EndPointBox.xaml.cs": "1bb00a819c2e502d0197c7f1ba134d3eba5ee034596642ba16291eef2dfc1065",
+    "Source/MultiFunPlayer/UI/Controls/UriBox.xaml": "6894f0be8e409763b274f6b0cdb1189727ca225e0928eb2f745821287cef6e2f",
+    "Source/MultiFunPlayer/UI/Controls/UriBox.xaml.cs": "0f34bd5619e6156c6638da04fab9771f32890f7bb8e1cc1a509216fafa589fea",
+    "Source/MultiFunPlayer/UI/Converters/PortToStringConverter.cs": "daf92d4b459a24c32d246479e3005b6f20710e5576bbb7af547f88cd0f205e8c",
+    "Source/MultiFunPlayer/OutputTarget/ViewModels/TcpOutputTarget.cs": "4a0e887ef245ab2c41b740bf8c8e516de8f54ba6eb604ce5b5e5b09295882440",
+    "Source/MultiFunPlayer/OutputTarget/Views/TcpOutputTarget.xaml": "673b9854684c6f2fa896287985b04609ba7dcefb89431b96ced7721a7103229b",
+    "Source/MultiFunPlayer/OutputTarget/ViewModels/UdpOutputTarget.cs": "d77da588b0e8dbe447804d5c2d6bb0f4e3b5520a91adf0130eafcdf234383a74",
+    "Source/MultiFunPlayer/OutputTarget/Views/UdpOutputTarget.xaml": "9906fe1c24bd92e2f3990f44373c6181513352a3a857d4acbbb421904b9ef7e5",
+    "Source/MultiFunPlayer/OutputTarget/ViewModels/WebSocketOutputTarget.cs": "9e917c6c67e48e62169e27fbc91656052997d9ba8f6dddc6d4b41f613a60ca64",
+    "Source/MultiFunPlayer/OutputTarget/Views/WebSocketOutputTarget.xaml": "abdb543a0b89322188f9dbf7a9797f47cf2df337aa2891f97a5c35b062123967",
+    "Source/MultiFunPlayer/OutputTarget/ViewModels/ButtplugOutputTarget.cs": "eaef0c8976b630f0dde89c554b3a28124ba64b99d1da68cc0330d37777d2cb30",
+    "Source/MultiFunPlayer/OutputTarget/Views/ButtplugOutputTarget.xaml": "cc3aaa1d9bdc82b06008fae3ed74a96f74e4a453db6da1cb3ac85ed63591efd5",
+    "Source/MultiFunPlayer/OutputTarget/ViewModels/PipeOutputTarget.cs": "545a7b1d5ea52843d7bf00dc371c365021b420ae6f9a0b04067fc5a50d6ce1cd",
+    "Source/MultiFunPlayer/OutputTarget/Views/PipeOutputTarget.xaml": "0b0821a0c26a8c8dd7fff7f9a18ae9681fe65a2f4745ac68e87dea3ca86be04b",
+    "Source/MultiFunPlayer/OutputTarget/ViewModels/SerialOutputTarget.cs": "af1e4f5512d6786e117d151dc65b75cf39bea850de6e07b2a192c8aee106551d",
+    "Source/MultiFunPlayer/OutputTarget/Views/SerialOutputTarget.xaml": "224c8f449043649bcae0b93ed26c7582781caae46a95d7272a92a0ac10e79ff8",
+    "Source/MultiFunPlayer/OutputTarget/ViewModels/TheHandyOutputTarget.cs": "0c68fc83d0917ccf525224f482fa40a3a0cae0854633f60ffd64ca92254be033",
+    "Source/MultiFunPlayer/OutputTarget/Views/TheHandyOutputTarget.xaml": "b0bdc0e89d765385f26781b9289a8df4a4edf12b1068df7279a9ffa9286dace5",
+    "Source/MultiFunPlayer/OutputTarget/ViewModels/FileOutputTarget.cs": "a8c4b704e7e357502badf4c3d721fdd4855a797f6c148539b0bacf2f7b0ce4f6",
+    "Source/MultiFunPlayer/OutputTarget/Views/FileOutputTarget.xaml": "582a96bf6d2a6f70e64a61f92b2c31f4d1c48a8340c8da812895f91714182857"
+  },
+  "runtimeSourceSha256": {
+    "ohos/entry/src/main/ets/output/OutputTargetCollection.ts": "482cc1e1fce7026f09d2ce8ebb0eaaf31c2c53887570ed3a628fdc7db619e813",
+    "ohos/entry/src/main/ets/output/OutputCoordinator.ts": "71eb9b9de202474bd50efcabf28310e2a25f5e0f34bdc8063419f407d6925059",
+    "ohos/entry/src/main/ets/output/OutputSession.ts": "68f54282160f1dfa474ddbfa7993f40ddfecc3f4e5788d7beb7e49e6b33b9705",
+    "ohos/entry/src/main/ets/output/OutputSettingsModel.ts": "e575018046db760748ed4a131d7ce0aaf4bfe95e10f6c555f82a46088539d9ec",
+    "ohos/entry/src/main/ets/output/OutputTypes.ts": "7f18b433909a3e18e8d6b664312abc38c51ae183827c27c8141165ef291bd725",
+    "ohos/entry/src/main/ets/output/NativeTransportAdmission.ts": "ad9f07658ef07f484c09f98b125d442cdbb9f7e2d6445f9c6a55505f47b8335f",
+    "ohos/entry/src/main/ets/output/NativeOutputCoordinator.ets": "8560204be0e72bd823b5deabf9dcb765f112144e14b38ba65521999d83ccfb51",
+    "ohos/entry/src/main/ets/app/NativeOutputSession.ets": "b6737e8ce494fb1cd4fddc53c08d4d032b531ee2bcc5673afd49d55c3c04e7a2",
+    "ohos/entry/src/main/ets/settings/OutputConfiguration.ts": "27d33affc71e0b02b63ca18825d00a5b9eebb7c84f6ba958ef53d6ada98db0b5",
+    "ohos/entry/src/main/ets/components/OutputSettingsPanel.ets": "d751eb94d58a1f9d184147fef4030f3b1283d8ebbee0c97b886b13624363b622",
+    "ohos/entry/src/main/ets/pages/Index.ets": "bdc8051bc02ba8be2d5fa31725664709995eb8e3a3e6b4ec82ac48b455fad73b",
+    "ohos/entry/src/main/ets/output/native/NativeTransportFactory.ets": "7fcf190654c01f5a58a47952017a53c96b30f29f88ef9fbc8ea6f044490acd13",
+    "ohos/entry/src/main/ets/output/native/NativeTcpTransport.ets": "5ba5c300db41f07a5d8b0d9472f41ca05b78ffa825a9976aa305720b984e5ddd",
+    "ohos/entry/src/main/ets/output/native/NativeUdpTransport.ets": "6e35a56fe99e4bc77af5ceeb8b3bcb183308e2caa36678dc322de0264a8f8091",
+    "ohos/entry/src/main/ets/output/native/NativeWebSocketTransport.ets": "8b4b804048e738c93051d69f3249b48b7d7a918e71842cc3cf9087c861c05228"
+  },
+  "runnerSha256": "c5ea79ff0f59a75493a98e7ea3454dcfcf2dd573ebfa5deaeaa4e058bf0f8326",
+  "mockBaseline": {
+    "command": [
+      "node",
+      "--test",
+      "ohos/tests/output-target-collection.test.mjs",
+      "ohos/tests/output-coordinator.test.mjs",
+      "ohos/tests/multi-output-intent.test.mjs",
+      "ohos/tests/multi-output-lifecycle.test.mjs",
+      "ohos/tests/output-native-network.test.mjs"
+    ],
+    "exitCode": 0,
+    "nodeVersion": "v24.19.0",
+    "inputSha256": {
+      "ohos/entry/src/main/ets/output/OutputTargetCollection.ts": "482cc1e1fce7026f09d2ce8ebb0eaaf31c2c53887570ed3a628fdc7db619e813",
+      "ohos/entry/src/main/ets/output/OutputCoordinator.ts": "71eb9b9de202474bd50efcabf28310e2a25f5e0f34bdc8063419f407d6925059",
+      "ohos/entry/src/main/ets/output/OutputSession.ts": "68f54282160f1dfa474ddbfa7993f40ddfecc3f4e5788d7beb7e49e6b33b9705",
+      "ohos/entry/src/main/ets/output/OutputSettingsModel.ts": "e575018046db760748ed4a131d7ce0aaf4bfe95e10f6c555f82a46088539d9ec",
+      "ohos/entry/src/main/ets/output/OutputTypes.ts": "7f18b433909a3e18e8d6b664312abc38c51ae183827c27c8141165ef291bd725",
+      "ohos/entry/src/main/ets/output/NativeTransportAdmission.ts": "ad9f07658ef07f484c09f98b125d442cdbb9f7e2d6445f9c6a55505f47b8335f",
+      "ohos/entry/src/main/ets/output/NativeOutputCoordinator.ets": "8560204be0e72bd823b5deabf9dcb765f112144e14b38ba65521999d83ccfb51",
+      "ohos/entry/src/main/ets/app/NativeOutputSession.ets": "b6737e8ce494fb1cd4fddc53c08d4d032b531ee2bcc5673afd49d55c3c04e7a2",
+      "ohos/entry/src/main/ets/settings/OutputConfiguration.ts": "27d33affc71e0b02b63ca18825d00a5b9eebb7c84f6ba958ef53d6ada98db0b5",
+      "ohos/entry/src/main/ets/components/OutputSettingsPanel.ets": "d751eb94d58a1f9d184147fef4030f3b1283d8ebbee0c97b886b13624363b622",
+      "ohos/entry/src/main/ets/pages/Index.ets": "bdc8051bc02ba8be2d5fa31725664709995eb8e3a3e6b4ec82ac48b455fad73b",
+      "ohos/entry/src/main/ets/output/native/NativeTransportFactory.ets": "7fcf190654c01f5a58a47952017a53c96b30f29f88ef9fbc8ea6f044490acd13",
+      "ohos/entry/src/main/ets/output/native/NativeTcpTransport.ets": "5ba5c300db41f07a5d8b0d9472f41ca05b78ffa825a9976aa305720b984e5ddd",
+      "ohos/entry/src/main/ets/output/native/NativeUdpTransport.ets": "6e35a56fe99e4bc77af5ceeb8b3bcb183308e2caa36678dc322de0264a8f8091",
+      "ohos/entry/src/main/ets/output/native/NativeWebSocketTransport.ets": "8b4b804048e738c93051d69f3249b48b7d7a918e71842cc3cf9087c861c05228",
+      "ohos/tests/output-target-collection.test.mjs": "54620a0be5dc0d4287e98af2a10be815bdd7fc9fd41e7e3343ce37d83d7197fe",
+      "ohos/tests/output-coordinator.test.mjs": "21a740ba32dedca9017b9de9432e910accf916293e7138efa904a1768c1096c6",
+      "ohos/tests/multi-output-intent.test.mjs": "5c6ff0ed980a231cb5532afa78eb2bbc8bec355fdab701a0eab1e8cccaa00ed3",
+      "ohos/tests/multi-output-lifecycle.test.mjs": "ddfb1ff90cbaec2a3c838ecff85d8a5b53d60fce5378ead59815ab55025b3e25",
+      "ohos/tests/output-native-network.test.mjs": "c77f4592a750d32fd32654a78b8c88db4b81cc61c17c06f54fce1f7f3905044b"
+    },
+    "outputSha256": "5a758ae6f256d11ffa0d70ef3712b165b078ec77761bb848517083ad77ab7bc8",
+    "summary": [
+      "\u2139 tests 199",
+      "\u2139 suites 0",
+      "\u2139 pass 199",
+      "\u2139 fail 0",
+      "\u2139 cancelled 0",
+      "\u2139 skipped 0",
+      "\u2139 todo 0",
+      "\u2139 duration_ms 1103.375568"
+    ],
+    "limitations": "Memory transports, fake native SDK/environment and extracted ArkTS owners. No DNS/network/device/Windows execution."
+  },
+  "sourceUnchangedDuringAudit": true,
+  "completedAtUtc": "2026-10-16T22:36:23.274030+00:00"
+}

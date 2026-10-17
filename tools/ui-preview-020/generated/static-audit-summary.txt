@@ -1,0 +1,179 @@
+{
+  "pass": true,
+  "contrasts": [
+    {
+      "pair": "body/card",
+      "ratio": 13.681,
+      "pass": true
+    },
+    {
+      "pair": "helper/card",
+      "ratio": 5.564,
+      "pass": true
+    },
+    {
+      "pair": "helper/page",
+      "ratio": 5.01,
+      "pass": true
+    },
+    {
+      "pair": "button/soft",
+      "ratio": 12.096,
+      "pass": true
+    },
+    {
+      "pair": "danger/soft",
+      "ratio": 4.982,
+      "pass": true
+    },
+    {
+      "pair": "warning/card",
+      "ratio": 6.275,
+      "pass": true
+    },
+    {
+      "pair": "success/card",
+      "ratio": 6.569,
+      "pass": true
+    },
+    {
+      "pair": "white/accent",
+      "ratio": 4.808,
+      "pass": true
+    },
+    {
+      "pair": "white/danger",
+      "ratio": 5.691,
+      "pass": true
+    }
+  ],
+  "geometry": [
+    {
+      "id": "phone-320",
+      "videoSurface": {
+        "width": 320,
+        "height": 161.28
+      },
+      "settings": {
+        "x": 0,
+        "y": 293.28,
+        "width": 320,
+        "height": 274.72
+      },
+      "inBounds": true
+    },
+    {
+      "id": "phone-360",
+      "videoSurface": {
+        "width": 360,
+        "height": 140.24
+      },
+      "settings": {
+        "x": 0,
+        "y": 324.24,
+        "width": 360,
+        "height": 315.76
+      },
+      "inBounds": true
+    },
+    {
+      "id": "phone-390",
+      "videoSurface": {
+        "width": 390,
+        "height": 219.375
+      },
+      "settings": {
+        "x": 0,
+        "y": 403.375,
+        "width": 390,
+        "height": 440.625
+      },
+      "inBounds": true
+    },
+    {
+      "id": "landscape-568",
+      "videoSurface": {
+        "width": 240,
+        "height": 196
+      },
+      "settings": {
+        "x": 248,
+        "y": 72,
+        "width": 320,
+        "height": 248
+      },
+      "inBounds": true
+    },
+    {
+      "id": "landscape-640",
+      "videoSurface": {
+        "width": 312,
+        "height": 236
+      },
+      "settings": {
+        "x": 320,
+        "y": 72,
+        "width": 320,
+        "height": 288
+      },
+      "inBounds": true
+    },
+    {
+      "id": "tablet-768",
+      "videoSurface": {
+        "width": 768,
+        "height": 305.36
+      },
+      "settings": {
+        "x": 0,
+        "y": 489.36,
+        "width": 768,
+        "height": 534.64
+      },
+      "inBounds": true
+    },
+    {
+      "id": "tablet-1024",
+      "videoSurface": {
+        "width": 606.4,
+        "height": 592
+      },
+      "settings": {
+        "x": 614.4,
+        "y": 72,
+        "width": 409.6,
+        "height": 696
+      },
+      "inBounds": true
+    },
+    {
+      "id": "pc-1280",
+      "videoSurface": {
+        "width": 760,
+        "height": 624
+      },
+      "settings": {
+        "x": 768,
+        "y": 72,
+        "width": 512,
+        "height": 728
+      },
+      "inBounds": true
+    },
+    {
+      "id": "window-320",
+      "videoSurface": {
+        "width": 320,
+        "height": 123.44
+      },
+      "settings": {
+        "x": 0,
+        "y": 255.44,
+        "width": 320,
+        "height": 224.56
+      },
+      "inBounds": true
+    }
+  ],
+  "screenshotStatus": "NOT GENERATED. Local Chromium blocked by sandbox socket restrictions; escalated execution failed during environment setup. Cloud browser file URL explicitly denied. Rendering stopped; no bypass route attempted."
+}

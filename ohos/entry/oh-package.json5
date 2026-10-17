@@ -2,5 +2,7 @@
   "name": "entry",
   "version": "1.0.0",
   "description": "Local SDK validation only",
-  "dependencies": {}
+  "dependencies": {
+    "libmfp_recording.so": "file:./src/main/cpp/types/libmfp_recording"
+  }
 }

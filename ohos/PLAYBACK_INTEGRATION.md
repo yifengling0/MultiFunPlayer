@@ -1,0 +1,35 @@
+# 0.9 candidate: Internal source, AB, AutoSkip and same-source seeking
+
+This is an actual Index/PlaybackSessionCore path, not a demo-only model. Original baseline is `36c08fbb99ac9398a63ff1cca1bbf68cd2228a94`; InternalMediaSource.RunAsync/SetCurrentItem and ScriptViewModel media handlers remain the semantic references.
+
+## Source and resource ownership
+
+- Internal is a separate, explicitly connected script clock. Connecting it closes a local video source, initializes speed 1 and paused state after the original 250ms connection delay. Selecting or restoring a queue does not press Play or connect/arm any output.
+- Only `.funscript` entries from the current Download catalog are queue candidates. Persisted associations are exact case-sensitive relative catalog identities. They are never interpreted as paths/URIs or handed directly to an I/O API. Missing, unsafe or ambiguous associations cannot authorize a read. Existing filename-first playlist ambiguity and duplicate queue items remain original behavior.
+- Queue size is bounded at 256. Metadata preparation reads sequentially and keeps only durations, avoiding retention of every parsed script. Actual selected resources are re-read with cancellation before publication. A selection/load barrier pauses the source clock and closes output while asynchronous OHOS reads finish. A stale completion cannot replace a newer source or restart playback. Stop cancels pending selection/connect/metadata reads. If a selected item was still loading, old scripts are cleared and the item waits for explicit Play to reload; Clear/reset releases that hold. The original synchronous desktop I/O is not claimed to have identical wall-clock latency.
+- Current script read/parse failure clears the previous media/scripts. It is not a video-only success. Companion reads retain the existing 64-candidate, 8 MiB text and 100,000-action bounds, ZIP validation, active registry and original matching priority.
+- With LoadAdditionalScripts off, original Internal calls `FindAxesMatchingName(name, true)`: a conventional named single-axis script goes to wildcard axes even if the filename ends in `.roll`. Embedded multi-axis IDs remain explicit. With the switch on, original basename/companion search and alias priorities apply.
+- The queue and source preferences persist in the existing guarded SettingsStore. AB bounds, current item/time, playing state, native handles and output intent do not persist. AutoConnect concerns the Internal media source at startup after a successful managed scan; it never auto-plays, connects a physical output or arms one. Backgrounding cancels loads and closes the source. Resuming does not automatically restart it.
+
+## Clock, ordering and controls
+
+- Internal emits real model observations on the host’s approximately 100ms cadence; elapsed time includes actual scheduling delay. Its original strict `position > duration` end check occurs before advancement, including while paused. The existing original C# internal/public tracker still advances/smooths on pipeline ticks; the model is not a second guessed native-video clock.
+- Different valid item: duration → forced zero position → ChangeScript, followed by any position advancement from the same source tick. ChangeScript preserves the already confirmed clock. Same-item loop/next/restart is only a forced seek and does not reload scripts. Media playing intent survives a successful different-item load; physical output intentionally requires a new explicit arm for a new source.
+- Loop and shuffle are mutually exclusive, shuffle may choose the same item, and manual previous/next respect those modes. Sequential queue boundaries pause at zero/duration and do not wrap.
+- AB and AutoSkip apply to both connected Internal and ready local video. AB uses the first non-null bound chapter collection and original inclusive/tolerance lookup; it seeks at `>= B` on the 100ms loop check even while paused. A detected external seek clears bounds only at the original `<= A-1` / `>= B+1` thresholds. Internal ChangeScript does not silently clear valid bounds.
+- AutoSkip is duration-message-triggered, one-second leading-edge coalescing, with latest bound keyframes/duration/position/offset at execution. An empty first non-null axis collection blocks later fallback. Disabling after scheduling does not cancel the original task. Stop, source reset, cancellation or background do cancel it for lifecycle safety.
+- Reset/refresh clears pending media commands. Download refresh remains a deliberate safety reset, including provider phases. The queue identities persist, but media and physical output do not resume automatically.
+
+## Seek and output safety
+
+`OutputSeekTransition` and the output contract describe the independent physical gate. Index begins the core transaction, then synchronously calls `OutputCoordinator.beginSourceSeek()` before native I/O. A 5s monotonic deadline, source identity/generation, strictly increasing request token, old/new epoch and active profile bind the operation.
+
+Native media resumes only if it was actually playing before the first uncancelled seek. A rapid replacement retains that intent; a paused seek never acquires it. A genuine same-generation final `seekDone` observation is required. Requested targets never become confirmed native positions. Internal forced-position messages provide its actual confirmation. Stop, background, source replacement, errors, configuration cancellation or timeout revoke the operation.
+
+Existing explicitly armed output intent may survive only this same-source transaction. Pending clears fixed/polled candidates and invalidates receipts immediately; confirmation alone cannot send, and the exact new-epoch authorized frame is still required. No initial arm means no later arm. New media resources, disconnect and lifecycle stops revoke it. A full runtime/source-mode reset creates a new registry revision, so the target must explicitly Apply/Connect the current configuration again before Arm; an ordinary Internal next-item load retains that registry identity. Already submitted bytes cannot be recalled.
+
+## Evidence and remaining scope
+
+- Pure source/original-C# loop/SkipGap tests, actual Index controller tests using real Core and real OutputCoordinator with MemoryTransport, and native-observation mocks cover queue/clock/order, cancellation, stale association, playing preservation, AB/AutoSkip and seek gate behavior.
+- Final 0.9 aggregate passes 921/921 tests including actual original-C# oracles, with no skips. Clean official SDK26 compiles the reachable real components and session; all 97 production/configuration hashes match before and after build. This is not a claim of actual touch interaction, native video seek accuracy, device execution acknowledgement or network hardware validation.
+- Desktop `.txt` playlist file import/drag-and-drop and external player integrations remain absent; no import-picker substitute was added. File recording and native-window fullscreen modules remain outside Index. The existing single native surface, proportional fit and in-page fullscreen are preserved.

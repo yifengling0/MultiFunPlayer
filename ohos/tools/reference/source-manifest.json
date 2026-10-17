@@ -1,0 +1,306 @@
+{
+  "sourceCommit": "36c08fbb99ac9398a63ff1cca1bbf68cd2228a94",
+  "kind": "pinned-original-source-and-extraction-manifest",
+  "sources": {
+    "Source/MultiFunPlayer/UI/Controls/ViewModels/ScriptViewModel.cs": "3104cecc1510ef394a786c04239bafc58d33af4465d2b3c04b0409995c19debe",
+    "Source/MultiFunPlayer/Common/Messages.cs": "8cfd1227c9253eb0bfd00a05d6811e0652e65d261709394fe6a6044b9ea72b47",
+    "Source/MultiFunPlayer/Common/IDeviceAxisValueProvider.cs": "93803198eee19d0fe10d4d716d87b57e16f7e23b3ef5e2182b99b24f239772aa",
+    "Source/MultiFunPlayer/Common/Extensions.cs": "8c275fe3b490b9b100e697abab88a9644d1f70cfa613d0c80ccd02752577ea02",
+    "Source/MultiFunPlayer/Common/Keyframe.cs": "78b24dadb0c0ac63e563f9a721fc2a01c08fbe6fa3a388ad48264eab93deb9e4",
+    "Source/MultiFunPlayer/Common/KeyframeCollection.cs": "28c26086eb35826d2a408530a82da726244bb3f1474b4ca549f5c60d80609045",
+    "Source/MultiFunPlayer/Common/Utils/MathUtils.cs": "aa30c767e098e17f05a68a0e37b560d8d6670f24987b06716efeb5350384f30b",
+    "Source/MultiFunPlayer/Common/DeviceAxis.cs": "c3d8f2193e68871e54b7889415dad681f01c9bbcbc947eabd8cccccaab3d4537",
+    "Source/MultiFunPlayer/Common/DeviceSettings.cs": "c21d300fc1e3b8828fb31afd62a271b89d2c16512685ec039ebf26ced4a53431",
+    "Source/MultiFunPlayer/Script/IScriptWriter.cs": "af83eb3b3c8479f04e7513837ba7492b95e69977bc673fec69416422c5049f77",
+    "Source/MultiFunPlayer/OutputTarget/AbstractOutputTarget.cs": "0b45f13b5b9f9ce4ac4871df677569d61fead8a3621c272639f582ca1cad52fe",
+    "Source/MultiFunPlayer/OutputTarget/DeviceAxisSettings.cs": "fc333331346fd3d9f8e1c4983c4804a1ac58213681811b9094e7df91063a8ff1",
+    "Source/MultiFunPlayer/Script/IScriptResource.cs": "99d37b6fbd23d861ebf6545ac25591a485deac52e72357ab2c4ef9c816db05d3",
+    "Source/MultiFunPlayer/Script/ChapterCollection.cs": "dde38d44512c94ecaff0e7a8104e3ba94fec7f605102efcf37ce5870fb4478dc",
+    "Source/MultiFunPlayer/Script/BookmarkCollection.cs": "24db17bf4dd2f8ed32a6491a107ae459a510ab6355904b142dc3c35447bc6d1a",
+    "Source/MultiFunPlayer/Script/Chapter.cs": "57ca63db5c2993965152f34f4d24b364c19f2317a58fb5ce69569ebf6e8a0ac7",
+    "Source/MultiFunPlayer/Script/Bookmark.cs": "c88df49de9e6a995de283d4498af1a0c88164ee833721a86d2b9fd6ae91bc0f5",
+    "Source/MultiFunPlayer/MotionProvider/ViewModels/CustomCurveMotionProvider.cs": "fb83c8ae42f9364a49b9528b04be0f847db1fc548d0c6701131d533c3a85ae4d",
+    "Source/MultiFunPlayer/MotionProvider/ViewModels/LoopingScriptMotionProvider.cs": "6b44886577814558b494916579e37e3e6af98f5557185e7e2c3571aa50c2925f",
+    "Source/MultiFunPlayer/MotionProvider/ViewModels/PatternMotionProvider.cs": "94db6501d556179b6c6713ce42541dba938d53ee34d79b60f5341358f400c5bf"
+  },
+  "extracts": [
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "internal sealed class AxisModel",
+      "startLine": 2131,
+      "endLine": 2136,
+      "sha256": "3da7253a9c596ceb2fa57b518924bdd3df7747847b42ccc6c157630f9aa5fc8c",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "internal sealed partial class AxisState",
+      "startLine": 2139,
+      "endLine": 2183,
+      "sha256": "8382200ddcc971189478528383759b975fef9393551ffc801179356a297b7f46",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "internal sealed class AxisValueTransition",
+      "startLine": 2185,
+      "endLine": 2239,
+      "sha256": "5487997b7efc5ae8a90884b1e973e08b5be24ed8f85a7b2c03a9f486510f0407",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "internal sealed class AxisStateUpdateContext",
+      "startLine": 2241,
+      "endLine": 2342,
+      "sha256": "025ba99b5ebc9bd76dfd00344e601944588b184cbe575c9359ec7478854bb0b4",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "internal sealed class AxisSettings",
+      "startLine": 2345,
+      "endLine": 2402,
+      "sha256": "275f8687fcbe4fefeee62e93cfdf05f58a4d8a349ccb9cf5d0eeb0e2162946a6",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "public enum SmartLimitMode",
+      "startLine": 2404,
+      "endLine": 2408,
+      "sha256": "044cf05f03cf369e1b16ac384fd625ef599bc4881db996f30935b8c6c8666a6b",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "internal sealed class SyncSettings",
+      "startLine": 2411,
+      "endLine": 2421,
+      "sha256": "a341e4a0181e9d268482e29fb70d1ab6f30f501636629204ec8fc8e71446bf02",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "bool UpdateValues()",
+      "startLine": 143,
+      "endLine": 500,
+      "sha256": "faade3f6e689262743ecf08c1b7663020329ee4e33b984e10e0a84d1ce06d6f8",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "private double GetAxisPosition(",
+      "startLine": 752,
+      "endLine": 752,
+      "sha256": "83813480de3fd555cf30d4e46e0079d1463cc039457d33b4644b7c1507dd782d",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "private double GetSyncProgress(",
+      "startLine": 788,
+      "endLine": 788,
+      "sha256": "48944f2ad8908884f5ff6e40b9bcb497a41c93913bc133ace2ba89c50afb7dfa",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "private void ResetSyncNoLock(",
+      "startLine": 813,
+      "endLine": 819,
+      "sha256": "da64c47533d7ddc9e621514c02e4adfc34aa741e1978d91d84997382215bf9c4",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "public void SetAxisTransition(",
+      "startLine": 1216,
+      "endLine": 1236,
+      "sha256": "0457dc454e4e2cd6dd8db0a31e9c001ae3d6993ce987e2b26c55a48e90238917",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "public void Handle(MediaPositionChangedMessage message)",
+      "startLine": 610,
+      "endLine": 649,
+      "sha256": "89e921f4a84e111e7ba96074f564141214997e2726ae3964b40cd0e11d3c354b",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "public void Handle(MediaPlayingChangedMessage message)",
+      "startLine": 576,
+      "endLine": 587,
+      "sha256": "4779b0d7cd865ebd2d2f387b0b7b9dc3efe1d68829e8c03abd303850b7f08191",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "public void Handle(MediaSpeedChangedMessage message)",
+      "startLine": 601,
+      "endLine": 608,
+      "sha256": "fa89d555dbf2093d07771f10c56d01831880d08f5ff9be542a074c38526ac88c",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "private void SetMediaPositionInternal(",
+      "startLine": 1030,
+      "endLine": 1036,
+      "sha256": "066b0f0266f5535f31f4ab877ac52c096d68099c8ed2d00e98316d104cd26b04",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "private void ResetSync(bool isSyncing = true, params DeviceAxis[] axes)",
+      "startLine": 790,
+      "endLine": 790,
+      "sha256": "0b3e3e28f45b3e39c0cf91b42caadc7071064f7d0d99f607b74f2ff7e44ecfc6",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "UI/Controls/ViewModels/ScriptViewModel.cs",
+      "symbol": "private void ResetSync(bool isSyncing = true, IEnumerable<DeviceAxis> axes = null)",
+      "startLine": 791,
+      "endLine": 808,
+      "sha256": "4751d5c29d8465041d52c0c4fb5173ad4d7d2e1ddb8bd099b259b12c1dc31493",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "Common/Extensions.cs",
+      "symbol": "public static bool ValidateIndex<T>",
+      "startLine": 199,
+      "endLine": 200,
+      "sha256": "347553ac12403e5cd5e343c83e68e24f3e49835bfbefdc7b02dae62c425f058e",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "OutputTarget/AbstractOutputTarget.cs",
+      "symbol": "static void SetMinimum(",
+      "startLine": 198,
+      "endLine": 198,
+      "sha256": "605070f93ece24cd39dc3efd68ccaba040ca26c0008910e36df4f641c39ab764",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "OutputTarget/AbstractOutputTarget.cs",
+      "symbol": "static void SetMaximum(",
+      "startLine": 199,
+      "endLine": 199,
+      "sha256": "6d8e14da6bd1ad5e139152419b15e2305a1c45d277a9fe1c8c8a1f78a198bd59",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "OutputTarget/AbstractOutputTarget.cs",
+      "symbol": "static void SetMiddle(",
+      "startLine": 201,
+      "endLine": 213,
+      "sha256": "84158f23181a5563af3e8017346183db8d6a3fc5410682ea9c6d5758126bb8f4",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "OutputTarget/AbstractOutputTarget.cs",
+      "symbol": "static void OffsetMiddle(",
+      "startLine": 215,
+      "endLine": 224,
+      "sha256": "ffbd956f56fbb88393631baaaf78d322db9afc7c216fdb5ea4db960a2405d0d3",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "OutputTarget/AbstractOutputTarget.cs",
+      "symbol": "static void SetSize(",
+      "startLine": 226,
+      "endLine": 231,
+      "sha256": "94f903bec0f62b158d7d476056b166826dec6859f3e035ed0a0ca569e1e2df3c",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "OutputTarget/AbstractOutputTarget.cs",
+      "symbol": "static void OffsetSize(",
+      "startLine": 233,
+      "endLine": 238,
+      "sha256": "287fe1a0204b0e695afb0c88ec1da3e5a0c2c0e162061591b9c9dff734cd0c64",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "OutputTarget/AbstractOutputTarget.cs",
+      "symbol": "static void SetMiddleAndRange(",
+      "startLine": 240,
+      "endLine": 252,
+      "sha256": "38464e95de0215d976a64cd4ab949b45c7916cb7c0ef60521ed135039406be1c",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "MotionProvider/ViewModels/CustomCurveMotionProvider.cs",
+      "symbol": "public override void Update(",
+      "startLine": 74,
+      "endLine": 155,
+      "sha256": "bd48fdeec53e0dbe90c28a3f8076fad386cd1db28d117243e0fbabded1326ffb",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "MotionProvider/ViewModels/CustomCurveMotionProvider.cs",
+      "symbol": "private void ResetState(",
+      "startLine": 158,
+      "endLine": 166,
+      "sha256": "ebfb1b7ffccd3b10f65d1ccb0a436f6a454fe7ff5eff34be6ecdccb8ed07d1d7",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "MotionProvider/ViewModels/CustomCurveMotionProvider.cs",
+      "symbol": "public void OnIsLoopingChanged(",
+      "startLine": 63,
+      "endLine": 68,
+      "sha256": "409f32717be9aab4f12a2a699548969f7319fa11d8f2ca05c7f59da4778208d3",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "MotionProvider/ViewModels/LoopingScriptMotionProvider.cs",
+      "symbol": "public override void Update(",
+      "startLine": 44,
+      "endLine": 66,
+      "sha256": "36755c02ff5438d311980b28dd13438d51d1af09a609b203efc899f2ea132d65",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "MotionProvider/ViewModels/PatternMotionProvider.cs",
+      "symbol": "public enum PatternType",
+      "startLine": 11,
+      "endLine": 19,
+      "sha256": "f04a6fc56adbcf2aab0d5735d9d7cd1863bf97be48158716329a9ada2e1f7bb3",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "MotionProvider/ViewModels/PatternMotionProvider.cs",
+      "symbol": "public override void Update(",
+      "startLine": 29,
+      "endLine": 33,
+      "sha256": "72384fdb74c3d7c8ed32dd86727a61b1a8ef9f3d476418b86ff452b035690695",
+      "transformation": "none; wrapped in test host namespace/class"
+    },
+    {
+      "source": "MotionProvider/ViewModels/PatternMotionProvider.cs",
+      "symbol": "private double Calculate()",
+      "startLine": 35,
+      "endLine": 58,
+      "sha256": "b018c6cabc7c6031d7948f6d4f416cfdeaa37a6244b3b784f33792593d95a030",
+      "transformation": "none; wrapped in test host namespace/class"
+    }
+  ],
+  "sourceHashNormalization": "CRLF-to-LF; preserve UTF-8 BOM and all other bytes",
+  "shims": [
+    "System.Windows.Point: X/Y only",
+    "Stylet base and notification/JSON attributes inert",
+    "single-thread observable collection replaced with List",
+    "BroadcastEvent.Set captured synchronously; no wait/cancellation/transport",
+    "logger inert",
+    "original script resource/metadata classes compile-linked; host supplies resources; Link manager propagation/file resolution not executed",
+    "deterministic Motion values injected via source manager-shaped stub; provider algorithms not in pipeline oracle",
+    "host subtracts expected source media advancement before calling unchanged UpdateValues to sample specified confirmed position",
+    "Motion provider Update/Calculate/Reset bodies source-extracted; parameter refresh/readonly script supplied by host; general WPF/Fody property notifications not executed",
+    "Clock mode executes exact source position/playing/speed handlers and UpdateValues; host starts NaN, supplies TimeSpan observations and fake media-loop clear; no AVPlayer, wallclock, stale, buffer, or output gate",
+    "Range helper source bodies extracted; gesture shim returns configured target; middleSetAction wrapper copies original line306 expression"
+  ]
+}

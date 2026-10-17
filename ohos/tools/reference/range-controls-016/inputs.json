@@ -1,0 +1,5431 @@
+[
+  {
+    "name": "lower_crosses_current_upper",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.9
+      }
+    ]
+  },
+  {
+    "name": "upper_crosses_current_lower",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.1
+      }
+    ]
+  },
+  {
+    "name": "lower_then_upper_is_history_dependent",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.9
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      }
+    ]
+  },
+  {
+    "name": "upper_then_lower_is_history_dependent",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.9
+      }
+    ]
+  },
+  {
+    "name": "retained_lower_base_recovers",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.9
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "name": "retained_upper_base_recovers",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.1
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "equal_requested_bounds",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "name": "both_zero",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "both_one",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "name": "epsilon_exact_and_neighbors",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 1e-16
+      },
+      {
+        "field": "maximum",
+        "value": 0.010000000000000002
+      }
+    ]
+  },
+  {
+    "name": "same_effective_numeric_transfers",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      }
+    ]
+  },
+  {
+    "name": "same_effective_range_transfers",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.9
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.7
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      }
+    ]
+  },
+  {
+    "name": "outside_endpoints_are_control_only",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": -2
+      },
+      {
+        "field": "maximum",
+        "value": 3
+      },
+      {
+        "field": "minimum",
+        "value": 2
+      },
+      {
+        "field": "maximum",
+        "value": -1
+      }
+    ]
+  },
+  {
+    "name": "sweep_00",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.07350932745487038
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      }
+    ]
+  },
+  {
+    "name": "sweep_01",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.13977989414675174
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.9309848158610462
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.5800140485971519
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "name": "sweep_02",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.5505371738651041
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.6212469037399045
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      }
+    ]
+  },
+  {
+    "name": "sweep_03",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.3144328182423719
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "minimum",
+        "value": 0.4338351089583087
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      }
+    ]
+  },
+  {
+    "name": "sweep_04",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.21041304407811023
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      }
+    ]
+  },
+  {
+    "name": "sweep_05",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.40552479089579174
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.8738853975003872
+      }
+    ]
+  },
+  {
+    "name": "sweep_06",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "maximum",
+        "value": 0.681381343636406
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      }
+    ]
+  },
+  {
+    "name": "sweep_07",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.3222108223050547
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.35968233547476747
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      }
+    ]
+  },
+  {
+    "name": "sweep_08",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.7256180263591908
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.6987334628335911
+      }
+    ]
+  },
+  {
+    "name": "sweep_09",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.4953718843242181
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      }
+    ]
+  },
+  {
+    "name": "sweep_10",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.45640117855166684
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      }
+    ]
+  },
+  {
+    "name": "sweep_11",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "name": "sweep_12",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.8048975968906597
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      }
+    ]
+  },
+  {
+    "name": "sweep_13",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.8686994216768121
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.8869753118268887
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      }
+    ]
+  },
+  {
+    "name": "sweep_14",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.7555576420216892
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "sweep_15",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      }
+    ]
+  },
+  {
+    "name": "sweep_16",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      }
+    ]
+  },
+  {
+    "name": "sweep_17",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.9585137178831206
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      }
+    ]
+  },
+  {
+    "name": "sweep_18",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.14136484263388238
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "sweep_19",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.34857961831418705
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      }
+    ]
+  },
+  {
+    "name": "sweep_20",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      }
+    ]
+  },
+  {
+    "name": "sweep_21",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "sweep_22",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "name": "sweep_23",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "name": "sweep_24",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      }
+    ]
+  },
+  {
+    "name": "sweep_25",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.19676800709552655
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      }
+    ]
+  },
+  {
+    "name": "sweep_26",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      }
+    ]
+  },
+  {
+    "name": "sweep_27",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.7422888272007088
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.5361302142810331
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "name": "sweep_28",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "maximum",
+        "value": 0.9797138274055337
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.06240442640099342
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "sweep_29",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.8462312702383429
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.9718667565463791
+      },
+      {
+        "field": "maximum",
+        "value": 0.8601629230284098
+      },
+      {
+        "field": "minimum",
+        "value": 0.973826332635146
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.19047951924401274
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      }
+    ]
+  },
+  {
+    "name": "sweep_30",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.5306397287019066
+      },
+      {
+        "field": "minimum",
+        "value": 0.47726301574965724
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.3814548012003435
+      }
+    ]
+  },
+  {
+    "name": "sweep_31",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.23802758302014182
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "name": "sweep_32",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0.6909343411996657
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "sweep_33",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.27842493350050346
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      }
+    ]
+  },
+  {
+    "name": "sweep_34",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.07338380676742262
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      }
+    ]
+  },
+  {
+    "name": "sweep_35",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "name": "sweep_36",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      }
+    ]
+  },
+  {
+    "name": "sweep_37",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.5568150130901713
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.010148655582133626
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.8537189679489445
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      }
+    ]
+  },
+  {
+    "name": "sweep_38",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.8854923058932153
+      },
+      {
+        "field": "minimum",
+        "value": 0.7344161519340263
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 0.5059657848156442
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "name": "sweep_39",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.0995030712313415
+      },
+      {
+        "field": "maximum",
+        "value": 0.8966253537740808
+      },
+      {
+        "field": "minimum",
+        "value": 0.034735863058234284
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "maximum",
+        "value": 0.8285935611449382
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      }
+    ]
+  },
+  {
+    "name": "sweep_40",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.7305919805722406
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      }
+    ]
+  },
+  {
+    "name": "sweep_41",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "sweep_42",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "sweep_43",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      }
+    ]
+  },
+  {
+    "name": "sweep_44",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.36273986832563176
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.3513879951700364
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      }
+    ]
+  },
+  {
+    "name": "sweep_45",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.9692885351781119
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.07649836854412484
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.6450840060700398
+      }
+    ]
+  },
+  {
+    "name": "sweep_46",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "name": "sweep_47",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.9433315235306339
+      },
+      {
+        "field": "maximum",
+        "value": 0.41566907621912186
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      }
+    ]
+  },
+  {
+    "name": "sweep_48",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.17872251512104032
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      }
+    ]
+  },
+  {
+    "name": "sweep_49",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "name": "sweep_50",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "sweep_51",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0.11899703898235592
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      }
+    ]
+  },
+  {
+    "name": "sweep_52",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.7422970461955039
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "name": "sweep_53",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      }
+    ]
+  },
+  {
+    "name": "sweep_54",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.9265407753004693
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.6916411633474964
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      }
+    ]
+  },
+  {
+    "name": "sweep_55",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.7854646495015796
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "minimum",
+        "value": 0.1472854371633623
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      }
+    ]
+  },
+  {
+    "name": "sweep_56",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "name": "sweep_57",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      }
+    ]
+  },
+  {
+    "name": "sweep_58",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.16391255368362667
+      },
+      {
+        "field": "minimum",
+        "value": 0.7203492660911116
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.015915422541453395
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "name": "sweep_59",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.2545480252494936
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      }
+    ]
+  },
+  {
+    "name": "sweep_60",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.47277424987865313
+      },
+      {
+        "field": "maximum",
+        "value": 0.08932549281416535
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      }
+    ]
+  },
+  {
+    "name": "sweep_61",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      }
+    ]
+  },
+  {
+    "name": "sweep_62",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      }
+    ]
+  },
+  {
+    "name": "sweep_63",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.44354168611605305
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      }
+    ]
+  },
+  {
+    "name": "sweep_64",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      }
+    ]
+  },
+  {
+    "name": "sweep_65",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.21180892419311925
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.5135909276635647
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.6483226152109377
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      }
+    ]
+  },
+  {
+    "name": "sweep_66",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.19679851350009148
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      }
+    ]
+  },
+  {
+    "name": "sweep_67",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "maximum",
+        "value": 0.6338366252756654
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.2171357888030464
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.4648582762627508
+      }
+    ]
+  },
+  {
+    "name": "sweep_68",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.36340886539907624
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      }
+    ]
+  },
+  {
+    "name": "sweep_69",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.5536094845569336
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.5389174938009033
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "name": "sweep_70",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.19012581294943798
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "name": "sweep_71",
+    "operations": [
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.49190874228966985
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.8921634508115531
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "name": "sweep_72",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      }
+    ]
+  },
+  {
+    "name": "sweep_73",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "minimum",
+        "value": 0.4450186099363487
+      }
+    ]
+  },
+  {
+    "name": "sweep_74",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "name": "sweep_75",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.5136323562453227
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": -2147483648
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "octaves",
+        "value": 129
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      }
+    ]
+  },
+  {
+    "name": "sweep_76",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "minimum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "maximum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "maximum",
+        "value": 0.15421747076817494
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "maximum",
+        "value": 0.31668025126567856
+      },
+      {
+        "field": "maximum",
+        "value": 0.10037942225023078
+      },
+      {
+        "field": "maximum",
+        "value": 0.09824251564865605
+      },
+      {
+        "field": "maximum",
+        "value": 0.36624623045392757
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      }
+    ]
+  },
+  {
+    "name": "sweep_77",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": 7
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 8
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 0.71319339068882
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      }
+    ]
+  },
+  {
+    "name": "sweep_78",
+    "operations": [
+      {
+        "field": "octaves",
+        "value": -1
+      },
+      {
+        "field": "maximum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 9
+      },
+      {
+        "field": "minimum",
+        "value": 0.3129229620204266
+      },
+      {
+        "field": "maximum",
+        "value": 0.8
+      },
+      {
+        "field": "minimum",
+        "value": 1
+      },
+      {
+        "field": "octaves",
+        "value": 128
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.8
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "octaves",
+        "value": -1
+      }
+    ]
+  },
+  {
+    "name": "sweep_79",
+    "operations": [
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 2147483647
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 0.99
+      },
+      {
+        "field": "maximum",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.2
+      },
+      {
+        "field": "maximum",
+        "value": 0.01
+      },
+      {
+        "field": "minimum",
+        "value": 0.01
+      },
+      {
+        "field": "octaves",
+        "value": 0
+      },
+      {
+        "field": "maximum",
+        "value": 1
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      },
+      {
+        "field": "minimum",
+        "value": 0.5
+      }
+    ]
+  }
+]
