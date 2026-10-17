@@ -87,6 +87,6 @@ export struct GeneralSettingsPanel {
         .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Text('JSON 日志 · EnableJsonLogging\n尚未移植原版 JSON 日志输出。')
         .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
-    }.width('100%').padding(UiStyle.padding(this.compact)).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).border({ width: 1, color: UiStyle.edgeLight })
+    }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) })
   }
 }

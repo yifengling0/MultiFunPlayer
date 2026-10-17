@@ -183,6 +183,6 @@ export struct DeoVrSourcePanel {
         Text('播放 / 暂停和速度控制会先暂停输出；只有原已 Arm 的目标可在后续同源状态与新合法帧确认后继续。TCP 发送完成不是播放器确认；无法确认或超时需重新 Arm。跳转仍解除 Arm。远程路径仅作为媒体标识，不授予本地文件访问权。')
           .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       }
-    }.width('100%').padding(UiStyle.padding(this.compact)).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).border({ width: 1, color: UiStyle.edgeLight })
+    }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) })
   }
 }

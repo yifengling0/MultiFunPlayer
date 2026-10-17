@@ -41,7 +41,7 @@ export struct InternalPlaylistPanel {
         .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact))
         .enabled(this.active()).accessibilityText('从队列移除 ' + row.name)
         .fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).onClick(() => this.emit('remove', row.index))
-    }.width('100%').padding(8).margin({ bottom: 8 }).backgroundColor(UiStyle.field).borderRadius(UiStyle.radius)
+    }.width('100%').padding({ top: 8, bottom: 8 }).margin({ bottom: 8 }).border({ width: { bottom: 1 }, color: UiStyle.edge })
   }
   build() {
     Column({ space: UiStyle.gap(this.compact) }) {
@@ -113,7 +113,7 @@ export struct InternalPlaylistPanel {
                 .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' })
                 .fontSize(UiStyle.body(this.compact)).enabled(this.active() && row.exists).accessibilityText('加入队列 ' + row.name)
                 .onClick(() => this.emit('append', row.index))
-              }.width('100%').padding(8).backgroundColor(UiStyle.field).borderRadius(UiStyle.radius)
+              }.width('100%').padding({ top: 8, bottom: 8 }).border({ width: { bottom: 1 }, color: UiStyle.edge })
             }
           }, (row: PlaylistPanelRow) => row.index + ':' + row.associationId)
         }.width('100%').height(Math.min(this.snapshot.managedRows.length * 96, 320)).nestedScroll({ scrollForward: NestedScrollMode.SELF_FIRST, scrollBackward: NestedScrollMode.SELF_FIRST })
@@ -139,6 +139,6 @@ export struct InternalPlaylistPanel {
       }.width('100%').enabled(this.editable())
       if (this.snapshot.autoSkipPending) { Text('自动跳转等待脚本加载…').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL) }
       this.command('跳到脚本开始', 'seekScriptStart', this.timed())
-    }.width('100%').padding(UiStyle.padding(this.compact)).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).border({ width: 1, color: UiStyle.edgeLight })
+    }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) })
   }
 }

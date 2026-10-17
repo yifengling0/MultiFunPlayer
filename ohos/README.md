@@ -1,3 +1,45 @@
+# MultiFunPlayer for OHOS — 0.22.0 UI candidate
+
+## Current scope (0.22.0 / code 23)
+
+This update addresses device fit rather than adding action names. Normal workspaces
+no longer stop at 600 vp per column or 1220 vp overall: single/two-pane content uses
+the available safe window area. One outer gutter replaces cumulative nested
+padding; page/title/sections use one neutral background, with clear input and
+selected/error surfaces. Nested cards, repeated outlines and button shadows are
+removed. The media toolbar distributes all six actions across the pane, using a
+balanced3×2 at320vp instead of5+1; axis tools wrap and keep52vp touch targets.
+
+Within a field's existing instance, measured widths≥600vp align labels/controls
+40/60; narrower fields stack. The same input node, draft and keyboard owner remain
+through that local layout change. Existing whole-workspace single/two-pane branch
+changes can still remount local uncommitted editors; universal draft/IME retention
+across those branches is **not** established. Application-owned output drafts and
+existing source/output lifecycle guards remain. The fixed global Stop and single
+native video Surface are unchanged.
+
+Validation: 3193/3193 actual-.NET aggregate tests pass, zero skips; official clean SDK26 build passes all33 tasks in24.274s, with137 exact source/config inputs verified unchanged. An independent97-test UI review found no new
+unsafe action path. The new local browser approximation imports current tokens
+and geometry, covers14viewports240–1920, and passes6source-contract/static tests.
+No ArkUI/browser screenshot or phone/tablet/PC visual acceptance was obtained;
+the denied render route was not retried. The named HMOS code-workshop reference
+link is still unspecified, so no exact-reference style claim is made.
+
+Serial remains **unavailable in this UI candidate**. Independent PC/USB-CDC backend
+work is still under review and is explicitly excluded from this frozen source and
+build; no unknown USB-UART chipset or hardware support is claimed. Original action
+coverage stays182IDs /154of188sites (110full-portable,44partial,34unwired). File
+recording remains unintegrated and its blocked review was not retried. See
+[UI contract](WORKSPACE_022_CONTRACT.md), [local checks](LOCAL_TEST_022.md),
+[usage](USAGE_ZH.md), [validation](VALIDATION.md) and
+[unchanged coverage ledger](ACTION_COVERAGE_021.md).
+
+The separately published ordinal-CI correction records actual .NET/ICU/invariant
+backend provenance and keeps the original1453-pair production table unchanged;
+see [portability evidence](ORDINAL_ORACLE_PORTABILITY.md).
+
+## Historical record
+
 # MultiFunPlayer for OHOS — 0.21.0 local candidate
 
 ## Current scope (0.21.0 / code 22)

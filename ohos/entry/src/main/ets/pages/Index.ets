@@ -95,9 +95,9 @@ class VideoSurfaceController extends XComponentController {
 
 @Extend(Button)
 function flatButton() {
-  .backgroundColor(UiStyle.card).fontColor(UiStyle.ink).borderRadius(UiStyle.radius)
+  .backgroundColor(UiStyle.field).fontColor(UiStyle.ink).borderRadius(UiStyle.radius)
   .padding({ left: 12, right: 12, top: 8, bottom: 8 }).fontSize(18)
-  .border({ width: 1, color: UiStyle.edge }).shadow({ radius: 4, color: '#0A16333A', offsetY: 1 })
+  .border({ width: 1, color: UiStyle.edge })
   .labelStyle({ maxLines: 4 }).stateEffect(true)
 }
 
@@ -2114,6 +2114,14 @@ struct Index {
   workspaceLayout(): VideoWorkspaceLayout {
     return videoWorkspaceLayout(this.widthVp, this.heightVp, this.videoMode, this.videoFullscreen, this.generalConfiguration.appOrientation);
   }
+  contentPadding(): number { return UiStyle.contentInset(this.workspaceLayout().settings.width); }
+  scriptPaneWidth(): number {
+    const width: number = Math.max(1, this.workspaceLayout().settings.width - 2 * this.contentPadding());
+    return !this.videoMode && horizontalWorkspace(this.widthVp, this.heightVp, this.generalConfiguration.appOrientation)
+      ? Math.max(1, (width - UiStyle.paneGap) / 2) : width;
+  }
+  mediaToolWidth(): string { return UiStyle.toolbarItemWidth(this.scriptPaneWidth(), 6); }
+  axisToolWidth(): string { return UiStyle.toolbarItemWidth(this.scriptPaneWidth(), 9); }
   compactControls(): boolean {
     return this.generalConfiguration.uiDensity === 'compact';
   }
@@ -2201,14 +2209,14 @@ struct Index {
   @Builder
   mediaToolbar() {
     Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
-      Button('⌕').flatButton().width(UiStyle.control).height(UiStyle.control).flexShrink(0).fontSize(22).accessibilityText(t('Script repositories and resources')).onClick(() => this.showLibrary())
-      Button('↻').flatButton().width(UiStyle.control).height(UiStyle.control).flexShrink(0).fontSize(22).accessibilityText(t('Refresh Download media folder')).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.refreshLibrary())
-      Button('AB').flatButton().width(UiStyle.control).height(UiStyle.control).flexShrink(0).enabled(!this.libraryBusy && !this.importing && !this.openingVideo && (this.deoVrActive ? this.deoVrConnected : this.videoMode ? this.videoReady : this.internalConnected) && Number.isFinite(this.engine.mediaPositionSeconds())).accessibilityText('Set AB loop start, end, or clear').onClick(() => { this.playlistAction(new PlaylistPanelAction('loopCycle')); })
+      Button('⌕').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontSize(22).accessibilityText(t('Script repositories and resources')).onClick(() => this.showLibrary())
+      Button('↻').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontSize(22).accessibilityText(t('Refresh Download media folder')).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.refreshLibrary())
+      Button('AB').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).enabled(!this.libraryBusy && !this.importing && !this.openingVideo && (this.deoVrActive ? this.deoVrConnected : this.videoMode ? this.videoReady : this.internalConnected) && Number.isFinite(this.engine.mediaPositionSeconds())).accessibilityText('Set AB loop start, end, or clear').onClick(() => { this.playlistAction(new PlaylistPanelAction('loopCycle')); })
       Button(this.playing ? 'Ⅱ' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? '↶' : '▶')).flatButton()
-        .width(UiStyle.control).height(UiStyle.control).flexShrink(0).fontColor(UiStyle.success).fontSize(22).accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
+        .width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontColor(UiStyle.success).fontSize(22).accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
         .enabled(this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds))).onClick(() => this.playPause())
-      Button('■').flatButton().backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).width(UiStyle.control).height(UiStyle.control).flexShrink(0).fontSize(20).accessibilityText(t('Stop output')).onClick(() => this.stop())
-      Button(this.showMediaSettings ? '⌃' : '⌄').flatButton().width(UiStyle.control).height(UiStyle.control).flexShrink(0).accessibilityText(t('Media timing settings')).onClick(() => { this.showMediaSettings = !this.showMediaSettings; })
+      Button('■').flatButton().backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontSize(20).accessibilityText(t('Stop output')).onClick(() => this.stop())
+      Button(this.showMediaSettings ? '⌃' : '⌄').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).accessibilityText(t('Media timing settings')).onClick(() => { this.showMediaSettings = !this.showMediaSettings; })
     }.width('100%').backgroundColor(UiStyle.card).borderRadius(UiStyle.radius)
   }
   @Builder
@@ -2223,7 +2231,7 @@ struct Index {
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
         Text((this.positionMs / 1000).toFixed(2) + ' / ' + (this.durationMs / 1000).toFixed(2) + ' s').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
         Blank()
-        Button(this.showHeatSettings ? t('Heatmap ⌃') : t('Heatmap ⌄')).flatButton().height(UiStyle.control).fontSize(UiStyle.body(this.compactControls())).onClick(() => { this.showHeatSettings = !this.showHeatSettings; })
+        Button(this.showHeatSettings ? t('Heatmap ⌃') : t('Heatmap ⌄')).flatButton().constraintSize({ minHeight: UiStyle.control }).fontSize(UiStyle.body(this.compactControls())).onClick(() => { this.showHeatSettings = !this.showHeatSettings; })
       }.width('100%')
       if (this.showHeatSettings) {
         SettingsSwitchField({ label: t('Show range'), value: this.heatShowRange, compact: this.compactControls(), onChange: (value: boolean) => { this.heatShowRange = value; this.drawTrace(); } })
@@ -2261,19 +2269,17 @@ struct Index {
           })
         }
       }.width('100%').scrollable(ScrollDirection.Horizontal)
-      Scroll() {
-        Row({ space: 0 }) {
-          Button('▣').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText(t('Script settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('↕').flatButton().width(UiStyle.control).height(UiStyle.control).enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy && !this.settingsReadOnly && !this.recoveryRequired).backgroundColor(this.axisInverted ? '#CFD8DC' : UiStyle.card).accessibilityText(t('Invert selected script')).onClick(() => { const configuration = this.engine.getAxisConfiguration(this.axisNames[this.selectedAxis]); configuration.invertScript = !this.axisInverted; this.applyAxisSettings(configuration); })
-          Button('Ⅱ').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText('Axis bypass and transitions').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('↗').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText('Axis script links').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('≋').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText('Motion provider settings').onClick(() => { this.showMotionSettings = !this.showMotionSettings; this.sync(); })
-          Button('⌁').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText('Smart limit settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('◴').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText('Speed limit settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('∿').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText(t('Interpolation settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-          Button('⌂').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText('Auto home settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
-        }
-      }.width('100%').scrollable(ScrollDirection.Horizontal)
+      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
+          Button('▣').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Script settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('↕').flatButton().width(this.axisToolWidth()).height(UiStyle.control).enabled(this.axisNames.length > 0 && !this.importing && !this.openingVideo && !this.libraryBusy && !this.settingsReadOnly && !this.recoveryRequired).backgroundColor(this.axisInverted ? '#CFD8DC' : UiStyle.card).accessibilityText(t('Invert selected script')).onClick(() => { const configuration = this.engine.getAxisConfiguration(this.axisNames[this.selectedAxis]); configuration.invertScript = !this.axisInverted; this.applyAxisSettings(configuration); })
+          Button('Ⅱ').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Axis bypass and transitions').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('↗').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Axis script links').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('≋').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Motion provider settings').onClick(() => { this.showMotionSettings = !this.showMotionSettings; this.sync(); })
+          Button('⌁').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Smart limit settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('◴').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Speed limit settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('∿').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText(t('Interpolation settings')).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+          Button('⌂').flatButton().width(this.axisToolWidth()).height(UiStyle.control).accessibilityText('Auto home settings').onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+      }.width('100%')
       if (this.showAxisSettings) {
         Text(t(this.fileName)).fontSize(UiStyle.helper).fontColor(UiStyle.ink).width('100%').padding(10)
         if (this.axisNames.length > 0) {
@@ -2297,8 +2303,8 @@ struct Index {
       this.timeline()
       Row() {
         Text(t(this.chapterLabel)).fontSize(UiStyle.helper).fontColor(UiStyle.ink).layoutWeight(1).maxLines(1)
-        Button(this.showMarkerDetails ? t('Markers ⌃') : t('Markers ⌄')).flatButton().height(UiStyle.control).fontSize(UiStyle.body(this.compactControls())).onClick(() => { this.showMarkerDetails = !this.showMarkerDetails; })
-      }.width('100%').backgroundColor(UiStyle.field)
+        Button(this.showMarkerDetails ? t('Markers ⌃') : t('Markers ⌄')).flatButton().constraintSize({ minHeight: UiStyle.control }).fontSize(UiStyle.body(this.compactControls())).onClick(() => { this.showMarkerDetails = !this.showMarkerDetails; })
+      }.width('100%')
       if (this.showMarkerDetails) { this.markerPanel() }
       this.axisToolbar()
       this.axes()
@@ -2342,12 +2348,12 @@ struct Index {
             Button(t('Open selected video · original search')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item, true, true))
             Button(t('Open selected mapping')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.openLibraryItem(item, true))
           }
-        }.padding(12).backgroundColor(UiStyle.field).borderRadius(UiStyle.radius).width('100%')
+        }.padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).width('100%')
       }, (item: ResourceLibraryItem) => item.id)
       if (this.libraryItems.length > this.libraryLimit) {
         Button(t('Show 20 more')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.libraryLimit += 20; })
       }
-    }.padding(10).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).width('100%')
+    }.padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).width('100%')
   }
 
   @Builder
@@ -2357,17 +2363,16 @@ struct Index {
         Column({ space: 2 }) {
           Text(t('Internal')).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold)
           Text(this.internalConnected ? t('Connected') : t('Disconnected')).fontSize(UiStyle.helper).fontColor(this.internalConnected ? UiStyle.success : UiStyle.muted)
-        }.width(88).height(UiStyle.control).justifyContent(FlexAlign.Center).backgroundColor(!this.videoMode ? UiStyle.accentSoft : UiStyle.card)
+        }.width('50%').constraintSize({ minHeight: UiStyle.control }).justifyContent(FlexAlign.Center).backgroundColor(!this.videoMode && !this.deoVrActive ? UiStyle.accentSoft : UiStyle.card)
           .onClick(() => { this.showSourceSettings = true; if (!this.internalConnected) { this.connectInternal(); } })
         Column({ space: 2 }) {
           Text(t('Local video')).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold)
           Text(t(this.videoMode ? this.videoState : 'Disconnected')).fontSize(UiStyle.helper).fontColor(this.videoReady ? UiStyle.success : '#D32F2F')
-        }.width(100).height(UiStyle.control).justifyContent(FlexAlign.Center).backgroundColor(this.videoMode ? UiStyle.accentSoft : UiStyle.card)
+        }.width('50%').constraintSize({ minHeight: UiStyle.control }).justifyContent(FlexAlign.Center).backgroundColor(this.videoMode ? UiStyle.accentSoft : UiStyle.card)
           .onClick(() => { this.showLibrary(); })
-        Button(this.remoteName() + ' · ' + this.deoVrStatus).flatButton().height(UiStyle.control).onClick(() => { this.showSourceSettings = true; })
-        Blank()
-        Button('⌕').flatButton().height(UiStyle.control).width(UiStyle.control).accessibilityText(t('Resources and script libraries')).onClick(() => this.showLibrary())
-        Button(this.showSourceSettings ? '⌃' : '⚙').flatButton().height(UiStyle.control).width(UiStyle.control).accessibilityText(t('Source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
+        Button(this.remoteName() + ' · ' + this.deoVrStatus).flatButton().constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').onClick(() => { this.showSourceSettings = true; })
+        Button('⌕').flatButton().constraintSize({ minHeight: UiStyle.control }).width('50%').accessibilityText(t('Resources and script libraries')).onClick(() => this.showLibrary())
+        Button(this.showSourceSettings ? '⌃' : '⚙').flatButton().constraintSize({ minHeight: UiStyle.control }).width('50%').accessibilityText(t('Source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
       }.width('100%')
       Divider().color('#B0BEC5')
       Row() {
@@ -2388,7 +2393,7 @@ struct Index {
           .onClick(() => { AlertDialog.show({ title: '停止并重建运行状态？', message: '将关闭输出、清除当前媒体与Motion运行历史。保存的参数不变，不会自动播放或Arm；之后需重新选择源或明确启动。',
             primaryButton: { value: '取消', action: () => {} }, secondaryButton: { value: '停止并重建', action: () => { this.resetRuntimeSafely(); } } }); })
         Text(this.runtimeMessage || '独立Motion需要启用轴的“暂停更新”和“无脚本更新”；预览不会自动连接/启用设备。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
-      }.padding(8).width('100%')
+      }.padding({ top: 8, bottom: 8 }).width('100%')
       if (this.showSourceSettings) {
         if (this.presentationReason.length > 0) { Text('窗口呈现：' + this.presentationMode + ' · ' + this.presentationReason).fontSize(UiStyle.helper).fontColor(UiStyle.muted).padding(8) }
         DeoVrSourcePanel({ configuration: this.mediaSourceConfiguration, readOnly: this.settingsReadOnly || this.recoveryRequired, compact: this.compactControls(),
@@ -2404,7 +2409,7 @@ struct Index {
             Text(t('Volume')).fontSize(UiStyle.helper).width(64)
             Slider({ value: this.volume, min: 0, max: 1, step: 0.01 }).height(UiStyle.control).layoutWeight(1).enabled(this.videoReady)
               .onChange((value: number) => { this.volume = value; this.video.setVolume(value); })
-          }.padding(10)
+          }.padding({ top: 10, bottom: 10 })
         }
       }
     }.backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).width('100%')
@@ -2413,8 +2418,8 @@ struct Index {
   preferencesPanel() {
     Column({ space: 8 }) {
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
-        Button(this.showGeneralSettings ? '收起通用设置' : '通用设置').flatButton().height(UiStyle.control).margin(4).onClick(() => { this.showGeneralSettings = !this.showGeneralSettings; })
-        Button(this.showInputSettings ? '结束编辑快捷键' : '键盘映射 / 触摸命令').flatButton().height(UiStyle.control).margin(4).onClick(() => this.toggleInputSettings())
+        Button(this.showGeneralSettings ? '收起通用设置' : '通用设置').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).onClick(() => { this.showGeneralSettings = !this.showGeneralSettings; })
+        Button(this.showInputSettings ? '结束编辑快捷键' : '键盘映射 / 触摸命令').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).onClick(() => this.toggleInputSettings())
         Button('停止 · F12').flatButton().backgroundColor(UiStyle.danger).fontColor('#FFFFFF').height(UiStyle.control).margin(4).onClick(() => this.stop())
       }.width('100%')
       if (this.inputMessage.length > 0) { Text(this.inputMessage).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
@@ -2448,7 +2453,7 @@ struct Index {
       if (this.diagnosticNotice.length > 0) { Text(this.diagnosticNotice).fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
       Text(this.diagnosticResult).fontSize(UiStyle.helper).fontColor(this.diagnosticBlocked ? UiStyle.danger : UiStyle.ink).width('100%')
       if (this.diagnosticBlocked) { Text('诊断尚未确认关闭：所有设备连接和 Arm 暂不可用。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
-    }.width('100%').padding(12).backgroundColor(UiStyle.field).borderRadius(UiStyle.radius)
+    }.width('100%').padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge })
   }
   @Builder
   outputPanel() {
@@ -2460,9 +2465,9 @@ struct Index {
       }.width('100%')
       Text(this.outputSeeking ? '同源跳转等待确认 · 保留已有启用意图，发送门暂时关闭' : this.outputArmed ? (this.outputSuspended ? '待命，无输出 · 等待真实合法当前帧' : '已明确启用发送 · 每帧仍须通过来源与时钟检查') : '未启用发送 · 媒体播放与预览独立运行').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
-        Button('+ TCP').flatButton().height(UiStyle.control).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('tcp'))
-        Button('+ UDP').flatButton().height(UiStyle.control).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('udp'))
-        Button('+ WebSocket').flatButton().height(UiStyle.control).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('webSocket'))
+        Button('+ TCP').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('tcp'))
+        Button('+ UDP').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('udp'))
+        Button('+ WebSocket').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('webSocket'))
         Button('停止全部输出').flatButton().backgroundColor(UiStyle.danger).fontColor('#FFFFFF').height(UiStyle.control).margin(4).onClick(() => this.stop())
       }.width('100%')
       ForEach(this.outputTargets, (target: OutputTargetSummary) => {
@@ -2473,7 +2478,7 @@ struct Index {
           Button(target.removing ? '重试删除' : '删除').flatButton().fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).height(UiStyle.control).width('100%').enabled(!this.settingsReadOnly && !this.recoveryRequired)
             .onClick(() => { AlertDialog.show({ title: '停止并删除此输出？', message: '仅在原连接确认关闭后删除保存的配置。关闭失败会保留此目标，不能绕过隔离。',
               primaryButton: { value: '取消', action: () => {} }, secondaryButton: { value: '停止并删除', action: () => { this.removeOutputTarget(target.id, target.generation); } } }); })
-        }.padding(12).backgroundColor(UiStyle.field).borderRadius(UiStyle.radius).width('100%')
+        }.padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).width('100%')
       }, (target: OutputTargetSummary) => target.id + ':' + target.generation)
       Text('每类最多10个；切换只选择编辑器，各目标独立发送。恢复配置保持断开，每个目标需明确连接及Arm。').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
       if (this.selectedOutputId.length > 0) {
@@ -2493,7 +2498,7 @@ struct Index {
       Button(this.showSocketDiagnostic ? '收起网络诊断' : 'TCP / UDP 真实往返诊断').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
         .onClick(() => { this.showSocketDiagnostic = !this.showSocketDiagnostic; })
       if (this.showSocketDiagnostic) { this.socketDiagnosticPanel() }
-    }.padding(8).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).width('100%')
+    }.padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).width('100%')
   }
 
   changeOffset(axisOnly: boolean, delta: number): void {
@@ -2634,7 +2639,7 @@ struct Index {
           onCloneProfile: (id: string, name: string) => this.editDevice('clone', undefined, id, name),
           onRemoveProfile: (id: string) => this.editDevice('remove', undefined, id) })
       }
-    }.padding(10).backgroundColor(UiStyle.card).width('100%')
+    }.padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).width('100%')
   }
   @Builder
   motionPanel() {
@@ -2673,18 +2678,18 @@ struct Index {
         .onChange((value: number) => { const configuration = this.engine.getAxisConfiguration(this.axisNames[this.selectedAxis]); configuration.scriptScale = value; this.applyAxisSettings(configuration); })
       Text(t('Global offset: ') + this.globalOffsetMs + t(' ms')).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.muted).width('100%')
       Row({ space: 8 }) {
-        Button('−50').flatButton().height(UiStyle.control).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(false, -50))
-        Button(t('Reset')).flatButton().height(UiStyle.control).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(false, -this.globalOffsetMs))
-        Button('+50').flatButton().height(UiStyle.control).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(false, 50))
+        Button('−50').flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(false, -50))
+        Button(t('Reset')).flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(false, -this.globalOffsetMs))
+        Button('+50').flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(false, 50))
       }
       Text((this.axisNames[this.selectedAxis] || t('Axis')) + t(' offset: ') + this.axisOffsetMs + t(' ms')).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.muted).width('100%')
       Row({ space: 8 }) {
-        Button('−50').flatButton().height(UiStyle.control).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(true, -50))
-        Button(t('Reset')).flatButton().height(UiStyle.control).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(true, -this.axisOffsetMs))
-        Button('+50').flatButton().height(UiStyle.control).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(true, 50))
+        Button('−50').flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(true, -50))
+        Button(t('Reset')).flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(true, -this.axisOffsetMs))
+        Button('+50').flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.changeOffset(true, 50))
       }
       Text(t('Positive offsets delay the script. Axis and motion edits apply live; sync follows the selected rules.')).fontSize(UiStyle.helper).fontColor(UiStyle.muted)
-    }.padding(10).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).width('100%')
+    }.padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).width('100%')
   }
   @Builder
   markerPanel() {
@@ -2695,18 +2700,18 @@ struct Index {
         if (this.engine.axisMetadata(this.axisNames[this.selectedAxis] || '').chapters.length > 0) {
           Text(t('Chapters: ') + this.engine.axisMetadata(this.axisNames[this.selectedAxis] || '').chapters.length).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.muted).width('100%')
           Row({ space: 8 }) {
-            Button(t('Previous')).flatButton().height(UiStyle.control).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.jumpChapter(-1))
-            Button(t('Next')).flatButton().height(UiStyle.control).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.jumpChapter(1))
+            Button(t('Previous')).flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.jumpChapter(-1))
+            Button(t('Next')).flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.jumpChapter(1))
           }
         }
         if (this.engine.axisMetadata(this.axisNames[this.selectedAxis] || '').bookmarks.length > 0) {
           Text(t('Bookmarks: ') + this.engine.axisMetadata(this.axisNames[this.selectedAxis] || '').bookmarks.length).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.muted).width('100%')
           Row({ space: 8 }) {
-            Button(t('Previous')).flatButton().height(UiStyle.control).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.jumpBookmark(-1))
-            Button(t('Next')).flatButton().height(UiStyle.control).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.jumpBookmark(1))
+            Button(t('Previous')).flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.jumpBookmark(-1))
+            Button(t('Next')).flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).backgroundColor(UiStyle.field).onClick(() => this.jumpBookmark(1))
           }
         }
-      }.padding(10).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).width('100%')
+      }.padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).width('100%')
     }
   }
   @Builder
@@ -2725,7 +2730,7 @@ struct Index {
         Button('安全重建运行状态并停止').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').enabled(!this.runtimeBusy).onClick(() => { this.resetRuntimeSafely(); })
       }
       Text(t(this.status)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
-    }.padding(12).width('100%').backgroundColor(UiStyle.field).borderRadius(UiStyle.radius)
+    }.padding({ top: 12, bottom: 12 }).width('100%')
   }
   @Builder
   sourceColumn() {
@@ -2777,13 +2782,13 @@ struct Index {
   workspaceSettings() {
     Column({ space: 0 }) {
       if (this.showPortInfo) {
-        Text('TCP / UDP / WebSocket 需手动连接与启用；本地写入不等于硬件执行确认。其它灰色工具仍未接入，真机播放和视觉一致性尚未验证。').fontSize(UiStyle.helper).fontColor('#795548').padding(10)
+        Text('TCP / UDP / WebSocket 需手动连接与启用；本地写入不等于硬件执行确认。其它灰色工具仍未接入，真机播放和视觉一致性尚未验证。').fontSize(UiStyle.helper).fontColor('#795548').padding({ left: this.contentPadding(), right: this.contentPadding(), top: 12, bottom: 12 })
       }
       if (!this.videoMode && horizontalWorkspace(this.widthVp, this.heightVp, this.generalConfiguration.appOrientation)) {
-        Row({ space: 20 }) {
-          Scroll(this.sourceScroller) { this.sourceColumn() }.layoutWeight(1).constraintSize({ maxWidth: 600 }).align(Alignment.Top)
-          Scroll(this.settingsScroller) { this.scriptArea() }.layoutWeight(1).constraintSize({ maxWidth: 600 }).align(Alignment.Top)
-        }.padding(10).width('100%').constraintSize({ maxWidth: 1220 }).layoutWeight(1).alignItems(VerticalAlign.Top)
+        Row({ space: UiStyle.paneGap }) {
+          Scroll(this.sourceScroller) { this.sourceColumn() }.layoutWeight(1).align(Alignment.Top)
+          Scroll(this.settingsScroller) { this.scriptArea() }.layoutWeight(1).align(Alignment.Top)
+        }.padding({ left: this.contentPadding(), right: this.contentPadding(), top: 12, bottom: 12 }).width('100%').layoutWeight(1).alignItems(VerticalAlign.Top)
       } else {
         Scroll(this.settingsScroller) {
           Column({ space: 12 }) {
@@ -2796,7 +2801,7 @@ struct Index {
             this.outputPanel()
             this.preferencesPanel()
             this.devicePanel()
-          }.padding(10).width('100%').constraintSize({ maxWidth: 600 })
+          }.padding({ left: this.contentPadding(), right: this.contentPadding(), top: 12, bottom: 12 }).width('100%')
         }.width('100%').layoutWeight(1).align(Alignment.Top)
       }
       if (!this.videoMode && (this.widthVp < 840 || this.heightVp < 500)) { this.transport() }
@@ -2859,8 +2864,8 @@ struct Index {
           Scroll() { Text(this.errorNoticeMessage).fontSize(UiStyle.body(this.compactControls())).fontColor('#FFFFFF').width('100%') }
             .width('100%').height(Math.max(52, Math.min(120, this.heightVp * 0.22)))
           Row({ space: 8 }) {
-            Button('关闭提示').flatButton().height(UiStyle.control).layoutWeight(1).onClick(this.errorDismissHandler(this.errorNoticeId))
-            Button('全局停止').flatButton().height(UiStyle.control).layoutWeight(1).fontColor(UiStyle.danger).onClick(() => this.stop())
+            Button('关闭提示').flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).onClick(this.errorDismissHandler(this.errorNoticeId))
+            Button('全局停止').flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).fontColor(UiStyle.danger).onClick(() => this.stop())
           }.width('100%')
         }.padding(12).width('100%').backgroundColor(UiStyle.danger).align(Alignment.Bottom)
       }
@@ -2871,8 +2876,8 @@ struct Index {
             Text('错误').fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.danger).width('100%')
             Scroll() { Text(this.errorNoticeMessage).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).width('100%') }
               .width('100%').layoutWeight(1)
-            Button('知道了').flatButton().height(UiStyle.control).width('100%').onClick(this.errorDismissHandler(this.errorNoticeId))
-            Button('全局停止 · F12').flatButton().height(UiStyle.control).width('100%').backgroundColor(UiStyle.danger).fontColor('#FFFFFF').onClick(() => this.stop())
+            Button('知道了').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(this.errorDismissHandler(this.errorNoticeId))
+            Button('全局停止 · F12').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').backgroundColor(UiStyle.danger).fontColor('#FFFFFF').onClick(() => this.stop())
           }.padding(16).width('92%').height(Math.max(200, Math.min(620, this.heightVp - 24)))
             .constraintSize({ maxWidth: 600 }).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius)
           Blank()

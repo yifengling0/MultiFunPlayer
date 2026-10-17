@@ -203,6 +203,6 @@ export struct OutputSettingsPanel {
       if (this.diagnostic.length > 0) { Text(this.diagnostic).fontSize(UiStyle.helper).fontColor(UiStyle.danger) }
       Text('若来源历史持续无效，可刷新 Download 媒体文件夹：停止播放、重建运行时并重置 Motion 相位。之后重选媒体、应用输出配置，再明确启用发送。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Text('Serial / File / Handy / Buttplug / Pipe 尚未实现；硬件执行尚未验证。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
-    }.width('100%').padding(UiStyle.padding(this.compact)).alignItems(HorizontalAlign.Start).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).border({ width: 1, color: UiStyle.edgeLight })
+    }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) }).alignItems(HorizontalAlign.Start)
   }
 }

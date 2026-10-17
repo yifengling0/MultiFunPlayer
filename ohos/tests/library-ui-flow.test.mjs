@@ -11,6 +11,7 @@ const { FunscriptDocument, FunscriptParser: ActualFunscriptParser } = await impo
 const { PlaybackSessionCore } = await import('../entry/src/main/ets/core/PlaybackSessionCore.ts');
 const { DeviceAxisDefinition, DeviceProfiles } = await import('../entry/src/main/ets/core/DeviceProfile.ts');
 const { AxisConfiguration, AxisConfigurationEntry, SyncConfiguration } = await import('../entry/src/main/ets/core/AxisConfiguration.ts');
+const { UiStyle } = await import('../entry/src/main/ets/presentation/UiStyle.ts');
 const { videoWorkspaceLayout } = await import('../entry/src/main/ets/core/VideoLayout.ts');
 const { MotionProviderConfiguration } = await import('../entry/src/main/ets/core/MotionConfiguration.ts');
 const {OutputSettingsDraft}=await import('../entry/src/main/ets/output/OutputSettingsModel.ts');
@@ -85,7 +86,7 @@ function setup(options = {}) {
     KeyboardInputSession, KeyboardShortcutConfiguration, ShortcutAction, cloneShortcutAction, shortcutActionCatalog, EMERGENCY_STOP_KEY, isShortcutKey,
     resolveManagedLoopingSelection, parseManagedLoopingScript, applyOutputRangeAction, SettingsOption: class { constructor(value,label){this.value=value;this.label=label;} },
     applyAxisShortcutAction, applySyncShortcutAction, applyMediaShortcut, shortcutNameEquals, applyShortcutPointAction, customCurvePointArguments, applyMotionShortcutAction, motionShortcutProviderId, LocalShortcutEngine, ShortcutDispatch, ShortcutKeyEvent, GeneralConfiguration, ErrorPresentation, horizontalWorkspace,
-    ResourceSelectionResult, videoWorkspaceLayout, OutputSettingsDraft, InternalSourceLibrary, InternalPlaylist, InternalPlaylistItem, InternalPlaylistEvent, PlaylistPresentation, PlaylistPanelSnapshot, PlaylistPanelAction, PlaylistActionContext, PlaybackConfiguration,
+    ResourceSelectionResult, videoWorkspaceLayout, UiStyle, OutputSettingsDraft, InternalSourceLibrary, InternalPlaylist, InternalPlaylistItem, InternalPlaylistEvent, PlaylistPresentation, PlaylistPanelSnapshot, PlaylistPanelAction, PlaylistActionContext, PlaybackConfiguration,
     NativeWindowPresentation: { setListener() { return 1; }, releaseOwner() { return Promise.resolve(); }, requestForOwner(_owner, value) { calls.push(['presentationRequest', value]); return Promise.resolve(); } },
     NativeOutputSession: { matchesTarget() { return true; }, canConnect() { return true; }, restore() {}, synchronizeProfile() {}, summaries() { return []; }, selectedId() { return 'manual-network'; }, draftDiagnostic() { return ''; }, draftSnapshot(){return new OutputSettingsDraft();},saveDraft(){return true;}, setForeground(value) { calls.push(['outputForeground',value]); }, current() { return {
       ids() { return []; }, get() { return this; }, isRemoving() { return false; }, stop() {}, disarm() {}, beginSourceSeek() { calls.push(['outputBeginSeek']); return false; }, setForeground() {}, refresh() {}, status() { return null; },

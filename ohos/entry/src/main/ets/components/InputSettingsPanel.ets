@@ -773,7 +773,7 @@ export struct InputSettingsPanel {
           .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
           .enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).onClick(this.bindEditCommand(() => this.removeAction(mapping.id, index)))
       }.width('100%')
-    }.width('100%').padding(8).backgroundColor(UiStyle.page).margin({ bottom: 8 })
+    }.width('100%').padding({ top: 8, bottom: 8 }).margin({ bottom: 8 })
   }
   @Builder
   private mappingRow(mapping: KeyboardShortcutMapping, index: number) {
@@ -838,7 +838,7 @@ export struct InputSettingsPanel {
           .type(ButtonType.Normal).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
           .enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.dangerSoft).onClick(this.bindEditCommand(() => this.removeMapping(mapping.id)))
       }.width('100%')
-    }.width('100%').padding(UiStyle.padding(this.compact)).border({ width: 1, color: UiStyle.edge }).borderRadius(UiStyle.radius).margin({ bottom: 12 })
+    }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) }).border({ width: { bottom: 1 }, color: UiStyle.edge }).margin({ bottom: 12 })
   }
   build() {
     // The workspace owns scrolling; no nested unbounded Scroll or List.
@@ -961,6 +961,6 @@ export struct InputSettingsPanel {
       }
       Text('此版只支持本地键盘按钮手势。模拟轴、鼠标轴与手柄输入尚未适配，不提供占位开关。')
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
-    }.width('100%').padding(UiStyle.padding(this.compact)).backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).border({ width: 1, color: UiStyle.edgeLight })
+    }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) })
   }
 }

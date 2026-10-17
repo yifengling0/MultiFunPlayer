@@ -9,9 +9,9 @@ test('UI version derives from the tested version constants matching the package 
   assert.match(page, /Text\(APP_VERSION_NAME \+ ' OHOS'\)/);
   assert.doesNotMatch(page, /Text\(['"]\d+\.\d+\.\d+ OHOS['"]\)/);
 });
-test('narrow media toolbar wraps fixed touch targets rather than overflowing or shrinking them', () => {
+test('narrow media toolbar distributes bounded touch targets rather than overflowing or shrinking them', () => {
   const toolbar = page.slice(page.indexOf('  mediaToolbar() {'), page.indexOf('  timeline() {'));
   assert.match(toolbar, /wrap: FlexWrap\.Wrap/); assert.doesNotMatch(toolbar, /Blank\(\)/);
   assert.equal((toolbar.match(/\.flexShrink\(0\)/g) || []).length, 6);
-  assert.equal((toolbar.match(/\.width\(UiStyle.control\)/g) || []).length, 6);
+  assert.equal((toolbar.match(/\.width\(this.mediaToolWidth\(\)\)/g) || []).length, 6);
 });

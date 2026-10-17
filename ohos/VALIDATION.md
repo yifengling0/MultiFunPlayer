@@ -1,3 +1,14 @@
+# 0.22.0 validation
+
+- 3193/3193 actual-.NET aggregate tests pass, zero skips; official clean SDK26 build passes all33 tasks in24.274s, with137 exact source/config inputs verified unchanged. Build runs from an isolated source copy, excluding ongoing `entry/src/main/ets/output/serial/**` and `tests/serial-transport.test.mjs`. No serial UI/backend availability is claimed.
+- New26layout/actual-controller tests cover240–1920vp, video on/off, full-width pane arithmetic, balanced≥52vp tools, no nested root horizontal gutter, same-instance field draft/keyboard-owner preservation and unchanged actual media frame/permission state.
+- Independent focused review:97/97 UI/controller/keyboard/curve tests passed. It caught the pre-existing whole-workspace branch/remount boundary, now explicitly documented rather than disguised by a field-level test. Remaining decorative list/row insets were removed before final build.
+- Runnable0.22 browser approximation:14viewport cases;6/6source/token/geometry/markup contracts and static contrast/bounds audit pass. It has no production side-effect callbacks. No browser/ArkUI screenshot, IME/touch/device acceptance was obtained; previously denied render routes were not retried.
+- The unchanged single video Surface, fixed global Stop, output draft ownership and all source/output runtime tests remain in the aggregate. No new physical endpoint was contacted. Serial and File recording are not integrated in this candidate.
+- Published ordinal fix50d5c51 passed remoteCI3167/3167zero skips with actualICU74.2/Unicode15.1+invariant provenance. The canonical1453mapping and algorithm remain unchanged. This newUIcandidate inherits that fix.
+
+## Historical validation
+
 # 0.21.0 / code22 immutable local candidate
 
 - Final R1 aggregate: **3163 tests /3163 pass /0 fail /0 skip**,32.841seconds. DOTNET_ROOT and MFP_DOTNET_ROOT both select official .NET9.0.319; original C# oracles actually execute.

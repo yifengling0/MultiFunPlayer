@@ -192,7 +192,7 @@ export struct AxisSettingsPanel {
         this.numberField('autoHomeDurationSeconds', '归位时长', this.configuration.autoHomeDurationSeconds, '秒')
         this.numberField('autoHomeTargetValue', '归位目标', this.configuration.autoHomeTargetValue, '0–1')
         if (this.error.length > 0) { Text(this.error).fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%').margin({ top: 8 }) }
-      }.width('100%').padding(UiStyle.padding(this.compact)).enabled(!this.readOnly)
-    }.width('100%').backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).border({ width: 1, color: UiStyle.edgeLight })
+      }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) }).enabled(!this.readOnly)
+    }.width('100%')
   }
 }

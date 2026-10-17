@@ -63,7 +63,7 @@ test('every command keeps a 52vp minimum, bounded width and native pressed feedb
 test('shared fields stack labels and disclose long select values at 240vp', () => {
   const text = source('CurvePointEditor');
   const shared = text.slice(text.indexOf('export struct SettingsNumberField'), text.indexOf('export struct CurvePointEditor'));
-  assert.doesNotMatch(shared, /FlexDirection\.Row|\.width\(this\.compact|TextOverflow\.Ellipsis|maxLines\(/);
+  assert.doesNotMatch(shared, /\.width\(this\.compact|TextOverflow\.Ellipsis|maxLines\(/);
   assert.match(shared, /Text\(this\.labelText\(\)\)[^\n]+wordBreak\(WordBreak\.BREAK_ALL\)/);
   assert.match(shared, /optionHeight\(UiStyle\.control\)/);
   assert.match(text, /let best: number = 28/);

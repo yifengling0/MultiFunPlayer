@@ -73,6 +73,8 @@ export class CurveGeometryOwners {
 export struct SettingsNumberField {
   private keyboardEditorId: number = KeyboardInputSession.newEditorId();
   aboutToDisappear(): void { KeyboardInputSession.releaseEditor(this.keyboardEditorId); }
+  @State fieldWidth: number = 0;
+  measureField(width: number): void { if (Number.isFinite(width) && width > 0) { this.fieldWidth = width; } }
   @Prop label: string = '';
   @Prop @Watch('refreshValue') value: number = 0;
   @Prop minimum: number | null = null;
@@ -102,12 +104,12 @@ export struct SettingsNumberField {
   }
   build() {
     Column({ space: 2 }) {
-      Column({ space: UiStyle.gap(this.compact) }) {
+      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
         Text(this.label + (this.unit.length > 0 ? ' · ' + this.unit : '')).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink)
-          .width('100%').textAlign(TextAlign.Start)
+          .width(UiStyle.fieldLabelWidth(this.fieldWidth)).padding({ right: 12, top: 6, bottom: 6 }).textAlign(TextAlign.Start)
         TextInput({ text: this.draft }).fontSize(UiStyle.body(this.compact)).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).borderRadius(UiStyle.radius)
           .backgroundColor(UiStyle.field).border({ width: 1, color: this.error ? UiStyle.danger : UiStyle.edge })
-          .width('100%').enabled(this.editable)
+          .width(UiStyle.fieldControlWidth(this.fieldWidth)).enabled(this.editable)
           .accessibilityText(this.label).onChange(KeyboardInputSession.changeHandler(this.keyboardEditorId, (text: string) => { this.draft = text; this.error = false; this.edited = true; this.onEdit(); }))
           .onSubmit(KeyboardInputSession.submitHandler(this.keyboardEditorId, () => this.commit())).onFocus(KeyboardInputSession.focusHandler(this.keyboardEditorId, true))
           .onBlur(KeyboardInputSession.blurHandler(this.keyboardEditorId, () => this.commit()))
@@ -115,6 +117,7 @@ export struct SettingsNumberField {
       }.width('100%')
       if (this.error) { Text('数值无效或超出允许范围').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
     }.width('100%').margin({ bottom: UiStyle.gap(this.compact) })
+      .onAreaChange((_old: Area, area: Area) => this.measureField(Number(area.width)))
   }
 }
 
@@ -122,6 +125,8 @@ export struct SettingsNumberField {
 export struct SettingsTextField {
   private keyboardEditorId: number = KeyboardInputSession.newEditorId();
   aboutToDisappear(): void { KeyboardInputSession.releaseEditor(this.keyboardEditorId); }
+  @State fieldWidth: number = 0;
+  measureField(width: number): void { if (Number.isFinite(width) && width > 0) { this.fieldWidth = width; } }
   @Prop label: string = '';
   @Prop @Watch('refreshValue') value: string = '';
   @Prop compact: boolean = false;
@@ -137,10 +142,10 @@ export struct SettingsTextField {
     this.error = !this.onCommit(this.draft);
   }
   build() {
-    Column({ space: 3 }) {
-      Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+    Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
+      Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width(UiStyle.fieldLabelWidth(this.fieldWidth)).padding({ right: 12, top: 6, bottom: 6 }).wordBreak(WordBreak.BREAK_ALL)
       TextInput({ text: this.draft }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius)
-        .backgroundColor(UiStyle.field).border({ width: 1, color: this.error ? UiStyle.danger : UiStyle.edge }).width('100%')
+        .backgroundColor(UiStyle.field).border({ width: 1, color: this.error ? UiStyle.danger : UiStyle.edge }).width(UiStyle.fieldControlWidth(this.fieldWidth))
         .enabled(this.editable).accessibilityText(this.label)
         .onChange(KeyboardInputSession.changeHandler(this.keyboardEditorId, (text: string) => { this.draft = text; this.error = false; this.onEdit(); }))
         .onSubmit(KeyboardInputSession.submitHandler(this.keyboardEditorId, () => this.commit())).onFocus(KeyboardInputSession.focusHandler(this.keyboardEditorId, true))
@@ -148,6 +153,7 @@ export struct SettingsTextField {
           .onKeyPreIme(KeyboardInputSession.emergencyHandler(this.keyboardEditorId))
       if (this.error) { Text('内容无效，请检查格式或重复名称').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
     }.width('100%').margin({ bottom: UiStyle.gap(this.compact) })
+      .onAreaChange((_old: Area, area: Area) => this.measureField(Number(area.width)))
   }
 }
 
@@ -169,6 +175,8 @@ export struct SettingsSwitchField {
 
 @Component
 export struct SettingsChoiceField {
+  @State fieldWidth: number = 0;
+  measureField(width: number): void { if (Number.isFinite(width) && width > 0) { this.fieldWidth = width; } }
   @Prop label: string = '';
   @Prop selected: string = '';
   @Prop options: SettingsOption[] = [];
@@ -181,17 +189,18 @@ export struct SettingsChoiceField {
     return index < 0 ? this.selected + '（不可用，已保留）' : this.options[index].label;
   }
   build() {
-    Column({ space: UiStyle.gap(this.compact) }) {
-      Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+    Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
+      Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width(UiStyle.fieldLabelWidth(this.fieldWidth)).padding({ right: 12, top: 6, bottom: 6 }).wordBreak(WordBreak.BREAK_ALL)
         .textAlign(TextAlign.Start)
       Select(this.options.map((option: SettingsOption): SelectOption => { return { value: option.label }; }))
         .selected(this.index()).value(this.labelText()).optionHeight(UiStyle.control).font({ size: UiStyle.body(this.compact) }).optionFont({ size: UiStyle.body(this.compact) }).selectedOptionFont({ size: UiStyle.body(this.compact) }).fontColor(UiStyle.ink)
         .backgroundColor(UiStyle.accentSoft).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' })
-        .width('100%').enabled(this.editable).accessibilityText(this.label)
+        .width(UiStyle.fieldControlWidth(this.fieldWidth)).enabled(this.editable).accessibilityText(this.label)
         .onSelect((index: number) => { if (index >= 0 && index < this.options.length) { this.onSelect(this.options[index].value); } })
       // Select's platform label may elide; this fully wrapping text retains the entire value.
       Text(this.labelText()).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
     }.width('100%').margin({ bottom: UiStyle.gap(this.compact) })
+      .onAreaChange((_old: Area, area: Area) => this.measureField(Number(area.width)))
   }
 }
 
@@ -200,7 +209,7 @@ export struct SettingsSectionTitle {
   @Prop label: string = '';
   build() {
     Text(this.label).fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
-      .padding({ left: 12, right: 12, top: 12, bottom: 12 }).backgroundColor(UiStyle.accentSoft).borderRadius(UiStyle.radius).border({ width: 1, color: UiStyle.edgeLight }).margin({ top: 12, bottom: 12 })
+      .padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).margin({ top: 12, bottom: 12 })
   }
 }
 
@@ -481,7 +490,7 @@ export struct CurvePointEditor {
                   onCommit: this.pointHandler(index, 'x') })
                 SettingsNumberField({ label: this.yLabel, value: point.y, compact: this.compact, minimum: this.minimumY, maximum: this.maximumY,
                   onCommit: this.pointHandler(index, 'y') })
-              }.width('100%').padding(8).backgroundColor(index === this.selected ? UiStyle.accentSoft : UiStyle.card)
+              }.width('100%').padding({ top: 8, bottom: 8 }).backgroundColor(index === this.selected ? UiStyle.accentSoft : UiStyle.card)
             }
           }, (_point: MotionCurvePoint, index: number): string => this.editToken() + ':' + index)
         }.height(this.compact ? 300 : 360).width('100%').scrollBar(BarState.On)
