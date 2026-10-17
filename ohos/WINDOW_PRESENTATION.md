@@ -1,14 +1,14 @@
-# Native video window presentation (0.10 reachable integration)
+# Native video window presentation (0.30)
 
 ## Supported behavior
 
-The player remains one XComponent/AVPlayer with SCALED_ASPECT. This adapter never owns playback, orientation or video geometry.
+The player remains one XComponent/AVPlayer with SCALED_ASPECT. This adapter owns window presentation, never playback/output.
 
-- Floating and maximized main windows: attempt the public `maximize(ENTER_IMMERSIVE)` API. Report `native-fullscreen` only after `getWindowStatus()` observes FULL_SCREEN. This supports capable freeform/2-in-1 environments; a successful promise alone is insufficient.
-- Exit from an originally floating window: `recover()`, preserving the OS's previous position/size. Exit from an originally maximized window: `maximize(EXIT_IMMERSIVE)`, never `recover()`.
-- Phone/pad normal mode, split-screen, minimized/unknown mode, rejected operations and silent unsupported no-ops: report `in-window`. The page can still expand its video pane within the existing app window. This is **not a claim of native immersive fullscreen on all devices**.
-- No guessed system-bar policy: public bar-property getters do not expose both enabled states. No hide-all/show-all reset, decor changes, forced rotation, orientation-lock override, or system-only APIs. Unchanged bars mean the existing safe content area is retained.
-- A future app-owned mobile system-bar policy needs an explicit baseline design; it is not implemented here.
+- Floating/maximized desktop windows retain the observed maximize/recover transaction and OS hover escape.
+- Phone/tablet fullscreen-window baselines request landscape, wait up to750ms for actual landscape geometry, then apply immersive layout and hide status/navigation bars. Rotation is settled before hiding bars because asynchronous rotation can restore them.
+- Success requires observed layout, hidden status and landscape, not only fulfilled API promises. Unsupported/split modes, timeouts, rejected or silent no-op setters roll back and report in-window fallback.
+- Restoration preserves the saved orientation/layout/status only while the controller still owns each setting. The SDK exposes no navigation-enabled getter; exit applies the documented app-visible navigation policy. External setting changes are not blindly overwritten.
+- Fullscreen application chrome is separate: tap video to reveal; Back/Escape can exit hidden chrome. The Surface stays mounted and fills the same bounds when chrome hides.
 
 ## Integration contract
 

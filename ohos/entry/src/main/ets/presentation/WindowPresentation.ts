@@ -198,6 +198,17 @@ export class WindowPresentationController {
       this.observeMobileMutation(observed, 'orientation');
       failed = failed || observed.mobile === undefined || observed.mobile.orientation !== LANDSCAPE;
     }
+    if (!failed && this.wanted && this.applied.mode === FULLSCREEN && this.applied.mobile !== undefined &&
+      this.applied.mobile.orientation === LANDSCAPE && !this.applied.mobile.landscape) {
+      // The orientation setter acknowledges a request before a window resize.
+      // Settle rotation before hiding bars: rotation may restore system bars.
+      await target.waitForMobileLandscape((): boolean => generation === this.generation &&
+        this.baseline === before && this.wanted);
+      if (generation !== this.generation || this.baseline !== before) { return; }
+      this.observeMobileMutation(target.snapshot(), '');
+    }
+    failed = failed || this.applied.mobile === undefined || !this.applied.mobile.landscape ||
+      this.applied.mobile.orientation !== LANDSCAPE;
     if (!failed && this.wanted && this.applied.mode === before.mode && !mobile.layoutFullScreen) {
       this.mobileLayoutOwned = true;
       this.applied.mobile!.layoutFullScreen = true;
@@ -215,15 +226,6 @@ export class WindowPresentationController {
       try { await target.setMobileBars(false, false); } catch (error) { failed = true; }
       if (generation !== this.generation || this.baseline !== before) { return; }
       this.observeMobileMutation(target.snapshot(), 'bars');
-    }
-    if (!failed && this.wanted && this.applied.mode === FULLSCREEN && this.applied.mobile !== undefined &&
-      this.applied.mobile.orientation === LANDSCAPE && !this.applied.mobile.landscape) {
-      // The orientation setter acknowledges a request before a window resize.
-      // Give its actual geometry a bounded event-driven chance to settle.
-      await target.waitForMobileLandscape((): boolean => generation === this.generation &&
-        this.baseline === before && this.wanted);
-      if (generation !== this.generation || this.baseline !== before) { return; }
-      this.observeMobileMutation(target.snapshot(), '');
     }
     const after = this.applied;
     const actual = after.mobile;

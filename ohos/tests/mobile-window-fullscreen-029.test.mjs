@@ -230,3 +230,12 @@ test('unobserved native mode change during an entry setter does not restore sett
  assert.equal((await N.requestForOwner(owner,true)).mode,'in-window');assert.equal(h.mode,3);assert.equal(h.orientation,2);
  assert.deepEqual(h.writes(),[['orientation',2]]);await close(owner);
 });
+
+test('rotation restoring bars settles before layout and hide, so native fullscreen stays confirmed',async()=>{
+ const {h,owner}=await setup();h.behavior.set('orientation',async([v])=>{h.orientation=v;if(v===2){setTimeout(()=>{h.landscape=true;h.status=true;h.navigation=true;h.listeners.get('windowSizeChange')?.({width:1600,height:900});},30);}else h.landscape=false;});
+ const result=await N.requestForOwner(owner,true);assert.equal(result.mode,'native-fullscreen');assert.equal(h.status,false);assert.equal(h.navigation,false);await close(owner);
+});
+test('geometry timeout never mutates layout or bars after a mere orientation preference',async()=>{
+ const {h,owner}=await setup();h.behavior.set('orientation',async([v])=>{h.orientation=v;});
+ const result=await N.requestForOwner(owner,true);assert.equal(result.mode,'in-window');assert.ok(!h.writes().some(([k])=>k==='layout'||k==='bars'));assert.equal(h.orientation,8);await close(owner);
+});

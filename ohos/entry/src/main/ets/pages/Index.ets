@@ -154,6 +154,10 @@ struct Index {
   @State chapterLabel: string = 'No active chapter';
   @State videoMode: boolean = false;
   @State videoFullscreen: boolean = false;
+  @State videoControlsVisible: boolean = true;
+  @State videoFloating: boolean = false;
+  private videoChromeTimer: number = -1;
+  private videoChromeEpoch: number = 0;
   private presentationOwner: number = 0;
   @State presentationMode: string = 'windowed';
   @State presentationReason: string = '';
@@ -318,7 +322,7 @@ struct Index {
     if (screen === 'player' && !this.videoMode) { return; }
     this.retireSettingsDrafts(); this.screenRevision++; KeyboardInputSession.setEditorFocus(this.librarySearchEditor, false);
     if (screen !== 'player') { this.cancelLibraryPlayback(); this.setVideoFullscreen(false); }
-    this.currentScreen = screen;
+    this.currentScreen = screen; this.videoFloating = false;
   }
   private selectWorkspaceTool(tool: string): void {
     if (!['script', 'output', 'media', 'settings'].some(value => value === tool)) { return; }
@@ -410,7 +414,7 @@ struct Index {
     return connected + ' 个已连接 · ' + (armed === 0 ? '输出未启用' : armed + ' 个已启用' + (pending > 0 ? ' / ' + pending + ' 个待命' : '')) + (faults > 0 ? ' · ' + faults + ' 个故障' : '');
   }
   private wideWorkspace(): boolean {
-    return !this.workspacePreviewCollapsed && this.widthVp >= 900 && horizontalWorkspace(this.widthVp, this.heightVp, this.generalConfiguration.appOrientation);
+    return !this.videoFloating && !this.workspacePreviewCollapsed && this.widthVp >= 900 && horizontalWorkspace(this.widthVp, this.heightVp, this.generalConfiguration.appOrientation);
   }
   private toggleWorkspacePreview(): void {
     this.retireSettingsDrafts(); this.workspacePreviewCollapsed = !this.workspacePreviewCollapsed;
@@ -520,6 +524,7 @@ struct Index {
   @State showSocketDiagnostic: boolean = false;
   private timer: number = -1;
   private lastTick: number = 0;
+  private playerCanvas: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
   private canvas: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
 
   aboutToAppear(): void {
@@ -575,7 +580,7 @@ struct Index {
     if (this.deoVrUnsubscribe !== null) { this.deoVrUnsubscribe(); this.deoVrUnsubscribe = null; }
     this.engine.detachMotionCanvas(this.motionCanvasOwner); this.motionCanvasOwner = 0; this.motionCanvasContext = '';
     this.cancelKeyboardWork(); KeyboardInputSession.releaseListener(this.keyboardOwner); this.keyboardOwner = 0; this.errors.cancel();
-    this.videoFullscreen = false; NativeWindowPresentation.releaseOwner(this.presentationOwner); this.presentationOwner = 0;
+    this.cancelVideoChromeTimer(); this.videoFullscreen = false; NativeWindowPresentation.releaseOwner(this.presentationOwner); this.presentationOwner = 0;
     this.cancelRuntimeControl(); this.disconnectInternal(); this.cancelMediaSeek(); this.cancelLibrary(); this.viewActive = false; this.openVideoRequest++; this.pendingVideoUri = '';
     this.output.setForeground(false);
     this.video.dispose();
@@ -2614,7 +2619,7 @@ struct Index {
     this.status = 'Local video closed · connect Internal for script playback'; this.sync();
   }
   workspaceLayout(): VideoWorkspaceLayout {
-    return applicationWorkspaceLayout(this.widthVp, this.heightVp, this.currentScreen, this.videoMode && (this.currentScreen !== 'workspace' || !this.workspacePreviewCollapsed), this.videoFullscreen, this.generalConfiguration.appOrientation);
+    return applicationWorkspaceLayout(this.widthVp, this.heightVp, this.currentScreen, this.videoMode && (this.currentScreen !== 'workspace' || !this.workspacePreviewCollapsed), this.videoFullscreen, this.generalConfiguration.appOrientation, this.videoFloating);
   }
   contentPadding(): number { return UiStyle.contentInset(this.widthVp); }
   scriptPaneWidth(): number {
@@ -2637,9 +2642,41 @@ struct Index {
     this.presentationMode = result.mode; this.presentationReason = result.reason;
     this.presentationRestorePending = result.restorationPending;
   }
+  cancelVideoChromeTimer(): void {
+    this.videoChromeEpoch++;
+    if (this.videoChromeTimer >= 0) { clearTimeout(this.videoChromeTimer); this.videoChromeTimer = -1; }
+  }
+  toggleVideoControls(): void {
+    this.cancelVideoChromeTimer();
+    if (!this.viewActive || !this.foreground || !this.videoFullscreen) { return; }
+    this.videoControlsVisible = !this.videoControlsVisible;
+    if (this.videoControlsVisible) { this.scheduleVideoChromeHide(); }
+  }
+  scheduleVideoChromeHide(): void {
+    this.cancelVideoChromeTimer();
+    if (!this.videoFullscreen || !this.videoControlsVisible) { return; }
+    const epoch = this.videoChromeEpoch;
+    this.videoChromeTimer = setTimeout(() => {
+      if (epoch !== this.videoChromeEpoch || !this.viewActive || !this.foreground || !this.videoFullscreen) { return; }
+      this.videoChromeTimer = -1;
+      if (this.playing && !this.openingVideo && this.sessionFault.length === 0) { this.videoControlsVisible = false; }
+    }, 3500);
+  }
+  setVideoFloating(value: boolean): void {
+    if (!this.viewActive || !this.foreground || !this.videoMode || this.videoFullscreen) { return; }
+    if (value !== this.videoFloating) {
+      this.retireSettingsDrafts(); this.videoFloating = value;
+      if (!value) {
+        if (this.currentScreen === 'library') { this.sourceScroller.scrollEdge(Edge.Top); }
+        else { this.settingsScroller.scrollEdge(Edge.Top); }
+      }
+    }
+  }
   setVideoFullscreen(value: boolean): void {
+    this.cancelVideoChromeTimer();
     if (value && this.videoMode) { this.selectScreen('player'); }
     this.videoFullscreen = value && this.videoMode && this.foreground && this.viewActive;
+    this.videoControlsVisible = !this.videoFullscreen; this.videoFloating = false;
     // The listener owns observed diagnostics. Never let a late promise rewrite
     // the current page-layout intent or media state.
     NativeWindowPresentation.requestForOwner(this.presentationOwner, this.videoFullscreen);
@@ -2760,10 +2797,13 @@ struct Index {
     } };
   }
   drawTrace(): void {
-    const w = this.canvas.width; const h = this.canvas.height;
+    this.drawTraceInto(this.canvas); this.drawTraceInto(this.playerCanvas);
+  }
+  drawTraceInto(context: CanvasRenderingContext2D): void {
+    const w = context.width; const h = context.height;
     if (w <= 0 || h <= 0) { return; }
-    this.canvas.clearRect(0, 0, w, h);
-    this.canvas.fillStyle = '#FFFFFF'; this.canvas.fillRect(0, 0, w, h);
+    context.clearRect(0, 0, w, h);
+    context.fillStyle = '#FFFFFF'; context.fillRect(0, 0, w, h);
     const displayDocument = this.engine.displayDocument();
     if (this.heatDocument !== displayDocument || this.heatAxis !== this.selectedAxis ||
       this.heatDuration !== this.durationMs || this.heatCombined !== this.heatCombine) {
@@ -2773,29 +2813,29 @@ struct Index {
     }
     const buckets = this.heatBuckets;
     if (buckets.length > 1) {
-      this.canvas.save(); this.canvas.beginPath();
+      context.save(); context.beginPath();
       if (this.heatShowRange) {
         for (let i = 0; i < buckets.length; i++) {
           const value = buckets[i].rangeMax;
           const y = Math.max(0, Math.min(1, this.heatInvert ? value : 1 - value)) * h;
-          if (i === 0) { this.canvas.moveTo(0, y); } else { this.canvas.lineTo(i / (buckets.length - 1) * w, y); }
+          if (i === 0) { context.moveTo(0, y); } else { context.lineTo(i / (buckets.length - 1) * w, y); }
         }
         for (let i = buckets.length - 1; i >= 0; i--) {
           const value = buckets[i].rangeMin;
           const y = Math.max(0, Math.min(1, this.heatInvert ? value : 1 - value)) * h;
-          this.canvas.lineTo(i / (buckets.length - 1) * w, y);
+          context.lineTo(i / (buckets.length - 1) * w, y);
         }
-      } else { this.canvas.rect(0, 0, w, h); }
-      this.canvas.closePath(); this.canvas.clip();
+      } else { context.rect(0, 0, w, h); }
+      context.closePath(); context.clip();
       for (let i = 0; i < buckets.length; i++) {
-        this.canvas.fillStyle = buckets[i].color;
-        this.canvas.fillRect(i / (buckets.length - 1) * w, 0, w / (buckets.length - 1) + 0.5, h);
+        context.fillStyle = buckets[i].color;
+        context.fillRect(i / (buckets.length - 1) * w, 0, w / (buckets.length - 1) + 0.5, h);
       }
-      this.canvas.restore();
+      context.restore();
     }
     const cursor = this.positionMs / Math.max(1, this.durationMs) * w;
-    this.canvas.strokeStyle = UiStyle.ink; this.canvas.lineWidth = 1;
-    this.canvas.beginPath(); this.canvas.moveTo(cursor, 0); this.canvas.lineTo(cursor, h); this.canvas.stroke();
+    context.strokeStyle = UiStyle.ink; context.lineWidth = 1;
+    context.beginPath(); context.moveTo(cursor, 0); context.lineTo(cursor, h); context.stroke();
   }
   @Builder
   heading(title: string, detail: string) {
@@ -2979,11 +3019,12 @@ struct Index {
           if (this.visibleLibraryItems().length > this.libraryLimit) {
             Button('显示更多').flatButton().height(48).width('100%').onClick(() => { this.libraryLimit += 20; })
           }
-        }.width('100%')
+        }.width('100%').padding({ bottom: this.videoFloating ? this.workspaceLayout().video.height + 16 : 0 })
       }.layoutWeight(1).width('100%').align(Alignment.Top)
+        .onDidScroll(() => { if (this.videoMode && this.sourceScroller.currentOffset().yOffset > 96) { this.setVideoFloating(true); } })
     }.padding({ left: this.contentPadding(), right: this.contentPadding(), top: 8, bottom: 8 })
       .width(this.widthVp).height(this.workspaceLayout().settings.height)
-      .position({ x: 0, y: this.workspaceLayout().headerHeight })
+      .position({ x: 0, y: this.workspaceLayout().settings.y })
   }
   @Builder
   libraryItemDetails(item: ResourceLibraryItem) {
@@ -3475,11 +3516,12 @@ struct Index {
   }
   @Builder
   videoStage() {
-    Column({ space: 0 }) {
+    Stack({ alignContent: Alignment.TopStart }) {
       // Keep this exact node mounted. The SDK's default SurfaceRect follows these
       // actual XComponent bounds; do not pin it with setXComponentSurfaceSize.
       XComponent({ id: 'mfp-native-video', type: 'surface', controller: this.videoSurface })
-        .width('100%').layoutWeight(1).backgroundColor('#000000')
+        .width('100%').height(this.videoFullscreen ? '100%' : Math.max(1, this.workspaceLayout().video.height - this.workspaceLayout().controlsHeight)).backgroundColor('#000000')
+        .onClick(() => { this.toggleVideoControls(); })
         .onLoad(() => this.surfaceChanged(this.videoSurface.getXComponentSurfaceId(), true))
       Column({ space: 0 }) {
         Row({ space: 4 }) {
@@ -3487,22 +3529,35 @@ struct Index {
             .flatButton().width(UiStyle.control).height(Math.min(UiStyle.control, this.workspaceLayout().controlsHeight)).fontSize(22).backgroundColor(UiStyle.accent).fontColor('#FFFFFF')
             .accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
             .enabled(this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && this.videoReady)
-            .onClick(() => this.playPause())
+            .onClick(() => { void this.playPause(); this.scheduleVideoChromeHide(); })
           Button('■').flatButton().width(52).height(52).backgroundColor(UiStyle.danger).fontColor('#FFFFFF').accessibilityText(t('Stop output')).visibility(this.videoFullscreen ? Visibility.Visible : Visibility.None).onClick(() => this.stop())
           Text(this.videoName).fontSize(UiStyle.helper).fontColor(UiStyle.ink).layoutWeight(1).maxLines(1).visibility(this.workspaceLayout().video.width >= 360 ? Visibility.Visible : Visibility.None)
+          if (!this.videoFullscreen && this.currentScreen !== 'player') {
+            Button(this.videoFloating ? '展开' : '浮窗').flatButton().height(48).padding({ left: 6, right: 6 })
+              .accessibilityText(this.videoFloating ? '展开视频预览' : '缩小为浮动视频窗').onClick(() => { this.setVideoFloating(!this.videoFloating); })
+          }
           Button(this.videoFullscreen ? '退出全屏' : '全屏').flatButton().height(Math.min(UiStyle.control, this.workspaceLayout().controlsHeight)).padding({ left: 10, right: 10 })
             .backgroundColor(UiStyle.field).fontColor(UiStyle.ink).accessibilityText(this.videoFullscreen ? (this.presentationMode === 'native-fullscreen' ? '退出系统全屏' : '退出窗口内全屏') : '全屏').onClick(() => this.setVideoFullscreen(!this.videoFullscreen))
         }.width('100%').height(Math.min(52, this.workspaceLayout().controlsHeight))
+        Canvas(this.playerCanvas).width('100%').height(36)
+          .onReady(() => this.drawTrace())
+          .onAreaChange(() => this.drawTrace())
+          .onClick((event: ClickEvent) => { this.cancelVideoChromeTimer(); this.seekTransport(Math.max(0, Math.min(1, event.x / Math.max(1, this.playerCanvas.width))) * this.durationMs); this.scheduleVideoChromeHide(); })
         Row({ space: 8 }) {
           Slider({ value: this.positionMs, min: 0, max: Math.max(1, this.durationMs), step: 1 }).attributeModifier(new MfpSliderMaterialModifier(this.materialRevision))
             .layoutWeight(1).height(UiStyle.control).selectedColor(UiStyle.accent).trackColor(UiStyle.edge).blockColor(UiStyle.accent)
             .enabled(this.videoReady && !this.importing && !this.openingVideo && !this.libraryBusy)
-            .onChange((value: number) => this.seekTransport(value))
+            .onChange((value: number, mode: SliderChangeMode) => {
+              this.cancelVideoChromeTimer(); this.seekTransport(value);
+              if (mode === SliderChangeMode.End || mode === SliderChangeMode.Click) { this.scheduleVideoChromeHide(); }
+            })
           Text((this.positionMs / 1000).toFixed(1) + ' / ' + (this.durationMs / 1000).toFixed(1) + ' s')
             .fontSize(UiStyle.helper).fontColor(UiStyle.muted).maxLines(1)
         }.padding({ left: 8, right: 10 }).width('100%').height(UiStyle.control)
-          .visibility(this.workspaceLayout().controlsHeight >= 96 ? Visibility.Visible : Visibility.None)
+          .visibility(this.workspaceLayout().controlsHeight >= 136 ? Visibility.Visible : Visibility.None)
       }.width('100%').height(this.workspaceLayout().controlsHeight).backgroundColor(UiStyle.page).clip(true)
+        .position({ x: 0, y: Math.max(0, this.workspaceLayout().video.height - this.workspaceLayout().controlsHeight) })
+        .visibility(!this.videoFullscreen || this.videoControlsVisible ? Visibility.Visible : Visibility.Hidden)
     }.width(Math.max(1, this.workspaceLayout().video.width)).height(Math.max(1, this.workspaceLayout().video.height))
       .position({ x: this.workspaceLayout().video.x, y: this.workspaceLayout().video.y })
       .visibility(this.videoMode && this.workspaceLayout().video.width > 0 ? Visibility.Visible : Visibility.Hidden).backgroundColor('#000000').clip(true)
@@ -3562,8 +3617,9 @@ struct Index {
             if (this.showPortInfo) { Text('需要明确连接和启用发送。本地写成功不等于硬件执行确认；串口 CH 实验仅写。设备视觉、IME 与硬件互通仍需实测。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
           }
           if (!this.videoMode && !this.wideWorkspace() && this.workspaceTool === 'script') { this.traceArea() }
-        }.padding({ top: 12, bottom: 20 }).width('100%')
+        }.padding({ top: 12, bottom: this.videoFloating ? this.workspaceLayout().video.height + 24 : 20 }).width('100%')
       }.width('100%').layoutWeight(1).align(Alignment.Top)
+        .onDidScroll(() => { if (this.videoMode && this.settingsScroller.currentOffset().yOffset > 96) { this.setVideoFloating(true); } })
     }.width(this.workspaceLayout().sideBySide || !this.wideWorkspace() ? '100%' : this.inspectorWidth()).height(this.inspectorHeight())
       .padding({ left: this.workspaceLayout().sideBySide ? this.contentPadding() : 0, right: this.workspaceLayout().sideBySide ? this.contentPadding() : 0 })
   }
