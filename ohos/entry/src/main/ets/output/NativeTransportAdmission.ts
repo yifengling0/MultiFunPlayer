@@ -7,7 +7,7 @@ interface RegisteredNativePort { port: TransportPort; kind: OutputTargetKind; ca
 const registered: RegisteredNativePort[] = [];
 /** NativeTransportFactory only. A boolean/property on an arbitrary port is insufficient. */
 export function registerNativeTransport(port: TransportPort, kind: OutputTargetKind, canRelease: (() => boolean) | null = null): void {
-  if (port.simulationOnly || (kind !== 'tcp' && kind !== 'udp' && kind !== 'webSocket')) { throw new Error('Unsupported native transport registration.'); }
+  if (port.simulationOnly || (kind !== 'tcp' && kind !== 'udp' && kind !== 'webSocket' && kind !== 'serial')) { throw new Error('Unsupported native transport registration.'); }
   if (!registered.some(entry => entry.port === port)) { registered.push({ port: port, kind: kind, canRelease: canRelease }); }
 }
 export function isRegisteredNativeTransport(port: TransportPort, kind: OutputTargetKind): boolean {

@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setup, edit, playing, connect, settle, SettingsSchema} from './multi-output-helpers.mjs';
+const {SerialOutputPreferences}=await import('../entry/src/main/ets/settings/SerialOutputPreferences.ts');
+const {SerialDiagnosticSnapshot}=await import('../entry/src/main/ets/app/SerialDiagnosticSession.ts');
 const {FunscriptParser}=await import('../entry/src/main/ets/core/Funscript.ts');
 const add=(s,kind='tcp')=>{s.page.addOutputTarget(kind);const id=s.page.selectedOutputId;edit(s,id);return id;};
 for(const change of ['select','edit','disconnect','remove','background','readonly','recovery'])test('actual Index first pending Apply interrupted by '+change,async()=>{
@@ -54,7 +56,7 @@ const {OutputEndpoint}=await import('../entry/src/main/ets/output/OutputCoordina
 const { KeyboardInputSession } = await import('../entry/src/main/ets/app/KeyboardInputSession.ts');
 const panelSrc=readFileSync(new URL('../entry/src/main/ets/components/OutputSettingsPanel.ets',import.meta.url),'utf8');
 const panelCode=('class Panel {'+panelSrc.slice(panelSrc.indexOf('export struct OutputSettingsPanel {')+'export struct OutputSettingsPanel {'.length,panelSrc.indexOf('  build() {'))+'}').replace(/@Prop\s*@Watch\([^)]*\)\s*/g,'').replace(/@Prop\s*|@State\s*/g,'');
-const Panel=new Function('OutputSettingsModel','OutputSettingsDraft','OutputEndpoint','KeyboardInputSession',stripTypeScriptTypes(panelCode)+'; return Panel;')(OutputSettingsModel,OutputSettingsDraft,OutputEndpoint,KeyboardInputSession);
+const Panel=new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel','OutputSettingsDraft','OutputEndpoint','KeyboardInputSession',stripTypeScriptTypes(panelCode)+'; return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel,OutputSettingsDraft,OutputEndpoint,KeyboardInputSession);
 function mount(s,id){const p=new Panel();p.profile=s.page.outputProfile;p.profileId=s.page.outputDeviceId;p.draft=s.Owner.draftSnapshot(id);p.onDraftChange=d=>s.page.updateOutputDraft(d);p.onConnect=(...args)=>s.page.applyOutputConfiguration(...args);p.onArm=(...args)=>s.page.armOutput(...args);p.onDisarm=(...args)=>s.page.disarmOutput(...args);p.onDisconnect=(...args)=>s.page.disconnectOutput(...args);p.aboutToAppear();return p;}
 test('actual old panel edit/connect/arm/disarm/disconnect cannot affect re-added same-kind:index target',async()=>{
  const s=setup(),id=add(s);playing(s);await connect(s,id);const old=mount(s,id);const oldGeneration=old.targetGeneration;

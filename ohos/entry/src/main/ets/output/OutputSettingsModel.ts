@@ -1,7 +1,8 @@
+import { SerialOutputPreferences } from '../settings/SerialOutputPreferences';
 import type { OutputTargetConfig, OutputTargetKind, AxisRange, TCodeProfile, UpdateContext } from './OutputTypes';
 import { defaultFixedContext } from './UpdateContext';
 
-/** Editable network configuration. The owning session validates and persists safe settings;
+/** Editable output configuration. The owning session validates and persists safe settings;
  * restoring this model never connects or arms a target. */
 export class OutputSettingsModel {
   kind: OutputTargetKind = 'tcp';
@@ -14,7 +15,7 @@ export class OutputSettingsModel {
   pausedManual: boolean = false;
   ranges: AxisRange[] = [];
   setKind(kind: OutputTargetKind): void {
-    if (kind !== 'tcp' && kind !== 'udp' && kind !== 'webSocket') { throw new Error('Unsupported network kind.'); }
+    if (kind !== 'tcp' && kind !== 'udp' && kind !== 'webSocket' && kind !== 'serial') { throw new Error('Unsupported output kind.'); }
     this.kind = kind; this.intervalMs = defaultFixedContext(kind === 'webSocket').intervalMs;
   }
   setRange(axisId: string, minimum: number, maximum: number, enabled: boolean): boolean {
@@ -50,6 +51,7 @@ export class OutputSettingsDraft {
   localPort: number = 0;
   scheme: string = 'ws';
   path: string = '/';
+  serial: SerialOutputPreferences = new SerialOutputPreferences();
   editRevision: number = 0;
   profileRevision: number = 0;
   applicationId: number = 0;
@@ -58,6 +60,7 @@ export class OutputSettingsDraft {
     result.targetId = source.targetId; result.targetGeneration = source.targetGeneration; result.profileId = source.profileId;
     result.host = source.host; result.port = source.port; result.family = source.family;
     result.localPort = source.localPort; result.scheme = source.scheme; result.path = source.path;
+    result.serial = SerialOutputPreferences.clone(source.serial === undefined ? new SerialOutputPreferences() : source.serial);
     result.editRevision = source.editRevision; result.profileRevision = source.profileRevision; result.applicationId = source.applicationId;
     result.model.kind = source.model.kind; result.model.polled = source.model.polled;
     result.model.intervalMs = source.model.intervalMs; result.model.dirtyOnly = source.model.dirtyOnly;

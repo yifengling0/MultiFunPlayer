@@ -1,3 +1,4 @@
+import { SerialOutputPreferences } from '../settings/SerialOutputPreferences';
 import { copyControlLease, sameControlLease } from './OutputControlContinuity';
 import type { OutputControlLease } from './OutputControlContinuity';
 import { OutputSession } from './OutputSession';
@@ -15,12 +16,21 @@ export class OutputEndpoint {
   localPort: number = 0;
   scheme: 'ws' | 'wss' = 'ws';
   path: string = '/';
+  serial: SerialOutputPreferences | null = null;
+}
+export function copyOutputEndpoint(value: OutputEndpoint): OutputEndpoint {
+  const result = new OutputEndpoint();
+  result.host = value.host; result.port = value.port; result.family = value.family;
+  result.localPort = value.localPort; result.scheme = value.scheme; result.path = value.path;
+  result.serial = value.serial === undefined || value.serial === null ? null : SerialOutputPreferences.clone(value.serial);
+  return result;
 }
 export interface OwnedOutputConnection { readonly requestId: number; readonly completion: Promise<boolean>; }
 export interface OutputCapability { available: boolean; diagnostic: string; }
 export interface OutputPortFactory {
   inspect(kind: OutputTargetKind): OutputCapability;
-  create(config: OutputTargetConfig, endpoint: OutputEndpoint): TransportPort;
+  /** Creation is inert: dynamic import may await, but native open belongs to TransportPort.open. */
+  create(config: OutputTargetConfig, endpoint: OutputEndpoint): TransportPort | Promise<TransportPort>;
 }
 /** Supplied atomically by PlaybackSessionCore, never assembled from preview UI.
  * null authorization means provenance/clock/configuration is not current.
@@ -131,6 +141,8 @@ export class OutputCoordinator {
     const request: number = ++this.connectRequest;
     this.busy = true; this.diagnostic = '';
     try {
+      // External draft objects may change while an import or old close awaits.
+      config = copyConfig(config); endpoint = copyOutputEndpoint(endpoint);
       if (this.session !== null) {
         await this.session.disconnect('replace target');
         if (!this.connectIsCurrent(request, config)) { return false; }
@@ -146,7 +158,19 @@ export class OutputCoordinator {
       if (!this.connectIsCurrent(request, config)) { return false; }
       const capability: OutputCapability = this.factory.inspect(config.kind);
       if (!capability.available) { this.diagnostic = capability.diagnostic; return false; }
-      this.transport = this.factory.create(config, endpoint);
+      const created: TransportPort | Promise<TransportPort> = this.factory.create(copyConfig(config), copyOutputEndpoint(endpoint));
+      // Keep the established synchronous network path ordering unchanged.
+      const candidate: TransportPort = created instanceof Promise ? await created : created;
+      if (!this.connectIsCurrent(request, config)) {
+        // Contract: factory creation acquires no handle and requests no permission.
+        // Never call open on a candidate delivered after Stop/background/removal.
+        if (!releaseNativeTransport(candidate)) {
+          this.transport = candidate;
+          this.diagnostic = 'Cancelled transport creation retained an unconfirmed native owner.';
+        }
+        return false;
+      }
+      this.transport = candidate;
       const session: OutputSession = new OutputSession(config, this.policy, this.transport, this.clock, this.timers, () => {
         // A retired session must not revoke a newer preview or replacement connection.
         if (this.session !== session) { return; }

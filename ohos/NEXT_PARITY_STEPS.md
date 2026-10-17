@@ -1,3 +1,15 @@
+# 0.23 后续优先项
+
+1. **用户实际CH340设备验证**：只读报告、ROM/VID/PID/接口、USB授权/OTG、实际OUT与拔插/关闭；当前实验只写，没有执行ACK。先收真实报告再决定支持矩阵，不凭mock宣称所有芯片/手机兼容。
+2. **串口剩余链**：原TCode输入按钮/轴连续事件、IN短包/取消语义、更多波特率/数据位/奇偶/停止位/流控、设备发现身份与自动连接策略。CDC、其他芯片应各有真实协议后端。0.23仅8N1/no-handshake，API19控制线受限。
+3. **现有布局真实验收与草稿保留**：手机/平板/PC字体缩放、IME、下拉/滚动、安全区；跨整个单双栏分支的通用未提交草稿仍待controlled owner完善。没有得到具体HMOS代码工坊链接，不宣称逐份参考过其代码。
+4. **连续输入与常用输出**：9个Drive模板需要真实连续delta/dt和取消；Buttplug/其他原输出需独立协议与设备映射，不能用TCP socket冒充。
+5. **播放器及44partial/34unwired**：沿用ACTION_COVERAGE_021的逐条清单；其他播放器、统一选择/进程/凭据与自动连接、WPF调度边界仍未补齐。此次serial UI没有虚增原188动作统计。
+
+File特殊审查保持阻断，未发布录制；Git只由publisher在明确有效授权下处理。未连接未指定物理设备。0.22及更早冻结包保持不变。
+
+## Historical record
+
 # 0.21 checkpoint and remaining priorities
 
 HereSphere now has a complete explicit-source path beside DeoVR/Internal; the18 previously-unwired media registrations were independently audited, and one HereSphere endpoint site is newly partial. Current coverage154/188=110full-portable+44partial;34unwired. Four added concrete names are not four new original sites. Full remaining rows are in tools/reference/action-coverage-021-source.json.

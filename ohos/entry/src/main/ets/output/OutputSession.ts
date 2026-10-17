@@ -96,7 +96,7 @@ export class OutputSession {
     OutputSession.validateConfig(config);
     OutputSession.validatePolicy(policy);
     if (!(transport.simulationOnly && config.kind === 'memory') && !isRegisteredNativeTransport(transport, config.kind)) {
-      throw new OutputError('physicalTransportUnavailable', 'Transport must be memory simulation or a matching registered native network factory instance.');
+      throw new OutputError('physicalTransportUnavailable', 'Transport must be memory simulation or a matching registered native factory instance.');
     }
     this.config = copyConfig(config); this.policy = {
       maximumFrameAgeMs: policy.maximumFrameAgeMs, maximumClockAgeMs: policy.maximumClockAgeMs,

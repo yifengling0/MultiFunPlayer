@@ -1,10 +1,11 @@
+import { SerialOutputPreferences } from './SerialOutputPreferences';
 import { ConfigurationDiagnostic } from '../core/DeviceProfile';
 import type { AxisRange } from '../output/OutputTypes';
 import { defaultFixedContext } from '../output/UpdateContext';
 
-/** Saved network preferences only. These identifiers never grant a connection,
+/** Saved output preferences only. These identifiers never grant a connection,
  * application, profile revision, output scope, or permission to Arm. */
-export type SavedOutputTargetKind = 'tcp' | 'udp' | 'webSocket';
+export type SavedOutputTargetKind = 'tcp' | 'udp' | 'webSocket' | 'serial';
 
 export class SavedOutputDeviceRanges {
   deviceId: string;
@@ -27,6 +28,7 @@ export class SavedOutputTarget {
   localPort: number = 0;
   scheme: 'ws' | 'wss' = 'ws';
   path: string = '/';
+  serial: SerialOutputPreferences | null = null;
   polled: boolean = false;
   intervalMs: number;
   dirtyOnly: boolean = true;
@@ -36,6 +38,7 @@ export class SavedOutputTarget {
   pausedManual: boolean = false;
   rangesByDevice: SavedOutputDeviceRanges[] = [];
   constructor(kind: SavedOutputTargetKind = 'tcp', index: number = 0) {
+    this.serial = kind === 'serial' ? new SerialOutputPreferences() : null;
     this.kind = kind; this.index = index; this.id = kind + ':' + index.toString();
     this.name = (kind === 'webSocket' ? 'WebSocket' : kind.toUpperCase()) + ' #' + index.toString();
     this.intervalMs = defaultFixedContext(kind === 'webSocket').intervalMs;
@@ -46,7 +49,7 @@ export class SavedOutputTarget {
  * connection request. Other invalid edits remain volatile in the UI. Restoring
  * this object must not restore any live runtime state or auto-connect policy. */
 export class OutputConfiguration {
-  static readonly MAX_TARGETS: number = 30;
+  static readonly MAX_TARGETS: number = 40;
   static readonly MAX_TARGETS_PER_KIND: number = 10;
   static readonly MAX_NAME_LENGTH: number = 80;
   static readonly MAX_ID_LENGTH: number = 64;
@@ -91,6 +94,7 @@ export class OutputConfiguration {
     result.id = value.id; result.name = value.name;
     result.host = value.host; result.port = value.port; result.family = value.family;
     result.localPort = value.localPort; result.scheme = value.scheme; result.path = value.path;
+    result.serial = value.serial === undefined || value.serial === null ? null : SerialOutputPreferences.clone(value.serial);
     result.polled = value.polled; result.intervalMs = value.intervalMs;
     result.dirtyOnly = value.dirtyOnly; result.offloadElapsed = value.offloadElapsed;
     result.pausedAutoHome = value.pausedAutoHome; result.pausedMotion = value.pausedMotion;
@@ -103,7 +107,7 @@ export class OutputConfiguration {
     OutputConfiguration.keys(value, ['targets', 'selectedTargetId'], 'outputs');
     OutputConfiguration.array(value.targets, OutputConfiguration.MAX_TARGETS, 'outputs.targets');
     const ids: string[] = [];
-    let tcp: number = 0; let udp: number = 0; let webSocket: number = 0;
+    let tcp: number = 0; let udp: number = 0; let webSocket: number = 0; let serial: number = 0;
     for (let index: number = 0; index < value.targets.length; index++) {
       const target = value.targets[index];
       OutputConfiguration.checkTarget(target, 'outputs.targets[' + index.toString() + ']');
@@ -111,10 +115,11 @@ export class OutputConfiguration {
       ids.push(target.id);
       if (target.kind === 'tcp') { tcp++; }
       else if (target.kind === 'udp') { udp++; }
-      else { webSocket++; }
+      else if (target.kind === 'webSocket') { webSocket++; }
+      else { serial++; }
     }
     if (tcp > OutputConfiguration.MAX_TARGETS_PER_KIND || udp > OutputConfiguration.MAX_TARGETS_PER_KIND ||
-      webSocket > OutputConfiguration.MAX_TARGETS_PER_KIND) { throw new Error('At most ten targets of each kind may be saved.'); }
+      webSocket > OutputConfiguration.MAX_TARGETS_PER_KIND || serial > OutputConfiguration.MAX_TARGETS_PER_KIND) { throw new Error('At most ten targets of each kind may be saved.'); }
     if (value.selectedTargetId !== null && (typeof value.selectedTargetId !== 'string' || ids.indexOf(value.selectedTargetId) < 0)) {
       throw new Error('Selected output must be null or a saved target identifier.');
     }
@@ -122,10 +127,12 @@ export class OutputConfiguration {
 
   private static checkTarget(value: SavedOutputTarget, path: string): void {
     OutputConfiguration.keys(value, ['id', 'name', 'kind', 'index', 'host', 'port', 'family', 'localPort', 'scheme', 'path',
-      'polled', 'intervalMs', 'dirtyOnly', 'offloadElapsed', 'pausedAutoHome', 'pausedMotion', 'pausedManual', 'rangesByDevice'], path, ['pausedManual']);
-    if (value.kind !== 'tcp' && value.kind !== 'udp' && value.kind !== 'webSocket') {
-      throw new Error(path + '.kind must be a supported network kind.');
+      'polled', 'intervalMs', 'dirtyOnly', 'offloadElapsed', 'pausedAutoHome', 'pausedMotion', 'pausedManual', 'rangesByDevice', 'serial'], path, ['pausedManual', 'serial']);
+    if (value.kind !== 'tcp' && value.kind !== 'udp' && value.kind !== 'webSocket' && value.kind !== 'serial') {
+      throw new Error(path + '.kind must be a supported output kind.');
     }
+    if (value.kind === 'serial') { SerialOutputPreferences.check(value.serial as SerialOutputPreferences); }
+    else if (value.serial !== undefined && value.serial !== null) { throw new Error(path + '.serial is only valid for serial targets.'); }
     if (!Number.isInteger(value.index) || value.index < 0 || value.index >= OutputConfiguration.MAX_TARGETS_PER_KIND ||
       typeof value.id !== 'string' || value.id.length > OutputConfiguration.MAX_ID_LENGTH ||
       value.id !== value.kind + ':' + value.index.toString()) {

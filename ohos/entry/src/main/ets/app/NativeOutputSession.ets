@@ -1,3 +1,5 @@
+import { SerialDiagnosticSession } from './SerialDiagnosticSession';
+import { SerialOutputPreferences } from '../settings/SerialOutputPreferences';
 import { SocketDiagnosticSession } from './SocketDiagnosticSession';
 import { OutputSettingsDraft } from '../output/OutputSettingsModel';
 import { createNativeOutputCoordinator } from '../output/NativeOutputCoordinator';
@@ -70,6 +72,7 @@ export class NativeOutputSession {
     draft.targetGeneration = ++NativeOutputSession.nextTargetGeneration; draft.targetId = target.id; draft.profileId = profile.id; draft.profileRevision = revision;
     draft.host = target.host; draft.port = target.port; draft.family = target.family.toString(); draft.localPort = target.localPort;
     draft.scheme = target.scheme; draft.path = target.path;
+    draft.serial = target.serial === null || target.serial === undefined ? new SerialOutputPreferences() : SerialOutputPreferences.clone(target.serial);
     draft.model.kind = target.kind; draft.model.polled = target.polled; draft.model.intervalMs = target.intervalMs;
     draft.model.dirtyOnly = target.dirtyOnly; draft.model.offloadElapsed = target.offloadElapsed;
     draft.model.pausedAutoHome = target.pausedAutoHome; draft.model.pausedMotion = target.pausedMotion;
@@ -93,6 +96,7 @@ export class NativeOutputSession {
         // Keep unfinished endpoint edits volatile, but never reuse an applied identity.
         draft.targetGeneration = old.draft.targetGeneration; draft.host = old.draft.host; draft.port = old.draft.port; draft.family = old.draft.family;
         draft.localPort = old.draft.localPort; draft.scheme = old.draft.scheme; draft.path = old.draft.path;
+        draft.serial = SerialOutputPreferences.clone(old.draft.serial);
         draft.editRevision = old.draft.editRevision + 1;
       }
       const entry = new OutputDraftEntry(target.id, draft);
@@ -159,11 +163,12 @@ export class NativeOutputSession {
     return true;
   }
   private static invalidDraftMessage(): string {
-    return '草稿未保存：仅支持有界、无凭据的主机/端口/路径与有效目标参数。上次有效配置保留。';
+    return '草稿未保存：需要有界、无凭据的网络端点或有效串口参数。上次有效配置保留。';
   }
   private static savedDraft(target: SavedOutputTarget, value: OutputSettingsDraft): SavedOutputTarget {
       const next = OutputConfiguration.cloneTarget(target);
       next.host = value.host; next.port = value.port;
+      next.serial = next.kind === 'serial' ? SerialOutputPreferences.clone(value.serial) : null;
       if (value.family !== '1' && value.family !== '2') { throw new Error('Invalid family'); }
       if (value.scheme !== 'ws' && value.scheme !== 'wss') { throw new Error('Invalid scheme'); }
       if (value.model.kind !== next.kind) { throw new Error('Target kind is fixed; add another target kind.'); }
@@ -185,7 +190,7 @@ export class NativeOutputSession {
   /** Validate the exact current intent again, rather than treating a cached UI
    * diagnostic or a target identifier as authority to submit another endpoint. */
   static canConnect(configuration: OutputTargetConfig, endpoint: OutputEndpoint, generation: number): boolean {
-    if (SocketDiagnosticSession.blocked() || !NativeOutputSession.matchesTarget(configuration.targetId, generation) || NativeOutputSession.profile === null ||
+    if (SerialDiagnosticSession.blocked() || SocketDiagnosticSession.blocked() || !NativeOutputSession.matchesTarget(configuration.targetId, generation) || NativeOutputSession.profile === null ||
       NativeOutputSession.instance?.isRemoving(configuration.targetId)) { return false; }
     const entry = NativeOutputSession.drafts.find(item => item.id === configuration.targetId);
     const target = NativeOutputSession.saved.targets.find(item => item.id === configuration.targetId);
@@ -200,7 +205,8 @@ export class NativeOutputSession {
       return draft.profileId === NativeOutputSession.profile.id && draft.profileRevision === NativeOutputSession.profileRevision &&
         JSON.stringify(configuration) === JSON.stringify(draft.model.config(profile, draft.targetId)) &&
         endpoint.host === draft.host && endpoint.port === draft.port && endpoint.family.toString() === draft.family &&
-        endpoint.localPort === draft.localPort && endpoint.scheme === draft.scheme && endpoint.path === draft.path;
+        endpoint.localPort === draft.localPort && endpoint.scheme === draft.scheme && endpoint.path === draft.path &&
+        (draft.model.kind === 'serial' ? JSON.stringify(endpoint.serial) === JSON.stringify(draft.serial) : endpoint.serial === undefined || endpoint.serial === null);
     } catch { entry.diagnostic = NativeOutputSession.invalidDraftMessage(); return false; }
   }
   static addTarget(kind: SavedOutputTargetKind): string {
@@ -243,6 +249,7 @@ export class NativeOutputSession {
   static setForeground(value: boolean): void {
     NativeOutputSession.foreground = value;
     SocketDiagnosticSession.setForeground(value);
+    SerialDiagnosticSession.setForeground(value);
     if (NativeOutputSession.instance !== null) { NativeOutputSession.instance.setForeground(value); }
   }
   static closeIfReady(): void { NativeOutputSession.setForeground(false); }

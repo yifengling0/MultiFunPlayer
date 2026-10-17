@@ -1,3 +1,9 @@
+import { NativeDeviceClipboard } from '../settings/NativeDeviceClipboard';
+import { SerialDiagnosticSession, SerialDiagnosticSnapshot } from '../app/SerialDiagnosticSession';
+import { NativeSerialFactory } from '../output/serial/NativeSerialFactory';
+import type { SavedSerialBackend } from '../settings/SerialOutputPreferences';
+import { SerialDiscoveryController, SerialDiscoverySnapshot } from '../output/SerialDiscoveryController';
+import type { SerialDiscoveryContext } from '../output/SerialDiscoveryController';
 import { SocketDiagnosticSession } from '../app/SocketDiagnosticSession';
 import { UiStyle } from '../presentation/UiStyle';
 import { applyOutputEndpointAction, isOutputEndpointAction, outputConnectionOperation } from '../input/ShortcutOutputConnectionActions';
@@ -238,6 +244,13 @@ struct Index {
   @State outputWrites: number = 0;
   @State outputBytes: number = 0;
   @State outputDiagnostic: string = '';
+  private serialProbeOwner: number = 0;
+  private serialProbeFactory: NativeSerialFactory = new NativeSerialFactory();
+  private serialProbeContext: string = '';
+  @State serialProbeState: SerialDiagnosticSnapshot = new SerialDiagnosticSnapshot();
+  @State serialProbeNotice: string = '';
+  private serialDiscovery: SerialDiscoveryController = new SerialDiscoveryController(new NativeSerialFactory());
+  @State serialDiscoveryState: SerialDiscoverySnapshot = new SerialDiscoverySnapshot();
   @State activeAxes: DeviceAxisDefinition[] = [];
   @State profiles: DeviceProfile[] = [];
   @State selectedProfileId: string = 'TCode-0.3';
@@ -308,6 +321,7 @@ struct Index {
   aboutToAppear(): void {
     this.viewActive = true;
     this.diagnosticOwner = SocketDiagnosticSession.claimOwner();
+    this.serialProbeOwner = SerialDiagnosticSession.claimOwner();
     this.mediaSourceConfiguration = this.engine.mediaSourceConfiguration();
     this.remoteKind = this.mediaSourceConfiguration.selectedSource === 'heresphere' ? 'heresphere' : 'deovr';
     const deoUnsubscribe = RemoteMediaSession.current('deovr').subscribe((snapshot: DeoVrSnapshot, events: ReadonlyArray<DeoVrEvent>) => this.deoVrSnapshot(snapshot, events, 'deovr'));
@@ -341,6 +355,8 @@ struct Index {
     this.scanDownloads();
   }
   aboutToDisappear(): void {
+    this.serialDiscovery.cancel();
+    SerialDiagnosticSession.releaseOwner(this.serialProbeOwner); this.serialProbeOwner = 0;
     SocketDiagnosticSession.releaseOwner(this.diagnosticOwner); this.diagnosticOwner = 0;
     this.mediaSettingsRequest++;
     this.disconnectDeoVr();
@@ -355,6 +371,7 @@ struct Index {
     this.engine.stop(); this.engine.flush();
   }
   foregroundChanged(): void {
+    if (!this.foreground) { this.serialDiscovery.cancel(); }
     if (!this.foreground) { this.mediaSettingsRequest++; this.disconnectDeoVr(); this.cancelKeyboardWork(); this.errors.cancel(); }
     this.updateKeyboardContext();
     NativeOutputSession.setForeground(this.foreground);
@@ -985,7 +1002,7 @@ struct Index {
   }
   diagnosticEditable(): boolean {
     return this.viewActive && this.foreground && SocketDiagnosticSession.owns(this.diagnosticOwner) &&
-      !SocketDiagnosticSession.blocked() && !this.settingsReadOnly && !this.recoveryRequired;
+      !SerialDiagnosticSession.blocked() && !SocketDiagnosticSession.blocked() && !this.settingsReadOnly && !this.recoveryRequired;
   }
   invalidateDiagnosticConfirmation(): void {
     if (this.diagnosticEditable()) { this.diagnosticConfirmed = false; this.diagnosticNotice = '端点正在编辑；请完成输入并重新确认专用接收脚本。'; }
@@ -1048,11 +1065,67 @@ struct Index {
     this.outputBusy = this.output.isBusy();
     this.outputWrites = state === null ? 0 : state.completedLocalWrites;
     this.outputBytes = state === null ? 0 : state.locallyAcceptedBytes;
+    this.syncSerialProbe();
+    this.serialDiscovery.synchronize(this.serialDiscoveryContext());
+    const serialState = this.serialDiscovery.snapshot();
+    if (JSON.stringify(serialState) !== JSON.stringify(this.serialDiscoveryState)) { this.serialDiscoveryState = serialState; }
     this.outputDiagnostic = this.outputSaveDiagnostic || NativeOutputSession.draftDiagnostic() || this.output.message();
     if (state !== null && state.lastErrorCode !== null) { this.outputDiagnostic = 'Output: ' + state.lastErrorCode; }
     if (state !== null && !state.closeConfirmed && state.connection !== 'connected' && state.connection !== 'connecting') {
       this.outputDiagnostic = '关闭未确认；发送已禁用，请重启应用后再连接。已提交的命令无法撤回。';
     }
+  }
+  private serialProbeIdentity(): string {
+    const draft = NativeOutputSession.draftSnapshot();
+    return JSON.stringify([draft.targetId, draft.targetGeneration, draft.profileRevision, draft.editRevision, draft.serial.backend, draft.serial.portName]);
+  }
+  private syncSerialProbe(): void {
+    if (this.serialProbeContext.length > 0 && this.serialProbeContext !== this.serialProbeIdentity()) { SerialDiagnosticSession.cancel(this.serialProbeOwner); this.serialProbeContext = ''; }
+    const state = SerialDiagnosticSession.snapshot();
+    if (JSON.stringify(state) !== JSON.stringify(this.serialProbeState)) { this.serialProbeState = state; }
+  }
+  async probeSerial(targetId: string, generation: number): Promise<void> {
+    const context = this.serialDiscoveryContext(); const draft = NativeOutputSession.draftSnapshot();
+    if (!context.allowed || SerialDiagnosticSession.blocked() || !SerialDiagnosticSession.owns(this.serialProbeOwner) ||
+      targetId !== draft.targetId || generation !== draft.targetGeneration || draft.serial.backend !== 'ch34xWriteOnly') { return; }
+    const selected = this.serialDiscoveryState.ports.find(port => port.backend === draft.serial.backend && port.portName === draft.serial.portName);
+    if (selected === undefined) { this.serialProbeNotice = '请先刷新并选择本次 USB 候选。'; return; }
+    if (!SocketDiagnosticSession.outputsQuiet(this.output)) { this.serialProbeNotice = '请先明确断开所有设备输出，并等待关闭确认。'; return; }
+    const owner = this.serialProbeOwner; const identity = this.serialProbeIdentity(); this.serialProbeContext = identity;
+    this.serialProbeNotice = '';
+    const current = (): boolean => this.viewActive && this.foreground && !this.settingsReadOnly && !this.recoveryRequired &&
+      !this.runtimeBusy && SerialDiagnosticSession.owns(owner) && identity === this.serialProbeIdentity();
+    try {
+      const pending = SerialDiagnosticSession.run(owner, this.serialProbeFactory,
+        { backend: selected.backend, portName: selected.portName, portId: selected.portId }, current, true);
+      this.syncOutput(); await pending;
+    } catch { if (current()) { this.serialProbeNotice = '当前状态不允许开始诊断。'; } }
+    if (this.viewActive && SerialDiagnosticSession.owns(owner)) { this.syncOutput(); }
+  }
+  cancelSerialProbe(): void { SerialDiagnosticSession.cancel(this.serialProbeOwner); this.syncSerialProbe(); }
+  async copySerialProbe(): Promise<void> {
+    this.syncSerialProbe();
+    if (!this.viewActive || !this.foreground || this.serialProbeState.report.length === 0 || this.serialProbeState.busy) { return; }
+    const owner = this.serialProbeOwner; const identity = this.serialProbeIdentity();
+    try { await new NativeDeviceClipboard().writeText(this.serialProbeState.report); if (this.viewActive && this.foreground && SerialDiagnosticSession.owns(owner) && identity === this.serialProbeIdentity()) { this.serialProbeNotice = '已复制无设备路径/序列号的诊断报告，原剪贴板已覆盖。'; } }
+    catch { if (this.viewActive && SerialDiagnosticSession.owns(owner) && identity === this.serialProbeIdentity()) { this.serialProbeNotice = '复制失败；可截取下面的诊断报告。'; } }
+  }
+  private serialDiscoveryContext(): SerialDiscoveryContext {
+    const draft = NativeOutputSession.draftSnapshot();
+    const target = draft.model.kind === 'serial' ? this.output.get(draft.targetId) : null;
+    const state = target === null ? null : target.status();
+    return { targetId: draft.targetId, targetGeneration: draft.targetGeneration, profileRevision: draft.profileRevision,
+      backend: draft.serial.backend, allowed: draft.model.kind === 'serial' && this.viewActive && this.foreground &&
+      !this.settingsReadOnly && !this.recoveryRequired && !this.runtimeBusy && !SerialDiagnosticSession.blocked() && !SocketDiagnosticSession.blocked() &&
+      target !== null && !target.isBusy() && !this.output.isRemoving(draft.targetId) &&
+      (state === null || (state.connection !== 'connected' && state.connection !== 'connecting')) };
+  }
+  async refreshSerialPorts(targetId: string, generation: number, backend: SavedSerialBackend): Promise<void> {
+    const context = this.serialDiscoveryContext();
+    if (context.targetId !== targetId || context.targetGeneration !== generation || context.backend !== backend || !context.allowed) { return; }
+    const pending = this.serialDiscovery.refresh(context); this.serialDiscoveryState = this.serialDiscovery.snapshot();
+    await pending;
+    if (this.viewActive) { this.serialDiscovery.synchronize(this.serialDiscoveryContext()); this.serialDiscoveryState = this.serialDiscovery.snapshot(); }
   }
   private persistOutputPreferences(): void {
     try { this.engine.changeOutputConfiguration(NativeOutputSession.configurationSnapshot()); this.outputSaveDiagnostic = ''; }
@@ -1107,7 +1180,7 @@ struct Index {
     if (!NativeOutputSession.matchesTarget(targetId, generation)) { return; }
     const target = this.output.get(targetId);
     if (target === null) { return; }
-    if (SocketDiagnosticSession.blocked() || !this.viewActive || !this.foreground || this.runtimeBusy || this.settingsReadOnly || this.recoveryRequired) {
+    if (SerialDiagnosticSession.blocked() || SocketDiagnosticSession.blocked() || !this.viewActive || !this.foreground || this.runtimeBusy || this.settingsReadOnly || this.recoveryRequired) {
       target.disarm(); this.syncOutput(); this.outputDiagnostic = '先确认设置恢复与前台状态，再启用发送。'; return;
     }
     const draft = NativeOutputSession.draftSnapshot(targetId);
@@ -1716,6 +1789,8 @@ struct Index {
     this.sync();
   }
   stop(): void {
+    this.serialDiscovery.cancel();
+    SerialDiagnosticSession.cancel(this.serialProbeOwner);
     SocketDiagnosticSession.cancel(this.diagnosticOwner);
     this.mediaSettingsRequest++;
     this.disconnectDeoVr();
@@ -2150,7 +2225,7 @@ struct Index {
     this.setVideoFullscreen(false); return true;
   }
   shortcutOutputOptions(): SettingsOption[] {
-    return this.outputTargets.map(target => new SettingsOption(target.id,
+    return this.outputTargets.filter(target => target.kind === 'tcp' || target.kind === 'udp' || target.kind === 'webSocket').map(target => new SettingsOption(target.id,
       target.name + ' · ' + target.id + (target.removing ? '（移除中，不可执行）' : ' · ' + target.connection)));
   }
   shortcutScriptOptions(): SettingsOption[] {
@@ -2459,12 +2534,13 @@ struct Index {
   outputPanel() {
     Column({ space: 8 }) {
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
-        Text('网络输出 · ' + this.outputConnection).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold).layoutWeight(1)
+        Text('设备输出 · ' + this.outputConnection).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold).layoutWeight(1)
         Button(this.showOutputSettings ? '收起输出设置' : '输出设置').flatButton().constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' })
           .onClick(() => { this.showOutputSettings = !this.showOutputSettings; })
       }.width('100%')
       Text(this.outputSeeking ? '同源跳转等待确认 · 保留已有启用意图，发送门暂时关闭' : this.outputArmed ? (this.outputSuspended ? '待命，无输出 · 等待真实合法当前帧' : '已明确启用发送 · 每帧仍须通过来源与时钟检查') : '未启用发送 · 媒体播放与预览独立运行').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
+        Button('+ 串口 / USB').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('serial'))
         Button('+ TCP').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('tcp'))
         Button('+ UDP').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('udp'))
         Button('+ WebSocket').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('webSocket'))
@@ -2486,7 +2562,11 @@ struct Index {
           readOnly: this.settingsReadOnly || this.recoveryRequired, appliedConfigurationId: this.outputApplicationId,
           onDraftChange: (draft: OutputSettingsDraft): void => this.updateOutputDraft(draft), connection: this.outputConnection, armed: this.outputArmed, dispatchSuspended: this.outputSuspended,
           busy: this.outputBusy || this.diagnosticBlocked, completedLocalWrites: this.outputWrites, locallyAcceptedBytes: this.outputBytes,
-          diagnostic: this.outputDiagnostic,
+          diagnostic: this.outputDiagnostic, serialProbeState: this.serialProbeState, serialProbeNotice: this.serialProbeNotice,
+          onProbeSerial: (id: string, generation: number): void => { void this.probeSerial(id, generation); },
+          onCancelSerialProbe: (): void => this.cancelSerialProbe(), onCopySerialProbe: (): void => { void this.copySerialProbe(); }, serialPorts: this.serialDiscoveryState.ports, serialCapabilities: this.serialDiscoveryState.capabilities,
+          serialBusy: this.serialDiscoveryState.busy, serialMessage: this.serialDiscoveryState.message,
+          onRefreshSerial: (targetId: string, generation: number, backend: SavedSerialBackend): void => { this.refreshSerialPorts(targetId, generation, backend); },
           onConnect: (configuration: OutputTargetConfig, endpoint: OutputEndpoint, generation: number): Promise<number> => this.applyOutputConfiguration(configuration, endpoint, generation),
           onDisconnect: (targetId: string, generation: number): void => { this.disconnectOutput(targetId, generation); }, onArm: (targetId: string, generation: number): void => this.armOutput(targetId, generation),
           onDisarm: (targetId: string, generation: number): void => this.disarmOutput(targetId, generation) })

@@ -1,3 +1,4 @@
+import { SerialOutputPreferences } from '../settings/SerialOutputPreferences';
 import { ShortcutAction, cloneShortcutAction } from './ShortcutConfiguration';
 import { OutputSettingsDraft } from '../output/OutputSettingsModel';
 import { OutputConfiguration, SavedOutputTarget, SavedOutputDeviceRanges } from '../settings/OutputConfiguration';
@@ -32,7 +33,7 @@ function counter(value: number): boolean { return Number.isSafeInteger(value) &&
  * normalize an omitted permission. These are process-local drafts, not imports. */
 function validDraftShape(draft: OutputSettingsDraft): boolean {
   if (!exactKeys(draft, ['targetId', 'targetGeneration', 'profileId', 'model', 'host', 'port', 'family', 'localPort',
-    'scheme', 'path', 'editRevision', 'profileRevision', 'applicationId']) ||
+    'scheme', 'path', 'serial', 'editRevision', 'profileRevision', 'applicationId']) ||
     !exactKeys(draft.model, ['kind', 'polled', 'intervalMs', 'dirtyOnly', 'offloadElapsed', 'pausedAutoHome',
       'pausedMotion', 'pausedManual', 'ranges']) || typeof draft.targetId !== 'string' ||
     !/^(tcp|udp|webSocket):[0-9]$/.test(draft.targetId) || !counter(draft.targetGeneration) || draft.targetGeneration === 0 ||
@@ -42,6 +43,7 @@ function validDraftShape(draft: OutputSettingsDraft): boolean {
     typeof draft.model.dirtyOnly !== 'boolean' || typeof draft.model.offloadElapsed !== 'boolean' ||
     typeof draft.model.pausedAutoHome !== 'boolean' || typeof draft.model.pausedMotion !== 'boolean' ||
     typeof draft.model.pausedManual !== 'boolean') { return false; }
+  SerialOutputPreferences.check(draft.serial);
   const ranges = draft.model.ranges;
   if (!Array.isArray(ranges) || ranges.length > OutputConfiguration.MAX_AXES) { return false; }
   const keys: string[] = Object.keys(ranges);

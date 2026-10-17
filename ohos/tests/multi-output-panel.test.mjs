@@ -6,6 +6,8 @@ import { registerHooks, stripTypeScriptTypes } from 'node:module';
 registerHooks({ resolve(specifier, context, next) {
   return next(specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier) ? specifier + '.ts' : specifier, context);
 } });
+const {SerialOutputPreferences}=await import('../entry/src/main/ets/settings/SerialOutputPreferences.ts');
+const {SerialDiagnosticSnapshot}=await import('../entry/src/main/ets/app/SerialDiagnosticSession.ts');
 const { OutputSettingsModel, OutputSettingsDraft } = await import('../entry/src/main/ets/output/OutputSettingsModel.ts');
 const { OutputEndpoint } = await import('../entry/src/main/ets/output/OutputCoordinator.ts');
 const { KeyboardInputSession } = await import('../entry/src/main/ets/app/KeyboardInputSession.ts');
@@ -13,8 +15,8 @@ const source = readFileSync(new URL('../entry/src/main/ets/components/OutputSett
 const controller = ('class Panel {' + source.slice(source.indexOf('export struct OutputSettingsPanel {') +
   'export struct OutputSettingsPanel {'.length, source.indexOf('  build() {')) + '}')
   .replace(/@Prop\s*@Watch\([^)]*\)\s*/g, '').replace(/@Prop\s*|@State\s*/g, '');
-const Panel = new Function('OutputSettingsModel', 'OutputSettingsDraft', 'OutputEndpoint', 'KeyboardInputSession',
-  stripTypeScriptTypes(controller) + '; return Panel;')(OutputSettingsModel, OutputSettingsDraft, OutputEndpoint, KeyboardInputSession);
+const Panel = new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel', 'OutputSettingsDraft', 'OutputEndpoint', 'KeyboardInputSession',
+  stripTypeScriptTypes(controller) + '; return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel, OutputSettingsDraft, OutputEndpoint, KeyboardInputSession);
 const profile = { precision: 4, revision: 7, axisOrder: ['L0', 'R0'], maximumDurationMs: 10000, maximumPayloadBytes: 1024 };
 const range = (axisId, minimum = 0, maximum = 1, enabled = true) => ({ axisId, minimum, maximum, enabled });
 function draft(targetId = 'output-A', profileId = 'device-A', targetGeneration = 1) {
@@ -184,7 +186,7 @@ test('UI preserves 52vp wrapped controls, guards mutations, and explains durable
   }
   const callbacks = source.split('  build() {')[1].split(/onChange:|onSelect:|onCommit:|\.onChange\(/).slice(1);
   assert.ok(callbacks.length >= 15);
-  for (const callback of callbacks) assert.match(callback.slice(0, callback.indexOf('}')), /this\.canEdit\(\)/);
+  for (const callback of callbacks) assert.match(callback.slice(0, callback.indexOf('}')), /this\.canEdit(?:Serial)?\(\)|this\.changeSerialBackend\(value\)|this\.selectSerialPort\(value\)/);
   assert.doesNotMatch(source, /配置仅在本次应用进程保留|this\.model\.setKind/);
   assert.match(source, /类型固定/);
 });
@@ -239,3 +241,18 @@ test('zero or invalid generation grants no editing, connection, arm, disarm or d
     assert.deepEqual(calls, [], String(generation)); assert.deepEqual(emitted, [], String(generation));
   }
 });
+
+test('serial controlled draft survives remount with disabled reversed ranges and explicit system-managed lines', () => {
+ const d=draft();d.model.kind='serial';d.serial.backend='official19';d.serial.portName='tty-one';d.serial.baudRate=9600;d.serial.dtr=null;d.serial.rts=null;
+ const {panel,calls}=mounted(d);assert.deepEqual(panel.serial,d.serial);assert.deepEqual(calls,[]);panel.aboutToDisappear();const next=mounted(d);assert.deepEqual(next.panel.serial,d.serial);assert.deepEqual(next.panel.model.ranges,d.model.ranges);assert.equal(next.panel.armed,false);
+});
+test('serial refresh/select/probe require exact current draft, writable disconnected state and fresh list', () => {
+ const d=draft();d.model.kind='serial';d.serial.backend='ch34xWriteOnly';d.serial.portName='usb';const {panel,calls}=mounted(d);panel.serialPorts=[{backend:'ch34xWriteOnly',portName:'usb',portId:0}];panel.serialCapabilities=[{backend:'ch34xWriteOnly',available:true,diagnostic:'experimentalWriteOnlyNotDeviceVerified'}];panel.onRefreshSerial=(...a)=>calls.push(['refresh',...a]);panel.onProbeSerial=(...a)=>calls.push(['probe',...a]);panel.refreshSerial();panel.probeSerial();assert.deepEqual(calls.map(x=>x[0]),['refresh','probe']);assert.equal(panel.canConnectDraft(),true);assert.match(panel.serialCapabilityText(),/ROM 0x30/);
+ for(const state of ['readOnly','connected','probe','stale']){const before=calls.length;if(state==='readOnly')panel.readOnly=true;if(state==='connected'){panel.readOnly=false;panel.connection='connected'}if(state==='probe'){panel.connection='disconnected';panel.serialProbeState.busy=true}if(state==='stale'){panel.serialProbeState.busy=false;panel.draft.targetGeneration++}panel.refreshSerial();panel.probeSerial();panel.changeSerialBackend('official26');panel.selectSerialPort('usb');assert.equal(calls.length,before,state);assert.equal(panel.serial.backend,'ch34xWriteOnly');}
+});
+test('serial UI explicitly discloses readonly probe, experimental write-only scope, permissions and unsupported input',()=>{
+ for(const text of ['授权并只读识别设备','复制诊断报告 · 覆盖剪贴板','ROM 0x30','设备按钮、轴输入、接收数据','同时只打开一个串口','明确启用发送前不会发送轴命令'])assert.ok(source.includes(text),text);
+ assert.ok(!source.includes('experimentalWriteOnlyPendingReview'));
+});
+
+test('CH cannot connect with inherited OS-managed lines and requires both explicit booleans',()=>{const d=draft();d.model.kind='serial';d.serial.backend='ch34xWriteOnly';d.serial.portName='usb';d.serial.dtr=null;d.serial.rts=null;const{panel,calls}=mounted(d);panel.serialCapabilities=[{backend:'ch34xWriteOnly',available:true}];assert.equal(panel.canConnectDraft(),false);panel.connect();assert.deepEqual(calls,[]);panel.serial.dtr=false;assert.equal(panel.canConnectDraft(),false);panel.serial.rts=true;assert.equal(panel.canConnectDraft(),true);});

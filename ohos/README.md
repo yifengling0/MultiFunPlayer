@@ -1,3 +1,20 @@
+# MultiFunPlayer for OHOS — 0.23.0 serial candidate
+
+## Current scope (0.23.0 / code24)
+
+The actual output UI now supports explicit serial targets alongside TCP/UDP/WebSocket. Each target persists bounded endpoint hints, baud/8N1/no-handshake and DTR/RTS preferences, ranges, fixed/polled settings and paused permissions. Restoring settings performs no enumeration, authorization, open or Arm. Connect re-enumerates and verifies the selected hint; successful open still requires explicit Arm and a valid current source frame.
+
+- Official serial API26 and API19 use runtime capability checks. These services target PC/2in1 in the installed SDK; they are not assumed available on phones/tablets. API19 cannot set DTR/RTS, so both must explicitly accept OS management before connection.
+- Standard USB Host supports an **experimental CH340/CH341 write-only subset**: VID1a86, PID7523/5523, one validated vendor interface without alternates, paired endpoints and ROM0x30. Unknown chips/ROM/descriptors fail closed. IN, device buttons/axis-input actions and execution ACK are not implemented. No physical CH device has been tested. CDC remains unavailable pending short-packet/IN evidence; CP210x/FTDI/CH343/CH9102 are not claimed.
+- A user-clicked read-only CH identification probe requests system authorization, reads descriptors and ROM only, then closes. It performs no UART initialization or motion write. Its copyable report excludes device path/product strings/serial numbers. All ordinary outputs must first be confirmed disconnected. Stop/background/target edits cancel continuation; unfinished or unconfirmed cleanup blocks Connect/Arm across remounts.
+- Serial ownership is conservatively limited to **one live serial handle application-wide**, across backend kinds and targets. Network targets remain independent. Failed or timed-out closure retains quarantine; reconnect never Arms automatically. Local write counts are not hardware execution proof.
+
+The full-width0.22 layout, readable default52vp controls, fixed global Stop and single video Surface remain. There are no new device/browser screenshots or physical interoperability claims. Existing whole-workspace branch remounts may still reset local uncommitted editors; output drafts themselves remain controlled.
+
+Validation details and exact final counts are in [VALIDATION](VALIDATION.md). See [serial contract](SERIAL_023_CONTRACT.md), [user test steps](LOCAL_TEST_023.md), [Chinese usage](USAGE_ZH.md). The bundled MIT CH34x notice is included as a raw resource in the HAP. Original action coverage remains182IDs /154of188sites (110full-portable,44partial,34unwired): this stage connects a transport, not new shortcut catalog names. Original serial auto-connect, full parameter combinations, serial-target shortcut actions and input processing are still incomplete. File recording remains unintegrated and its blocked review has not been retried.
+
+## Historical record
+
 # MultiFunPlayer for OHOS — 0.22.0 UI candidate
 
 ## Current scope (0.22.0 / code 23)

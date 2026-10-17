@@ -14,6 +14,8 @@ const { AxisConfiguration, AxisConfigurationEntry, SyncConfiguration } = await i
 const { UiStyle } = await import('../entry/src/main/ets/presentation/UiStyle.ts');
 const { videoWorkspaceLayout } = await import('../entry/src/main/ets/core/VideoLayout.ts');
 const { MotionProviderConfiguration } = await import('../entry/src/main/ets/core/MotionConfiguration.ts');
+const {SerialDiagnosticSession,SerialDiagnosticSnapshot}=await import('../entry/src/main/ets/app/SerialDiagnosticSession.ts');
+const {SerialDiscoveryController,SerialDiscoverySnapshot}=await import('../entry/src/main/ets/output/SerialDiscoveryController.ts');
 const {OutputSettingsDraft}=await import('../entry/src/main/ets/output/OutputSettingsModel.ts');
 const {InternalSourceLibrary}=await import('../entry/src/main/ets/core/playback/InternalSourceLibrary.ts');
 const {InternalPlaylist,InternalPlaylistItem,InternalPlaylistEvent}=await import('../entry/src/main/ets/core/playback/InternalPlaylist.ts');
@@ -80,6 +82,8 @@ function setup(options = {}) {
   const state = { scriptText: '{}', candidateActions: 0 };
   const inertRemote = { snapshot() { return {status:'disconnected',generation:0,resourceRevision:0,path:null,positionSeconds:null,durationSeconds:null,playing:false,diagnostic:null,closeConfirmed:true}; }, async disconnect() {}, subscribe() { return () => {}; } };
   const dependencies = {
+    SerialDiagnosticSession: options.serialProbeOwner || SerialDiagnosticSession, SerialDiagnosticSnapshot, NativeDeviceClipboard: class { async writeText(){} },
+    SerialDiscoveryController, SerialDiscoverySnapshot, NativeSerialFactory: class { inspectAll(){return [];} async listPortsExplicit(){return [];} },
     SocketDiagnosticSession: options.diagnosticOwner || { claimOwner() { return 1; }, owns(owner) { return owner > 0; }, releaseOwner() {}, cancel() {}, blocked() { return false; }, outputsQuiet() { return true; }, snapshot() { return { requestId: 0, busy: false, phase: 'idle' }; } },
     ShortcutConnectionOwner, OutputEndpoint, applyOutputEndpointAction, isOutputEndpointAction, outputConnectionOperation,
     MediaSourceConfiguration, deoVrScriptMatchHint, parseDeoVrEndpointText, parseMediaSourceShortcut, RemoteMediaSession: options.remoteOwner || { current: kind => (kind === 'heresphere' ? options.hereSphereSource : options.remoteSource) || inertRemote, allClosed: () => [options.remoteSource, options.hereSphereSource].every(source => !source || source.snapshot().closeConfirmed) },

@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { setup, edit, connect, settle, SettingsSchema } from './multi-output-helpers.mjs';
 
+const {SerialOutputPreferences}=await import('../entry/src/main/ets/settings/SerialOutputPreferences.ts');
+const {SerialDiagnosticSnapshot}=await import('../entry/src/main/ets/app/SerialDiagnosticSession.ts');
 const { FunscriptParser } = await import('../entry/src/main/ets/core/Funscript.ts');
 const { ResourceFileEntry } = await import('../entry/src/main/ets/core/ResourceLibrary.ts');
 const { OutputSettingsModel, OutputSettingsDraft } = await import('../entry/src/main/ets/output/OutputSettingsModel.ts');
@@ -17,8 +19,8 @@ const panelSource = readFileSync(new URL('../entry/src/main/ets/components/Outpu
 const panelBody = ('class Panel {' + panelSource.slice(panelSource.indexOf('export struct OutputSettingsPanel {') +
   'export struct OutputSettingsPanel {'.length, panelSource.indexOf('  build() {')) + '}')
   .replace(/@Prop\s*@Watch\([^)]*\)\s*/g, '').replace(/@Prop\s*|@State\s*/g, '');
-const Panel = new Function('OutputSettingsModel', 'OutputSettingsDraft', 'OutputEndpoint', 'KeyboardInputSession',
-  stripTypeScriptTypes(panelBody) + '; return Panel;')(OutputSettingsModel, OutputSettingsDraft, OutputEndpoint, KeyboardInputSession);
+const Panel = new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel', 'OutputSettingsDraft', 'OutputEndpoint', 'KeyboardInputSession',
+  stripTypeScriptTypes(panelBody) + '; return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel, OutputSettingsDraft, OutputEndpoint, KeyboardInputSession);
 
 function deferred() { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; }
 function operation() { return { started: deferred(), completion: deferred(), respectCancellation: false }; }

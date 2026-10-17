@@ -366,3 +366,7 @@ test('configured existing official .NET SDK reproduces the endpoint oracle offli
     assert.deepEqual(JSON.parse(readFileSync(output, 'utf8')), golden);
   } finally { rmSync(work, { recursive: true, force: true }); }
 });
+
+test('new serial draft subobject is validated without breaking network endpoint actions or accepting forged runtime authority',()=>{
+ const d=draft('tcp');const a=action();const valid=applyOutputEndpointAction(d,a);assert.ok(valid);assert.deepEqual(valid.draft.serial,d.serial);valid.draft.serial.portName='detached';assert.equal(d.serial.portName,'');for(const change of [s=>s.armed=true,s=>s.baudRate=NaN,s=>s.portId=3]){const v=plain(d);change(v.serial);assert.equal(applyOutputEndpointAction(v,a),null);}
+});

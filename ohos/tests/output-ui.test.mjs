@@ -4,6 +4,8 @@ import {readFileSync} from 'node:fs';
 import {registerHooks,stripTypeScriptTypes} from 'node:module';
 import {createOutputOwner,inertCoordinator} from './output-owner-helpers.mjs';
 registerHooks({resolve(s,c,n){return n(s.startsWith('.')&&!/\.[a-z]+$/i.test(s)?s+'.ts':s,c);}});
+const {SerialOutputPreferences}=await import('../entry/src/main/ets/settings/SerialOutputPreferences.ts');
+const {SerialDiagnosticSnapshot}=await import('../entry/src/main/ets/app/SerialDiagnosticSession.ts');
 const {OutputSettingsModel,OutputSettingsDraft}=await import('../entry/src/main/ets/output/OutputSettingsModel.ts');
 const {OutputEndpoint}=await import('../entry/src/main/ets/output/OutputCoordinator.ts');
 const { KeyboardInputSession } = await import('../entry/src/main/ets/app/KeyboardInputSession.ts');
@@ -20,7 +22,7 @@ test('fixed/polled, range and pause edits become actual config without invented 
  assert.equal(m.setRange('L0',.2,.8,false),true);assert.equal(m.setRange('L0',1.01,.2,true),false);assert.equal(m.setRange('BAD',0,1,true),false);
  m.pausedAutoHome=true;m.pausedMotion=true;m.polled=true;let c=m.config(profile);assert.deepEqual(c.updateContext,{kind:'polled'});assert.equal(c.allowPausedAutoHome,true);assert.equal(c.allowPausedMotion,true);assert.equal(c.axisRanges[0].enabled,false);
  m.polled=false;m.setKind('webSocket');c=m.config(profile);assert.equal(c.updateContext.intervalMs,16);assert.equal(c.updateContext.usePreciseSleep,false);
- c.axisRanges[0].minimum=.7;assert.equal(m.ranges[0].minimum,.2);assert.throws(()=>m.setKind('serial'));
+ c.axisRanges[0].minimum=.7;assert.equal(m.ranges[0].minimum,.2);m.setKind('serial');assert.equal(m.kind,'serial');assert.throws(()=>m.setKind('pipe'));
 });
 test('UI controls bind target identity, edits disarm only it, and valid preferences are persisted',()=>{
  const ui=readFileSync(new URL('../entry/src/main/ets/components/OutputSettingsPanel.ets',import.meta.url),'utf8');
@@ -58,7 +60,7 @@ test('opening or hiding output settings does not count as a configuration edit o
  const source=readFileSync(new URL('../entry/src/main/ets/components/OutputSettingsPanel.ets',import.meta.url),'utf8');
  const controller=('class Panel {'+source.slice(source.indexOf('export struct OutputSettingsPanel {')+'export struct OutputSettingsPanel {'.length,source.indexOf('  build() {'))+'}')
    .replace(/@Prop\s*@Watch\([^)]*\)\s*/g,'').replace(/@Prop\s*|@State\s*/g,'');
- const Panel=new Function('OutputSettingsModel','OutputSettingsDraft','OutputEndpoint','KeyboardInputSession',stripTypeScriptTypes(controller)+';return Panel;')(OutputSettingsModel,OutputSettingsDraft,OutputEndpoint,KeyboardInputSession);
+ const Panel=new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel','OutputSettingsDraft','OutputEndpoint','KeyboardInputSession',stripTypeScriptTypes(controller)+';return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel,OutputSettingsDraft,OutputEndpoint,KeyboardInputSession);
  const panel=new Panel();let disarms=0;panel.onDisarm=()=>disarms++;panel.profile=profile;panel.profileId=device.id;panel.draft=draftOwner().draftSnapshot();panel.aboutToAppear();
  assert.equal(disarms,0);assert.equal(panel.model.ranges.length,1);panel.changed();assert.equal(disarms,1);
  const page=readFileSync(new URL('../entry/src/main/ets/pages/Index.ets',import.meta.url),'utf8');
@@ -70,7 +72,7 @@ function panelClass() {
  const source=readFileSync(new URL('../entry/src/main/ets/components/OutputSettingsPanel.ets',import.meta.url),'utf8');
  const controller=('class Panel {'+source.slice(source.indexOf('export struct OutputSettingsPanel {')+'export struct OutputSettingsPanel {'.length,source.indexOf('  build() {'))+'}')
    .replace(/@Prop\s*@Watch\([^)]*\)\s*/g,'').replace(/@Prop\s*|@State\s*/g,'');
- return new Function('OutputSettingsModel','OutputSettingsDraft','OutputEndpoint','KeyboardInputSession',stripTypeScriptTypes(controller)+';return Panel;')(OutputSettingsModel,OutputSettingsDraft,OutputEndpoint,KeyboardInputSession);
+ return new Function('SerialDiagnosticSnapshot','SerialOutputPreferences','OutputSettingsModel','OutputSettingsDraft','OutputEndpoint','KeyboardInputSession',stripTypeScriptTypes(controller)+';return Panel;')(SerialDiagnosticSnapshot,SerialOutputPreferences,OutputSettingsModel,OutputSettingsDraft,OutputEndpoint,KeyboardInputSession);
 }
 function draftOwner() {
  const Owner=createOutputOwner(()=>inertCoordinator());Owner.current({});Owner.restore(new OutputConfiguration(),device,7);Owner.addTarget('webSocket');return Owner;

@@ -293,7 +293,7 @@ test('pausedManual is a separate false-by-default persisted boolean with strict 
 });
 
 test('adding pausedManual never makes any pre-existing target field optional', () => {
-  const fields = Object.keys(output()).filter(field => field !== 'pausedManual');
+  const fields = Object.keys(output()).filter(field => field !== 'pausedManual' && field !== 'serial');
   for (const field of fields) {
     const value = badTarget(t => { delete t[field]; delete t.pausedManual; });
     assert.equal(decode(value).status, 'invalid', field);
