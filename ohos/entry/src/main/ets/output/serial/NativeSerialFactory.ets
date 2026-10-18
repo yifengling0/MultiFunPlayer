@@ -29,8 +29,12 @@ export class NativeSerialFactory {
       try { supported = canIUse('SystemCapability.USB.USBManager'); } catch { supported = false; }
       return { backend: backend, available: supported, controlLines: true, diagnostic: supported ? 'experimentalWriteOnlyNotDeviceVerified' : 'unsupportedSystemCapability', automaticConnection: false, deviceExecutionAck: false };
     }
-    if (backend === 'usbCdc') { return { backend: backend, available: false, controlLines: true,
-      diagnostic: 'cdcShortPacketContractUnverified', automaticConnection: false, deviceExecutionAck: false }; }
+    if (backend === 'usbCdc') {
+      let supported: boolean = false;
+      try { supported = canIUse('SystemCapability.USB.USBManager'); } catch { supported = false; }
+      return { backend: backend, available: supported, controlLines: true,
+        diagnostic: supported ? 'experimentalCdcNotDeviceVerified' : 'unsupportedSystemCapability', automaticConnection: false, deviceExecutionAck: false };
+    }
     let available: boolean = false;
     try {
       available = backend === 'official26' ? canIUse('SystemCapability.BusManager.Serial') :
@@ -40,7 +44,13 @@ export class NativeSerialFactory {
     return { backend: backend, available: available, controlLines: backend !== 'official19',
       diagnostic: available ? 'capabilityPresentNotDeviceVerified' : 'unsupportedSystemCapability', automaticConnection: false, deviceExecutionAck: false };
   }
-  inspectAll(): SerialCapability[] { return [this.inspect('official26'), this.inspect('official19'), this.inspect('ch34xWriteOnly'), this.inspect('usbCdc')]; }
+  inspectAll(): SerialCapability[] {
+    const result: SerialCapability[] = [this.inspect('official26'), this.inspect('official19'), this.inspect('ch34xWriteOnly'), this.inspect('usbCdc')];
+    // Explicit, non-sensitive diagnostics for device reports: capability names
+    // only, never port names, serial numbers or permission decisions.
+    try { console.info('[MFP serial] ' + result.map(item => item.backend + '=' + item.available).join(' ')); } catch { /* logging must not affect capability checks. */ }
+    return result;
+  }
   /** Explicit refresh only. Never request a right or open a device here. */
   async listPortsExplicit(backend: SerialBackendKind): Promise<SerialPortOption[]> {
     if (backend === 'official19' && this.inspect(backend).available) {
@@ -50,7 +60,12 @@ export class NativeSerialFactory {
       const module = await import('./OfficialSerial26Backend'); return this.boundedOptions(await module.listOfficial26Ports());
     }
     if (backend === 'ch34xWriteOnly' && canIUse('SystemCapability.USB.USBManager')) {
-      const module = await import('./Ch34xWriteOnlyBackend'); return this.boundedOptions(module.listCh34xPorts());
+      const ch34x = await import('./Ch34xWriteOnlyBackend');
+      const vendor = await import('./UsbVendorWriteOnlyBackend');
+      return this.boundedOptions([...ch34x.listCh34xPorts(), ...vendor.listUsbVendorPorts()]);
+    }
+    if (backend === 'usbCdc' && canIUse('SystemCapability.USB.USBManager')) {
+      const module = await import('./UsbCdcBackend'); return this.boundedOptions(module.listUsbCdcPorts());
     }
     return [];
   }
@@ -81,7 +96,11 @@ export class NativeSerialFactory {
     } else if (selection.backend === 'official19') {
       const module = await import('./OfficialSerial19Backend'); backend = new module.OfficialSerial19Backend(selection.portId, selection.portName);
     } else if (selection.backend === 'ch34xWriteOnly') {
-      const module = await import('./Ch34xWriteOnlyBackend'); if (!module.ch34xTransfersAvailable()) { throw new Error('usbApi18TransfersUnavailable'); } backend = new module.Ch34xWriteOnlyBackend(selection.portName);
+      const module = await import('./Ch34xWriteOnlyBackend');
+      if (!module.ch34xTransfersAvailable()) { throw new Error('usbApi18TransfersUnavailable'); }
+      const vendor = await import('./UsbVendorWriteOnlyBackend');
+      const chip = vendor.usbVendorBackendChip(selection.portName);
+      backend = chip === 'cp210x' || chip === 'ftdi' ? new vendor.UsbVendorWriteOnlyBackend(selection.portName, chip) : new module.Ch34xWriteOnlyBackend(selection.portName);
     } else {
       const module = await import('./UsbCdcBackend'); backend = new module.UsbCdcBackend(selection.portName);
     }

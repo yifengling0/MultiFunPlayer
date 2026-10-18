@@ -208,7 +208,7 @@ test('all 29 bindings survive; common controls precede compact semantic accordio
   const f = fixture(); assert.equal(all.length, 29); assert.deepEqual(all.sort(), Object.keys(f.panel.configuration).sort());
   for (const group of groups) assert.ok(body.includes("if (this.groupExpanded('" + group + "'))"));
   const header = source.slice(source.indexOf('  groupHeader('), source.indexOf('  build() {'));
-  assert.match(header, /minHeight: UiStyle\.control/); assert.match(header, /fontSize\(UiStyle\.body\(this\.compact\)\)/);
+  assert.match(header, /minHeight: UiStyle\.control/); assert.match(header, /fontSize\(UiStyle\.(?:body|textFor)\(this\.compact\)\)/);
   assert.match(header, /top: 6, bottom: 6/); assert.match(header, /accessibilityText\(label/);
   assert.match(header, /已展开/); assert.match(header, /已折叠/); assert.doesNotMatch(header, /TextOverflow\.Ellipsis|\.height\(/);
   const unlimited = body.slice(body.indexOf("Button('设为无限制')"), body.indexOf("SettingsSectionTitle({ label: '智能限制'"));

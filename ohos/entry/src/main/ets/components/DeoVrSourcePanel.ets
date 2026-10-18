@@ -169,13 +169,13 @@ export struct DeoVrSourcePanel {
     Column({ space: UiStyle.gap(this.compact) }) {
       SettingsSectionTitle({ label: '媒体来源 · MEDIA SOURCE', topLevel: true })
       if (this.readOnly) {
-        Text('当前设置仅可查看；已有连接仍可取消或断开。').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.warning).width('100%')
+        Text('当前设置仅可查看；已有连接仍可取消或断开。').fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.warning).width('100%')
       }
       SettingsChoiceField({ label: '来源', selected: this.configuration.selectedSource, options: this.sources(),
         compact: this.compact, editable: this.canEdit(), onSelect: this.sourceHandler() })
       if (this.configuration.selectedSource === 'internal') {
         Text('Internal 包含内部脚本时钟和已授权 Download 视频。选择来源不会自动播放或启用物理输出。')
-          .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+          .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       } else {
         SettingsTextField({ label: this.sourceLabel() + ' 主机 / IP · 不含凭据', value: this.endpointHost(),
           draftOwner: this.draftOwner, draftScope: this.draftScope,
@@ -190,8 +190,8 @@ export struct DeoVrSourcePanel {
         Text('仅保存来源选择和端点。恢复设置不会自动连接、播放或启用输出。连接期间请先断开，再修改来源或端点。')
           .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
         if (this.draftNotice.length > 0) { Text(this.draftNotice).fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%') }
-        Button('连接 ' + this.sourceLabel()).fontSize(UiStyle.body(this.compact))
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').enabled(this.canConnect())
+        Button('连接 ' + this.sourceLabel()).fontSize(UiStyle.textFor(this.compact))
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').enabled(this.canConnect())
           .accessibilityText('显式连接 ' + this.sourceLabel()).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -199,8 +199,8 @@ export struct DeoVrSourcePanel {
           }).onClick(this.connectionHandler(false))
       }
       if (this.busy || this.connected || !this.closeConfirmed || this.pendingRequest !== '') {
-        Button(this.connectionLabel()).fontSize(UiStyle.body(this.compact))
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').enabled(this.canDisconnect())
+        Button(this.connectionLabel()).fontSize(UiStyle.textFor(this.compact))
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').enabled(this.canDisconnect())
           .accessibilityText('取消连接或断开 ' + this.sourceLabel()).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -208,18 +208,18 @@ export struct DeoVrSourcePanel {
           }).onClick(this.connectionHandler(true))
       }
       if (this.configuration.selectedSource !== 'internal' || this.connected || this.busy || !this.closeConfirmed) {
-        Text('连接状态：' + t(this.status)).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
-        Text(this.freshness()).fontSize(UiStyle.body(this.compact)).fontColor(this.stale ? UiStyle.warning : UiStyle.success).width('100%')
+        Text('连接状态：' + t(this.status)).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        Text(this.freshness()).fontSize(UiStyle.textFor(this.compact)).fontColor(this.stale ? UiStyle.warning : UiStyle.success).width('100%')
         if (!this.closeConfirmed && !this.connected && !this.busy) {
           Text('尚未确认底层连接已关闭；重新连接和编辑继续锁定。').fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%')
         }
-        if (this.error.length > 0) { Text(this.error).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.danger).width('100%') }
+        if (this.error.length > 0) { Text(this.error).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.danger).width('100%') }
         Text('收到的媒体路径：' + (this.mediaPath.length > 0 ? this.mediaPath : '无'))
           .fontSize(UiStyle.helper).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
         Text('位置：' + this.seconds(this.positionSeconds) + ' / 时长：' + this.seconds(this.durationSeconds))
-          .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+          .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
         Text('收到的播放状态：' + (this.playing ? '播放中' : '暂停 / 未开始'))
-          .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+          .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
         Text('播放 / 暂停和速度控制会先暂停输出；只有原已 Arm 的目标可在后续同源状态与新合法帧确认后继续。TCP 发送完成不是播放器确认；无法确认或超时需重新 Arm。跳转仍解除 Arm。远程路径仅作为媒体标识，不授予本地文件访问权。')
           .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       }

@@ -98,7 +98,7 @@ export struct SyncSettingsPanel {
           onChange: this.guardedFlag((value: boolean) => this.changeFlag('syncOnSeek', value))})
         SettingsSwitchField({ label: '自动归位开始 / 结束', value: this.configuration.syncOnAutoHomeStartEnd, compact: this.compact,
           onChange: this.guardedFlag((value: boolean) => this.changeFlag('syncOnAutoHomeStartEnd', value))})
-      }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) }).enabled(!this.readOnly)
-    }.width('100%')
+      }.width('100%').enabled(!this.readOnly)
+    }.width('100%').padding(UiStyle.cardPadding).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
   }
 }

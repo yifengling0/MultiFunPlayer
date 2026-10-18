@@ -222,13 +222,13 @@ export struct DeviceSettingsPanel {
       Text('导入原版设备 JSON：点击下方粘贴按钮读取。仅新增自定义设备，不覆盖已有设备或切换当前会话。')
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       PasteButton({ icon: PasteIconStyle.LINES, text: PasteDescription.PASTE, buttonType: ButtonType.Normal })
-        .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).iconColor(UiStyle.ink).backgroundColor(UiStyle.field)
+        .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).iconColor(UiStyle.ink).backgroundColor(UiStyle.field)
         .borderWidth(1).borderColor(UiStyle.edge).borderRadius(UiStyle.radius)
         .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).enabled(!this.readOnly && !this.transferBusy)
         .onClick(this.pasteHandler())
       
         Button('导出所选设备 JSON')
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).width('100%').constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact))
           .borderRadius(UiStyle.radius)
           .enabled(!this.transferBusy && this.selectedExists() && !this.selected().isBuiltIn).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
@@ -262,7 +262,7 @@ export struct DeviceSettingsPanel {
       if (!this.selected().isBuiltIn) {
         
           Button('移除此轴')
-            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius)
+            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).borderRadius(UiStyle.radius)
             .fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
             .stateStyles({
               focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -277,7 +277,7 @@ export struct DeviceSettingsPanel {
     Column() {
       Column() {
         SettingsSectionTitle({ label: '设备设置 · DEVICE', topLevel: true })
-        Text('当前生效设备：' + this.activeName()).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        Text('当前生效设备：' + this.activeName()).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
         Text('以下编辑为启动配置。保存后下次启动生效；当前播放会话不会热切换。').fontSize(UiStyle.helper).fontColor(UiStyle.warning)
           .width('100%').padding({ top: 8, bottom: 8 })
         if (this.readOnly) { Text('配置为只读，请先处理设置加载或恢复问题。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
@@ -290,15 +290,15 @@ export struct DeviceSettingsPanel {
               Text('内置设备允许启用 / 禁用轴。克隆为自定义设备后可修改其他字段。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
             }
             SettingsSectionTitle({ label: '克隆为自定义设备' })
-            Text('新设备名称').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%')
-            TextInput({ text: this.cloneName, placeholder: '新设备名称' }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact))
+            Text('新设备名称').fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%')
+            TextInput({ text: this.cloneName, placeholder: '新设备名称' }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.textFor(this.compact))
               .onFocus(KeyboardInputSession.focusHandler(this.cloneEditorId, true))
               .onBlur(KeyboardInputSession.focusHandler(this.cloneEditorId, false))
               .onKeyPreIme(KeyboardInputSession.emergencyHandler(this.cloneEditorId))
               .borderRadius(UiStyle.radius).backgroundColor(UiStyle.field).fontColor(UiStyle.ink).border({ width: 1, color: UiStyle.edge }).width('100%').onChange(KeyboardInputSession.changeHandler(this.cloneEditorId, this.guardedChoice((value: string) => { this.cloneName = value; this.saveEditorDraft(); })))
               .accessibilityText('克隆设备名称')
             Button('克隆所选设备')
-              .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+              .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).width('100%').constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact))
               .borderRadius(UiStyle.radius).margin({ top: 6, bottom: 6 }).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
               .stateStyles({
                 focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -309,7 +309,7 @@ export struct DeviceSettingsPanel {
                 onCommit: this.guardedText((value: string): boolean => this.emit(DeviceSettingsEdits.rename(this.selected(), value)))})
               
                 Button('移除此自定义设备')
-                  .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+                  .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).width('100%').constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact))
                   .borderRadius(UiStyle.radius).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
                   .stateStyles({
                     focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -325,15 +325,15 @@ export struct DeviceSettingsPanel {
               (axis: DeviceAxisDefinition, index: number): string => this.selectedProfileId + ':' + index + ':' + axis.name)
             if (!this.selected().isBuiltIn) {
               SettingsSectionTitle({ label: '添加设备轴' })
-              Text('新轴名称').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%')
-              TextInput({ text: this.newAxisName, placeholder: '轴名称，例如 L3' }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact))
+              Text('新轴名称').fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%')
+              TextInput({ text: this.newAxisName, placeholder: '轴名称，例如 L3' }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.textFor(this.compact))
               .onFocus(KeyboardInputSession.focusHandler(this.axisEditorId, true))
               .onBlur(KeyboardInputSession.focusHandler(this.axisEditorId, false))
               .onKeyPreIme(KeyboardInputSession.emergencyHandler(this.axisEditorId))
                 .borderRadius(UiStyle.radius).backgroundColor(UiStyle.field).fontColor(UiStyle.ink).border({ width: 1, color: UiStyle.edge }).width('100%').onChange(KeyboardInputSession.changeHandler(this.axisEditorId, this.guardedChoice((value: string) => { this.newAxisName = value; this.saveEditorDraft(); })))
                 .accessibilityText('新轴名称')
               Button('＋ 添加轴')
-                .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).width('100%').constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+                .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).width('100%').constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact))
                 .borderRadius(UiStyle.radius).margin({ top: 6 }).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
                 .stateStyles({
                   focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -344,7 +344,7 @@ export struct DeviceSettingsPanel {
         }.width('100%').enabled(!this.readOnly)
         this.clipboardFields()
         if (this.error.length > 0) { Text(this.error).fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%').margin({ top: 8 }) }
-      }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) })
-    }.width('100%')
+      }.width('100%')
+    }.width('100%').padding(UiStyle.cardPadding).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
   }
 }

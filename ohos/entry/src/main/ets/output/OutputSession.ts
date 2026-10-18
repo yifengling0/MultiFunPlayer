@@ -144,11 +144,13 @@ export class OutputSession {
       if (generation !== this.generation || this.connection !== 'connecting' || !this.foreground || this.disposed) {
         await this.closeStaleOpen(generation); return false;
       }
-      this.pendingOpen = false; this.connection = 'connected'; return true;
+      this.pendingOpen = false; this.connection = 'connected'; console.info('[MFP output] connected generation=' + generation); return true;
     } catch (error) {
       if (generation === this.generation) {
         this.pendingOpen = false;
-        this.fail(new OutputError('transportError', 'Open failed: ' + OutputSession.errorText(error as Error)));
+        const text: string = OutputSession.errorText(error as Error);
+        console.info('[MFP output] open failed: ' + text);
+        this.fail(new OutputError('transportError', 'Open failed: ' + text));
       } else { await this.closeStaleOpen(generation); }
       return false;
     }
@@ -702,6 +704,7 @@ export class OutputSession {
     if (resetCache) { this.lastWritten = []; }
   }
   private fail(error: OutputError): void {
+    try { console.info('[MFP output] fail ' + error.code + ': ' + error.message); } catch { /* logging must not affect fail-closed. */ }
     this.lastError = error; void this.closeConnection(error.code, true);
   }
   private async closeConnection(reason: string, fault: boolean): Promise<void> {

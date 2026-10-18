@@ -178,7 +178,7 @@ test('UI preserves 48vp wrapped controls, guards mutations, and explains durable
   assert.match(source, /@Prop @Watch\('profileChanged'\) profileId: string = ''/);
   assert.match(source, /有效配置.*保存|有效设置.*保存/); assert.match(source, /恢复.*不会.*连接.*启用/);
   assert.ok((source.match(/wrap: FlexWrap\.Wrap/g) ?? []).length >= 1);
-  for (const label of ['连接 / 应用配置', '断开 / 编辑连接', '启用发送', '解除发送']) {
+  for (const label of ['连接设备', '断开连接', '启用发送', '停止发送']) {
     const start = source.indexOf("Button('" + label + "')");
     assert.ok(start >= 0, label);
     const button = source.slice(start, source.indexOf('.onClick(', start));

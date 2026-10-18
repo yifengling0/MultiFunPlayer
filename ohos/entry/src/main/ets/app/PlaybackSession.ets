@@ -32,11 +32,11 @@ export class PlaybackSession extends PlaybackSessionCore {
   settingsStatus(): SettingsStoreStatus { return this.store.status(); }
   settingsMessage(): string {
     const state = this.store.status();
-    if (state.readOnly) { return 'Settings are read-only. The original file is preserved. ' + this.loadResult.diagnostics.map(item => item.message).join(' '); }
-    if (state.recoveryRequired) { return 'Settings recovery needs your review (' + this.loadResult.source + '). ' + this.loadResult.diagnostics.map(item => item.message).join(' '); }
-    if (state.lastError !== null) { return 'Settings not saved: ' + state.lastError; }
-    if (state.dirty || state.saving) { return 'Saving settings…'; }
-    return this.saveMessage || 'Settings loaded · output needs explicit connect and arm';
+    if (state.readOnly) { return '设置只读，原文件已保留。' + this.loadResult.diagnostics.map(item => item.message).join(' '); }
+    if (state.recoveryRequired) { return '设置恢复需要确认（来源：' + this.loadResult.source + '）。' + this.loadResult.diagnostics.map(item => item.message).join(' '); }
+    if (state.lastError !== null) { return '设置未保存：' + state.lastError; }
+    if (state.dirty || state.saving) { return '正在保存设置…'; }
+    return this.saveMessage || '设置已加载 · 输出需要明确连接与启用';
   }
   protected assertConfigurationWritable(): void {
     const status = this.store.status();

@@ -38,7 +38,7 @@ test('review regressions: reserved endpoint bits, declared counts, vendor protoc
   for(const [index,value] of [[43,0xf1],[36,0],[39,255],[16,255],[5,0],[4,0]]){const a=descriptor();a[index]=value;assert.throws(()=>parseCdcAcm(a),`${index}=${value}`);}
   for(const extra of [[9,4,1,1,0,10,0,0,0],[4,36,2,2]]){const a=new Uint8Array([...descriptor(),...extra]);a[2]=a.length;if(extra[1]===4)a[4]++;assert.throws(()=>parseCdcAcm(a));}
 });
-test('factory keeps unverified CDC unavailable even when all syscaps report true',async()=>{const {NativeSerialFactory}=load('NativeSerialFactory.ets','NativeSerialFactory',['canIUse'],[()=>true]);const factory=new NativeSerialFactory();assert.equal(factory.inspect('ch34xWriteOnly').available,true);assert.equal(factory.inspect('usbCdc').available,false);assert.equal(factory.inspect('usbCdc').diagnostic,'cdcShortPacketContractUnverified');await assert.rejects(factory.create({backend:'usbCdc',portName:'chosen',portId:0},attrs,limits));});
+test('factory exposes experimental CDC on raw USB capability while keeping the warning explicit',()=>{const {NativeSerialFactory}=load('NativeSerialFactory.ets','NativeSerialFactory',['canIUse'],[()=>true]);const factory=new NativeSerialFactory();assert.equal(factory.inspect('ch34xWriteOnly').available,true);assert.equal(factory.inspect('usbCdc').available,true);assert.equal(factory.inspect('usbCdc').diagnostic,'experimentalCdcNotDeviceVerified');});
 test('API26 busy/denied open does not close another owner; unknown open failure stays quarantined',async()=>{
   for(const code of [35700004,35700007,35700001]){
     let closes=0;const native={portInfo:{portName:'chosen'},open:async()=>{throw {code};},close:async()=>closes++};

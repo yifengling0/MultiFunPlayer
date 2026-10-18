@@ -215,8 +215,8 @@ test('read-only still permits inspecting folds and explicit disconnect, without 
 
 test('visible destination/action hierarchy and every existing advanced control remain reachable; live errors never hide in folds', () => {
   const firstFold = view.indexOf('if (this.connectionDetailsExpanded)'), visible = view.slice(0, firstFold);
-  for (const marker of ["draftKey: 'host'", "draftKey: 'port'", "draftKey: 'baudRate'", "label: '串口端口'", "Button('连接 / 应用配置')", "Button('断开 / 编辑连接')", "Button('启用发送')", "Button('解除发送')", 'Text(this.diagnostic)', 'Text(this.editNotice)', 'Text(this.serialMessage)', "Button('取消识别 · 等待清理')", "Text('识别状态："]) assert.ok(visible.includes(marker), marker);
-  assert.ok(visible.indexOf("draftKey: 'host'") < visible.indexOf("Button('连接 / 应用配置')"));
+  for (const marker of ["draftKey: 'host'", "draftKey: 'port'", "draftKey: 'baudRate'", "label: '串口端口'", "Button('连接设备')", "Button('断开连接')", "Button('启用发送')", "Button('停止发送')", 'Text(this.diagnostic)', 'Text(this.editNotice)', 'Text(this.serialMessage)', "Button('取消识别 · 等待清理')", "Text('识别状态："]) assert.ok(visible.includes(marker), marker);
+  assert.ok(visible.indexOf("draftKey: 'host'") < visible.indexOf("Button('连接设备')"));
   for (const [section, markers] of [
     ['connectionDetailsExpanded', ["label: '串口后端'", "label: 'DTR'", "label: 'RTS'", "draftKey: 'path'", "label: 'IP 地址族'", "draftKey: 'localPort'", "Button('授权并只读识别设备')", "Button('复制诊断报告 · 覆盖剪贴板')"]],
     ['timingExpanded', ["label: 'Polled 事件模式'", "draftKey: 'intervalMs'", "label: '只发送变化值'", "label: '设备处理时间（省略 I）'", "label: '允许暂停时 Auto Home'", "label: '允许暂停时 Motion'", "label: '暂停手动过渡输出'"]],
@@ -229,6 +229,6 @@ test('visible destination/action hierarchy and every existing advanced control r
   assert.match(view, /连接 ≠ 启用发送/); assert.doesNotMatch(view, /\bScroll\(/);
   for (const match of view.matchAll(/\bButton\(/g)) {
     const control = view.slice(match.index, view.indexOf('.onClick(', match.index));
-    assert.match(control, /minHeight: UiStyle.control, maxWidth: '100%'/); assert.match(control, /stateEffect\(true\)/);
+    assert.match(control, /minHeight: UiStyle.control(?:For\(this.compact\))?, maxWidth: '100%'/); assert.match(control, /stateEffect\(true\)/);
   }
 });

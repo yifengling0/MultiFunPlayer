@@ -57,7 +57,7 @@ test('every command keeps a 48vp minimum and Stop52, bounded width and native pr
         assert.match(button, /\.height\((?:UiStyle.control|52)\)/);
         assert.match(button, /\.layoutWeight\(1\)|\.width\('100%'\)/);
         assert.match(text, /ConfirmationDialogGeometry.width\(this.viewportWidth\)/);
-      } else { assert.match(button, /minHeight: (?:UiStyle\.control|52), maxWidth: '100%'/, file); }
+      } else { assert.match(button, /minHeight: (?:UiStyle\.control|UiStyle\.controlFor\(this\.compact\)|52), maxWidth: '100%'/, file); }
       assert.match(button, /stateEffect\(true\)/, file);
       if (file === 'OwnedConfirmationDialog.ets') { assert.match(button, /fontSize\(UiStyle.body\(\)\)/); }
       else { assert.match(button, /labelStyle\(\{ maxLines: 10, overflow: TextOverflow\.Clip \}\)/, file); }

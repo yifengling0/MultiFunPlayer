@@ -72,7 +72,7 @@ export struct GeneralSettingsPanel {
     Column({ space: UiStyle.gap(this.compact) }) {
       SettingsSectionTitle({ label: '通用 · GENERAL', topLevel: true })
       if (this.readOnly) {
-        Text('当前设置仅可查看。').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.warning).width('100%')
+        Text('当前设置仅可查看。').fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.warning).width('100%')
       }
       SettingsChoiceField({ label: '界面密度 · UI Density', selected: this.configuration.uiDensity,
         options: this.densities(), compact: this.compact, editable: !this.readOnly,
@@ -91,17 +91,17 @@ export struct GeneralSettingsPanel {
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       SettingsSectionTitle({ label: '原版桌面选项 · 此平台暂不支持' })
       Text('窗口置顶 · AlwaysOnTop\n暂无 OHOS 窗口置顶适配。')
-        .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Text('允许窗口调整大小 · AllowWindowResize\n窗口能否调整大小由系统窗口模式决定，应用暂不提供开关。')
-        .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Text('记住窗口位置 · RememberWindowLocation\n暂无窗口坐标保存与恢复适配。')
-        .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Text('日志级别 · LogLevel\n尚未移植原版 NLog 日志级别控制。')
-        .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Text('界面日志 · EnableUILogging\n尚未移植原版 UI 日志收集。')
-        .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Text('JSON 日志 · EnableJsonLogging\n尚未移植原版 JSON 日志输出。')
-        .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
-    }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) })
+        .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+    }.width('100%').padding(UiStyle.cardPadding).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
   }
 }

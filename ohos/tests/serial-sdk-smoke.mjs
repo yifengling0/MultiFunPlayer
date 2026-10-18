@@ -14,6 +14,7 @@ fs.writeFileSync(path.join(work,'entry/src/main/ets/pages/Index.ets'), `import {
 import { OfficialSerial19Backend } from '../output/serial/OfficialSerial19Backend';
 import { OfficialSerial26Backend } from '../output/serial/OfficialSerial26Backend';
 import { Ch34xWriteOnlyBackend } from '../output/serial/Ch34xWriteOnlyBackend';
+import { UsbVendorWriteOnlyBackend } from '../output/serial/UsbVendorWriteOnlyBackend';
 import { UsbCdcBackend } from '../output/serial/UsbCdcBackend';
 import { SerialTransport } from '../output/serial/SerialTransport';
 @Entry
@@ -23,6 +24,7 @@ struct Index {
   private legacy: OfficialSerial19Backend = new OfficialSerial19Backend(0, 'compile-only');
   private modern: OfficialSerial26Backend = new OfficialSerial26Backend('compile-only');
   private ch34x: Ch34xWriteOnlyBackend = new Ch34xWriteOnlyBackend('compile-only');
+  private vendor: UsbVendorWriteOnlyBackend = new UsbVendorWriteOnlyBackend('compile-only', 'cp210x');
   private cdc: UsbCdcBackend = new UsbCdcBackend('compile-only');
   private port: SerialTransport = new SerialTransport(this.cdc,
     { baudRate: 115200, dataBits: 8, stopBits: 1, parity: 'none', handshake: 'none', dtr: true, rts: true },
@@ -39,5 +41,5 @@ fs.writeFileSync(path.join(work,'serial-sdk.log'),(result.stdout||'')+(result.st
 console.log(work);console.log(result.stdout);console.error(result.stderr);
 if(result.status!==0)process.exit(result.status||1);
 const map=fs.readFileSync(path.join(work,'entry/build/default/outputs/default/mapping/sourceMaps.map'),'utf8');
-for(const name of ['SerialTransport.ts','CdcDescriptors.ts','NativeSerialFactory.ets','OfficialSerial19Backend.ets','OfficialSerial26Backend.ets','UsbCdcBackend.ets','Ch34xWriteOnlyBackend.ets','Ch34xProtocol.ts','SerialOwnershipLease.ts','Ch34xReadOnlyProbe.ets','SerialProbeTypes.ts'])if(!map.includes(name))throw Error('Serial module not reachable: '+name);
+for(const name of ['SerialTransport.ts','CdcDescriptors.ts','NativeSerialFactory.ets','OfficialSerial19Backend.ets','OfficialSerial26Backend.ets','UsbCdcBackend.ets','Ch34xWriteOnlyBackend.ets','UsbVendorWriteOnlyBackend.ets','UsbVendorProtocol.ts','Ch34xProtocol.ts','SerialOwnershipLease.ts','Ch34xReadOnlyProbe.ets','SerialProbeTypes.ts'])if(!map.includes(name))throw Error('Serial module not reachable: '+name);
 console.log('PASS: real serial imports are reachable; unsigned HAP is an isolated fixture, not the shipping app.');

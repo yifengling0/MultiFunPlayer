@@ -261,7 +261,7 @@ export struct AxisSettingsPanel {
     Button() {
       Row({ space: 8 }) {
         Column({ space: 2 }) {
-          Text(label).fontSize(UiStyle.body(this.compact)).fontWeight(FontWeight.Medium).fontColor(this.groupExpanded(group) ? UiStyle.accent : UiStyle.ink).width('100%')
+          Text(label).fontSize(UiStyle.textFor(this.compact)).fontWeight(FontWeight.Medium).fontColor(this.groupExpanded(group) ? UiStyle.accent : UiStyle.ink).width('100%')
             .textAlign(TextAlign.Start).wordBreak(WordBreak.BREAK_ALL)
           Text(this.groupSummary(group)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
             .textAlign(TextAlign.Start).wordBreak(WordBreak.BREAK_ALL)
@@ -341,7 +341,7 @@ export struct AxisSettingsPanel {
               onCommit: this.guardedNumber((value: number): boolean => this.emit(AxisSettingsEdits.speedFromSeconds(this.configuration, value)))})
           }
           Button('设为无限制').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-            .padding({ left: 12, right: 12, top: 6, bottom: 6 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact))
+            .padding({ left: 12, right: 12, top: 6, bottom: 6 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.textFor(this.compact))
             .accessibilityText('设为无限制，0 秒每次全行程')
             .fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge }).borderRadius(UiStyle.radius)
             .onClick(this.guardedAction(() => { this.emit(AxisSettingsEdits.speedFromSeconds(this.configuration, 0)); }))

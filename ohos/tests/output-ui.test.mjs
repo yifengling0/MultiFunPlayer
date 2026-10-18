@@ -65,8 +65,8 @@ test('opening or hiding output settings does not count as a configuration edit o
  const panel=new Panel();let disarms=0;panel.onDisarm=()=>disarms++;panel.profile=profile;panel.profileId=device.id;panel.draft=draftOwner().draftSnapshot();panel.aboutToAppear();
  assert.equal(disarms,0);assert.equal(panel.model.ranges.length,1);panel.changed();assert.equal(disarms,1);
  const page=readFileSync(new URL('../entry/src/main/ets/pages/Index.ets',import.meta.url),'utf8');
- assert.ok(page.includes('.visibility(this.showOutputSettings ? Visibility.Visible : Visibility.None)'));
- assert.equal(page.includes('if (this.showOutputSettings) {\n        OutputSettingsPanel'),false);
+ assert.match(page, /this\.outputPage === 'detail'\) \{ this\.outputDetailPage\(\) \}/);
+ assert.equal(/if \(this\.showOutputSettings\)/.test(page), false);
 });
 
 function panelClass() {
@@ -138,7 +138,8 @@ test('manual output permission UI is disabled for polled and explains explicit s
 
 test('armed-wait status is visibly distinct from dispatch-open and native target summaries retain it',()=>{
  const source=readFileSync(new URL('../entry/src/main/ets/components/OutputSettingsPanel.ets',import.meta.url),'utf8');
- assert.match(source,/@Prop dispatchSuspended: boolean = false/);assert.match(source,/this\.dispatchSuspended \? ' · 待命，无输出' : ' · 发送门开放'/);
+ const page=readFileSync(new URL('../entry/src/main/ets/pages/Index.ets',import.meta.url),'utf8');
+ assert.match(source,/@Prop dispatchSuspended: boolean = false/);assert.match(page,/target\.dispatchSuspended \? '待命' : '已启用'/);
  assert.match(source,/明确 Arm 可待命，无输出/);assert.match(source,/只有真实手动 Transition 当前帧通过检查后才发送/);
  const status={connection:'connected',armed:true,dispatchSuspended:true};
  const Owner=createOutputOwner(()=>({...inertCoordinator(),status(){return status;}}));Owner.current({});

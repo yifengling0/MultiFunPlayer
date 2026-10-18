@@ -122,7 +122,7 @@ test('status formatting distinguishes unknown data, stale clock and unconfirmed 
 
 test('layout is parent-scrolled touch-friendly content with explicit capabilities and no fake player controls', () => {
   assert.match(source, /Column\(\{ space: UiStyle\.gap\(this\.compact\) \}\)/); assert.doesNotMatch(source, /\bScroll\(|nestedScroll|\bList\(/);
-  assert.match(source, /@Prop compact: boolean = false/); assert.match(source, /constraintSize\(\{ minHeight: UiStyle\.control, maxWidth: \'100%\', minWidth: UiStyle\.control \}\)/);
+  assert.match(source, /@Prop compact: boolean = false/); assert.match(source, /constraintSize\(\{ minHeight: UiStyle\.control(?:For\(this\.compact\))?, maxWidth: \'100%\', minWidth: UiStyle\.control(?:For\(this\.compact\))? \}\)/);
   for (const field of ['SettingsChoiceField', 'SettingsTextField', 'SettingsNumberField']) {
     const control = source.slice(source.indexOf(field + '({')); assert.match(control.slice(0, control.indexOf('})')), /compact: this\.compact/);
   }

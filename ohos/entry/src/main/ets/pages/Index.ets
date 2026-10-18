@@ -114,8 +114,8 @@ class VideoSurfaceController extends XComponentController {
 function flatButton() {
   .buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL)
   .backgroundColor(UiStyle.field).fontColor(UiStyle.ink).borderRadius(UiStyle.radius)
-  .padding({ left: 12, right: 12, top: 8, bottom: 8 }).fontSize(18)
-  .border({ width: 1, color: UiStyle.edge })
+  .padding({ left: 12, right: 12, top: 8, bottom: 8 }).fontSize(UiStyle.glyph)
+  .border({ width: 1, color: UiStyle.hairline })
   .labelStyle({ maxLines: 4 }).stateEffect(true)
 }
 
@@ -184,6 +184,11 @@ struct Index {
   private sourceScroller: Scroller = new Scroller();
   @State showSourceSettings: boolean = false;
   @State showOutputSettings: boolean = true;
+  /** Connection workspace is a small page flow: list → add → target detail. */
+  @State outputPage: string = 'list';
+  /** Output/settings use the full inspector height; a ready video is kept alive
+   * (not released) and restored when returning to script/media. */
+  @State previewAutoCollapsed: boolean = false;
   @State showMediaSettings: boolean = false;
   @State showAxisSettings: boolean = true;
   @State showAxisValues: boolean = false;
@@ -338,7 +343,19 @@ struct Index {
     const changed = tool !== this.workspaceTool;
     if (this.workspaceTool === 'settings' && this.showInputSettings && changed) { this.cancelKeyboardWork(); this.showInputSettings = false; this.updateKeyboardContext(); }
     this.selectScreen('workspace');
-    if (changed) { this.retireSettingsDrafts(); this.workspaceTool = tool; }
+    if (this.videoMode) { this.setVideoFloating(false); }
+    if (tool === 'output' || tool === 'settings') {
+      if (this.videoMode && !this.workspacePreviewCollapsed) {
+        this.workspacePreviewCollapsed = true; this.previewAutoCollapsed = true;
+      }
+    } else if (this.previewAutoCollapsed) {
+      this.workspacePreviewCollapsed = false; this.previewAutoCollapsed = false;
+    }
+    if (changed) {
+      this.retireSettingsDrafts();
+      this.workspaceTool = tool;
+      if (tool === 'output') { this.outputPage = 'list'; }
+    }
     this.settingsScroller.scrollEdge(Edge.Top);
   }
   private visibleLibraryItems(): ResourceLibraryItem[] {
@@ -357,6 +374,9 @@ struct Index {
   private librarySearchFocusHandler(focused: boolean): () => void {
     const revision = this.screenRevision; const editor = this.librarySearchEditor; const owner = this.keyboardOwner;
     return (): void => { if (KeyboardInputSession.ownsListener(owner) && owner === this.keyboardOwner && revision === this.screenRevision && this.currentScreen === 'library' && this.viewActive && this.foreground) { KeyboardInputSession.setEditorFocus(editor, focused); } };
+  }
+  clearLibrarySearch(): void {
+    if (this.currentScreen === 'library' && this.viewActive && this.foreground) { this.librarySearch = ''; this.libraryLimit = 20; }
   }
   private libraryPlayHandler(item: ResourceLibraryItem, manual: boolean = false, originalSearch: boolean = false): () => void {
     const request = this.libraryRequest; const revision = this.screenRevision; const epoch = this.settingsDraftEpoch; const owner = this.keyboardOwner;
@@ -402,7 +422,15 @@ struct Index {
   private cancelLibraryPlayback(): void {
     this.libraryPlayRequest = -1;
     if (this.libraryOpeningRevision < 0) { return; }
+    // Opening already completed: a destination/resize change must not release
+    // the playing Surface or close output. Only an in-flight preparation is
+    // cancellable here; explicit Stop/background owns a completed source.
+    if (this.videoMode && this.videoReady && !this.openingVideo && !this.importing) {
+      this.libraryOpeningRevision = -1;
+      return;
+    }
     this.libraryOpeningRevision = -1; this.openVideoRequest++; this.pendingVideoUri = '';
+    console.info('[MFP nav] cancelLibraryPlayback releasing video/output/engine');
     this.openingVideo = false; this.importing = false; this.pairOpening = false; this.videoReady = false; this.videoMode = false;
     this.setVideoFullscreen(false); this.video.release(); this.output.stop(); this.engine.stop(); this.engine.clearScripts(); this.engine.useExternalClock(false);
     this.document = new FunscriptDocument([]); this.status = '已取消视频打开'; this.sync();
@@ -413,7 +441,8 @@ struct Index {
     if (request < 0 || request !== this.openVideoRequest || this.currentScreen !== 'player' || !this.viewActive || !this.foreground ||
       !this.videoMode || !this.videoReady || this.openingVideo || this.importing || this.libraryBusy || this.confirmationCloseUnconfirmed) { return; }
     this.libraryPlayRequest = -1; this.libraryOpeningRevision = -1;
-    if (this.engine.play()) { this.mediaPlayIntent = true; this.syncOutput(); this.video.play(); }
+    const started: boolean = this.engine.play();
+    if (started) { this.mediaPlayIntent = true; this.syncOutput(); this.video.play(); }
   }
   private outputSummary(): string {
     const connected = this.outputTargets.filter(target => target.connection === 'connected').length;
@@ -422,11 +451,83 @@ struct Index {
     const faults = this.outputTargets.filter(target => target.connection === 'fault').length;
     return connected + ' 个已连接 · ' + (armed === 0 ? '输出未启用' : armed + ' 个已启用' + (pending > 0 ? ' / ' + pending + ' 个待命' : '')) + (faults > 0 ? ' · ' + faults + ' 个故障' : '');
   }
+  private outputConnectedCount(): number { return this.outputTargets.filter(target => target.connection === 'connected').length; }
+  private outputArmedCount(): number { return this.outputTargets.filter(target => target.armed).length; }
+  private outputFaultCount(): number { return this.outputTargets.filter(target => target.connection === 'fault' || target.removing).length; }
+  private selectedOutputName(): string {
+    const target = this.outputTargets.find(value => value.id === this.selectedOutputId);
+    return target === undefined ? '输出设备' : target.name;
+  }
+  private selectedOutputExists(): boolean { return this.outputTargets.some(value => value.id === this.selectedOutputId); }
+  private selectedOutputKind(): string {
+    const target = this.outputTargets.find(value => value.id === this.selectedOutputId);
+    return target === undefined ? '输出' : this.outputKindLabel(target.kind);
+  }
+  private selectedOutputGeneration(): number {
+    const target = this.outputTargets.find(value => value.id === this.selectedOutputId);
+    return target === undefined ? 0 : target.generation;
+  }
+  private selectedOutputRemoving(): boolean {
+    const target = this.outputTargets.find(value => value.id === this.selectedOutputId);
+    return target !== undefined && target.removing;
+  }
+  private selectedOutputIsSerial(): boolean {
+    const target = this.outputTargets.find(value => value.id === this.selectedOutputId);
+    return target !== undefined && target.kind === 'serial';
+  }
+  private outputKindLabel(kind: string): string {
+    return kind === 'serial' ? '串口 / USB' : kind === 'webSocket' ? 'WebSocket' : kind.toUpperCase();
+  }
+  private outputKindShort(kind: string): string {
+    return kind === 'serial' ? 'USB' : kind === 'webSocket' ? 'WS' : kind.toUpperCase();
+  }
+  private outputEndpointLabel(id: string): string {
+    const draft = NativeOutputSession.draftSnapshot(id);
+    if (draft.model.kind === 'serial') {
+      return draft.serial.portName.length > 0 ? draft.serial.portName : '未选择串口';
+    }
+    if (draft.model.kind === 'webSocket') {
+      return draft.scheme + '://' + draft.host + ':' + draft.port + (draft.path.length > 0 ? draft.path : '/');
+    }
+    return draft.host + ':' + draft.port;
+  }
+  private outputStatusTone(target: OutputTargetSummary): string {
+    if (target.removing || target.connection === 'fault') { return UiStyle.danger; }
+    if (target.connection === 'connected') { return UiStyle.success; }
+    if (target.connection === 'connecting') { return UiStyle.warning; }
+    return UiStyle.muted;
+  }
+  private outputStatusSoft(target: OutputTargetSummary): string {
+    if (target.removing || target.connection === 'fault') { return UiStyle.dangerSoft; }
+    if (target.connection === 'connected') { return UiStyle.successSoft; }
+    if (target.connection === 'connecting') { return UiStyle.warningSoft; }
+    return UiStyle.fill;
+  }
+  private openOutputTarget(target: OutputTargetSummary): void {
+    this.selectOutputTarget(target.id, target.generation);
+    this.outputPage = 'detail';
+    this.settingsScroller.scrollEdge(Edge.Top);
+  }
+  private addOutputAndOpen(kind: SavedOutputTargetKind): void {
+    const before = this.selectedOutputId;
+    this.addOutputTarget(kind);
+    if (this.selectedOutputId !== before && this.outputTargets.some(target => target.id === this.selectedOutputId)) {
+      this.outputPage = 'detail';
+      this.settingsScroller.scrollEdge(Edge.Top);
+    }
+  }
+  private outputBack(): void {
+    this.outputPage = 'list';
+    this.showAddOutput = false;
+    this.settingsScroller.scrollEdge(Edge.Top);
+  }
   private wideWorkspace(): boolean {
     return !this.videoFloating && !this.workspacePreviewCollapsed && this.widthVp >= 900 && horizontalWorkspace(this.widthVp, this.heightVp, this.generalConfiguration.appOrientation);
   }
   private toggleWorkspacePreview(): void {
-    this.retireSettingsDrafts(); this.workspacePreviewCollapsed = !this.workspacePreviewCollapsed;
+    this.retireSettingsDrafts();
+    this.workspacePreviewCollapsed = !this.workspacePreviewCollapsed;
+    this.previewAutoCollapsed = false;
   }
   private inspectorWidth(): number {
     const available = this.workspaceLayout().settings.width;
@@ -1626,7 +1727,12 @@ struct Index {
     const draft = NativeOutputSession.draftSnapshot(targetId);
     if (draft.applicationId === 0 || draft.applicationId !== target.appliedConfigurationId() || draft.profileRevision !== this.outputProfile.revision ||
       NativeOutputSession.draftDiagnostic(targetId).length > 0 || this.output.isRemoving(targetId)) {
-      target.disarm(); this.syncOutput(); this.outputDiagnostic = '当前草稿尚未应用；请连接 / 应用配置后再启用发送。'; return;
+      target.disarm(); this.syncOutput(); this.outputDiagnostic = '当前草稿尚未应用；请连接设备后再启用发送。'; return;
+    }
+    if (this.videoMode && this.engine.snapshot().state !== 'playing') {
+      target.disarm(); this.syncOutput();
+      this.outputDiagnostic = '视频未在播放：先点播放，等画面开始走动后再启用发送。';
+      return;
     }
     target.arm(); this.syncOutput();
   }
@@ -2220,8 +2326,7 @@ struct Index {
       if (this.playing) { this.mediaPlayIntent = false; await this.video.pause(); }
       else if (this.videoState === 'completed' || (this.durationMs > 0 && this.positionMs >= this.durationMs)) {
         this.mediaPlayIntent = true; this.seekTransport(0, true);
-      } else if (this.engine.play()) { this.mediaPlayIntent = true; this.syncOutput(); await this.video.play(); }
-      this.syncOutput(); return;
+      } else if (this.engine.play()) { this.mediaPlayIntent = true; this.syncOutput(); await this.video.play(); }      this.syncOutput(); return;
     }
     if (this.playing) { this.engine.pause(); }
     else {
@@ -2656,6 +2761,11 @@ struct Index {
       this.runtimeBusy || this.importing || this.openingVideo || this.libraryBusy || this.sessionFault.length > 0);
   }
   videoCanToggle(): boolean { return this.videoCommand() !== 'blocked'; }
+  transportPlayEnabled(): boolean {
+    return this.videoMode ? this.videoCanToggle() :
+      this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy &&
+        (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds));
+  }
   videoPlaybackStatus(): string {
     if (this.videoActionPending) { return '正在处理播放操作…'; }
     if (this.openingVideo || this.importing) { return '正在准备视频…'; }
@@ -2714,6 +2824,12 @@ struct Index {
     if (this.videoDrag.move(offsetX, offsetY, bounds)) { this.floatingXRatio = this.videoDrag.xRatio; this.floatingYRatio = this.videoDrag.yRatio; }
   }
   contentPadding(): number { return UiStyle.contentInset(this.widthVp); }
+  /** Tablet/PC landscape keeps the library as a readable column instead of a
+   * full-width stretched list; phones keep their normal gutter. */
+  libraryContentInset(): number {
+    const maximum = 980;
+    return Math.max(this.contentPadding(), (this.widthVp - maximum) / 2);
+  }
   scriptPaneWidth(): number {
     return Math.max(1, this.inspectorWidth() - 2 * this.contentPadding());
   }
@@ -2770,6 +2886,9 @@ struct Index {
   }
   onBackPress(): boolean {
     if (this.videoFullscreen || this.presentationRestorePending) { this.setVideoFullscreen(false); return true; }
+    if (this.currentScreen === 'workspace' && this.workspaceTool === 'output' && this.outputPage !== 'list') {
+      this.outputPage = 'list'; this.showAddOutput = false; return true;
+    }
     if (this.currentScreen !== 'library') { this.showLibrary(); return true; }
     return false;
   }
@@ -2880,7 +2999,9 @@ struct Index {
     return (): void => { if (current()) {
       this.openConfirmation(new ConfirmationRequest('停止并删除此输出？',
         '仅在原连接确认关闭后删除保存的配置。关闭失败会保留此目标，不能绕过隔离。', '停止并删除', true,
-        current, (): void => { void this.removeOutputTarget(id, generation); }));
+        current, (): void => { void this.removeOutputTarget(id, generation).then(() => {
+          if (this.viewActive && !this.outputTargets.some(target => target.id === id)) { this.outputPage = 'list'; }
+        }); }));
     } };
   }
   drawTrace(): void {
@@ -2926,8 +3047,11 @@ struct Index {
   }
   @Builder
   heading(title: string, detail: string) {
-    Column({ space: 4 }) {
-      Text(t(title)).fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).width('100%')
+    Column({ space: 6 }) {
+      Row({ space: 8 }) {
+        Column().width(4).height(22).borderRadius(2).backgroundColor(UiStyle.accent)
+        Text(t(title)).fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).layoutWeight(1)
+      }.width('100%')
       Text(t(detail)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
     }.width('100%').margin({ bottom: 12 })
   }
@@ -2938,37 +3062,53 @@ struct Index {
   }
   @Builder
   mediaToolbar() {
-    Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
-      Button('⌕').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontSize(22).accessibilityText(t('Script repositories and resources')).onClick(() => this.showLibrary())
-      Button('↻').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontSize(22).accessibilityText(t('Refresh Download media folder')).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.refreshLibrary())
-      Button('AB').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).enabled(!this.libraryBusy && !this.importing && !this.openingVideo && (this.deoVrActive ? this.deoVrConnected : this.videoMode ? this.videoReady : this.internalConnected) && Number.isFinite(this.engine.mediaPositionSeconds())).accessibilityText(t('Set AB loop start, end, or clear')).onClick(() => { this.playlistAction(new PlaylistPanelAction('loopCycle')); })
-      Button(this.playing ? 'Ⅱ' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? '↶' : '▶')).flatButton()
-        .width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontColor(UiStyle.success).fontSize(22).accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
-        .enabled(this.videoMode ? this.videoCanToggle() : this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds))).onClick(() => { if (this.videoMode) { void this.videoPlaybackAction(); } else { void this.playPause(); } })
-      Button('■').flatButton().backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontSize(20).accessibilityText(t('Stop output')).onClick(() => this.stop())
-      Button('同步').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).accessibilityText(t('Media timing settings')).onClick(() => { this.showMediaSettings = true; this.selectWorkspaceTool('script'); })
-    }.width('100%').backgroundColor(UiStyle.card).borderRadius(UiStyle.radius)
+    Column({ space: 8 }) {
+      Row({ space: 8 }) {
+        Button('⌕ 资源').flatButton().layoutWeight(1).height(48).padding({ left: 8, right: 8 }).fontSize(15)
+          .accessibilityText(t('Script repositories and resources')).onClick(() => this.showLibrary())
+        Button('↻ 刷新').flatButton().layoutWeight(1).height(48).padding({ left: 8, right: 8 }).fontSize(15)
+          .accessibilityText(t('Refresh Download media folder')).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(() => this.refreshLibrary())
+        Button('AB 循环').flatButton().layoutWeight(1).height(48).padding({ left: 8, right: 8 }).fontSize(15)
+          .enabled(!this.libraryBusy && !this.importing && !this.openingVideo && (this.deoVrActive ? this.deoVrConnected : this.videoMode ? this.videoReady : this.internalConnected) && Number.isFinite(this.engine.mediaPositionSeconds()))
+          .accessibilityText(t('Set AB loop start, end, or clear')).onClick(() => { this.playlistAction(new PlaylistPanelAction('loopCycle')); })
+      }.width('100%')
+      Row({ space: 8 }) {
+        Button(this.playing ? 'Ⅱ 暂停' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? '↶ 重播' : '▶ 播放'))
+          .flatButton().layoutWeight(1).height(48).padding({ left: 8, right: 8 }).fontSize(15)
+          .fontColor(this.transportPlayEnabled() ? UiStyle.onAccent : UiStyle.muted).fontWeight(FontWeight.Medium)
+          .backgroundColor(this.transportPlayEnabled() ? UiStyle.accent : UiStyle.field).border({ width: 0 })
+          .accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
+          .enabled(this.videoMode ? this.videoCanToggle() : this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds)))
+          .onClick(() => { if (this.videoMode) { void this.videoPlaybackAction(); } else { void this.playPause(); } })
+        Button('■ 停止').flatButton().backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).border({ width: 0 })
+          .layoutWeight(1).height(48).padding({ left: 8, right: 8 }).fontSize(15)
+          .accessibilityText(t('Stop output')).onClick(() => this.stop())
+        Button('同步').flatButton().layoutWeight(1).height(48).padding({ left: 8, right: 8 }).fontSize(15)
+          .accessibilityText(t('Media timing settings')).onClick(() => { this.showMediaSettings = true; this.selectWorkspaceTool('script'); })
+      }.width('100%')
+    }.width('100%').padding(8).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
   }
   @Builder
   timeline() {
-    Column({ space: 3 }) {
+    Column({ space: 8 }) {
       Canvas(this.canvas).width('100%').height(this.compactControls() ? 64 : 72)
+        .borderRadius(UiStyle.radius).clip(true)
         .onReady(() => this.drawTrace())
         .onClick((event: ClickEvent) => this.seekTransport(Math.max(0, Math.min(1, event.x / Math.max(1, this.canvas.width))) * this.durationMs))
       Slider({ value: this.positionMs, min: 0, max: Math.max(1, this.durationMs), step: 1 }).attributeModifier(new MfpSliderMaterialModifier(this.materialRevision))
-        .height(UiStyle.control).selectedColor(UiStyle.muted).trackColor(UiStyle.edge).blockColor(UiStyle.ink)
+        .height(UiStyle.control).selectedColor(UiStyle.accent).trackColor(UiStyle.edge).blockColor(UiStyle.accent)
         .onChange((value: number) => this.seekTransport(value))
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
         Text((this.positionMs / 1000).toFixed(2) + ' / ' + (this.durationMs / 1000).toFixed(2) + ' s').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
         Blank()
-        Button(this.showHeatSettings ? t('Heatmap ⌃') : t('Heatmap ⌄')).flatButton().constraintSize({ minHeight: UiStyle.control }).fontSize(UiStyle.body(this.compactControls())).onClick(() => { this.showHeatSettings = !this.showHeatSettings; })
+        Button(this.showHeatSettings ? t('Heatmap ⌃') : t('Heatmap ⌄')).flatButton().constraintSize({ minHeight: 40 }).fontSize(UiStyle.body(this.compactControls())).onClick(() => { this.showHeatSettings = !this.showHeatSettings; })
       }.width('100%')
       if (this.showHeatSettings) {
         SettingsSwitchField({ label: t('Show range'), value: this.heatShowRange, compact: this.compactControls(), onChange: (value: boolean) => { this.heatShowRange = value; this.drawTrace(); } })
         SettingsSwitchField({ label: t('Combine axes'), value: this.heatCombine, compact: this.compactControls(), onChange: (value: boolean) => { this.heatCombine = value; this.drawTrace(); } })
         SettingsSwitchField({ label: t('Invert display Y'), value: this.heatInvert, compact: this.compactControls(), onChange: (value: boolean) => { this.heatInvert = value; this.drawTrace(); } })
       }
-    }.width('100%').backgroundColor('#FFFFFF').borderRadius(UiStyle.radius)
+    }.width('100%').padding(12).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
   }
   @Builder
   axes() {
@@ -2976,36 +3116,41 @@ struct Index {
         ForEach(this.axisNames, (name: string, index: number) => {
           Row({ space: 10 }) {
             Text(name).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).fontWeight(FontWeight.Bold).width(38)
-            Progress({ value: Number.isFinite(this.axisValues[index]) ? this.axisValues[index] : 0, total: 100, type: ProgressType.Linear }).color(UiStyle.muted).backgroundColor(UiStyle.edge).layoutWeight(1)
+            Progress({ value: Number.isFinite(this.axisValues[index]) ? this.axisValues[index] : 0, total: 100, type: ProgressType.Linear }).color(UiStyle.accent).backgroundColor(UiStyle.edge).layoutWeight(1)
             Text(Number.isFinite(this.axisValues[index]) ? this.axisValues[index].toFixed(1) : '—').fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink).width(64).textAlign(TextAlign.End)
-          }.constraintSize({ minHeight: UiStyle.control }).padding({ left: 12, right: 12 })
+          }.constraintSize({ minHeight: UiStyle.control }).padding({ left: 4, right: 4 })
         })
-    }.backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).width('100%')
+    }.padding(12).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard).width('100%')
   }
   @Builder
   axisToolbar() {
     Column({ space: 0 }) {
-      Scroll() {
-        Row({ space: 0 }) {
-          ForEach(this.axisNames, (name: string, index: number) => {
-            Column({ space: 0 }) {
-              Text(name).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold).fontColor(index === this.selectedAxis ? UiStyle.ink : UiStyle.muted)
-              Text(this.axisIndicators[index] || '· · · ·').fontSize(UiStyle.helper).fontColor(UiStyle.muted).accessibilityText(t('Script, motion, home and limit state'))
-            }.width(64).height(52).justifyContent(FlexAlign.Center).backgroundColor(index === this.selectedAxis ? UiStyle.accentSoft : UiStyle.card)
-              .onClick(() => { this.selectedAxis = index; this.sync(); })
-          })
-        }
-      }.width('100%').scrollable(ScrollDirection.Horizontal)
+      Row({ space: 2 }) {
+        ForEach(this.axisNames, (name: string, index: number) => {
+          Column({ space: 0 }) {
+            Text(name).fontSize(15).fontWeight(FontWeight.Bold).fontColor(index === this.selectedAxis ? UiStyle.accent : UiStyle.muted)
+            Text(this.axisIndicators[index] || '· · · ·').fontSize(UiStyle.helper).fontColor(index === this.selectedAxis ? UiStyle.accent : UiStyle.muted).maxLines(1)
+              .accessibilityText(t('Script, motion, home and limit state'))
+          }.width(64).height(48).justifyContent(FlexAlign.Center)
+            .backgroundColor(index === this.selectedAxis ? UiStyle.accentSoft : Color.Transparent)
+            .borderRadius(14)
+            .onClick(() => { this.selectedAxis = index; this.sync(); })
+        })
+      }.width('100%').padding(4).backgroundColor(UiStyle.fill).borderRadius(18)
       Row({ space: 8 }) {
-        Text((this.axisNames[this.selectedAxis] || '轴') + ' · ' + (this.selectedAxisDefinition.friendlyName || '轴控制')).fontSize(UiStyle.heading).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).layoutWeight(1)
-        Button(this.showAxisSettings ? '收起参数' : '轴参数').flatButton().constraintSize({ minHeight: UiStyle.control }).onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
+        Text((this.axisNames[this.selectedAxis] || '轴') + ' · ' + (this.selectedAxisDefinition.friendlyName || '轴控制')).fontSize(18).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).layoutWeight(1)
+        Button(this.showAxisSettings ? '收起参数' : '轴参数').flatButton().constraintSize({ minHeight: 40 })
+          .backgroundColor(UiStyle.accentSoft).fontColor(UiStyle.accent).border({ width: 0 })
+          .onClick(() => { this.showAxisSettings = !this.showAxisSettings; })
       }.width('100%').margin({ top: 12, bottom: 8 })
       if (this.showAxisSettings) {
         if (this.axisNames.length > 0) {
           AxisSettingsPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('axis'), draftEpoch: this.settingsDraftEpoch, configuration: this.selectedAxisConfiguration, axis: this.selectedAxisDefinition,
             availableAxes: this.engine.activeRegistry().profile.axes.slice(), showTitle: false, compact: this.compactControls(), readOnly: this.settingsReadOnly || this.recoveryRequired,
             onChange: (configuration: AxisConfiguration) => this.applyAxisSettings(configuration) })
-          Button(this.showScriptResourceDetails ? '脚本资源详情  ▴' : '脚本资源详情  ▾').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showScriptResourceDetails = !this.showScriptResourceDetails; })
+          Button(this.showScriptResourceDetails ? '脚本资源详情  ▴' : '脚本资源详情  ▾').flatButton().constraintSize({ minHeight: 44 }).width('100%')
+            .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline })
+            .onClick(() => { this.showScriptResourceDetails = !this.showScriptResourceDetails; })
           if (this.showScriptResourceDetails || this.scriptReloadBusy) {
             Text(t(this.fileName)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
           Button(this.scriptReloadBusy ? '取消当前资源重载' : '重新读取当前轴脚本').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
@@ -3016,22 +3161,30 @@ struct Index {
 
         }
       }
-    }.width('100%').backgroundColor(UiStyle.card).borderRadius(UiStyle.radius)
+    }.width('100%').padding(12).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
   }
   @Builder
   scriptArea() {
-    Column({ space: 8 }) {
+    Column({ space: 12 }) {
       this.axisToolbar()
-      Button(this.showMotionSettings ? '运动与曲线  ▴' : '运动与曲线  ▾').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
-        .onClick(() => { this.showMotionSettings = !this.showMotionSettings; this.sync(); })
+      Row({ space: 8 }) {
+        Button(this.showMotionSettings ? '运动与曲线  ▴' : '运动与曲线  ▾').flatButton().layoutWeight(1).constraintSize({ minHeight: 44 })
+          .backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline }).fontWeight(FontWeight.Medium)
+          .onClick(() => { this.showMotionSettings = !this.showMotionSettings; this.sync(); })
+        Button(this.showMediaSettings ? '同步与时间偏移  ▴' : '同步与时间偏移  ▾').flatButton().layoutWeight(1).constraintSize({ minHeight: 44 })
+          .backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline }).fontWeight(FontWeight.Medium)
+          .onClick(() => { this.showMediaSettings = !this.showMediaSettings; })
+      }.width('100%')
       if (this.showMotionSettings && this.axisNames.length > 0) { this.motionPanel() }
-      Button(this.showMediaSettings ? '同步与时间偏移  ▴' : '同步与时间偏移  ▾').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
-        .onClick(() => { this.showMediaSettings = !this.showMediaSettings; })
       if (this.showMediaSettings) { this.syncPanel() }
-      Button(this.showAxisValues ? '收起全部轴值' : '查看全部轴值').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showAxisValues = !this.showAxisValues; })
+      Button(this.showAxisValues ? '收起全部轴值' : '查看全部轴值').flatButton().constraintSize({ minHeight: 40 }).width('100%')
+        .backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline }).fontWeight(FontWeight.Medium)
+        .onClick(() => { this.showAxisValues = !this.showAxisValues; })
       if (this.showAxisValues) { this.axes() }
       if (this.workspaceLayout().trace.height === 0 && this.videoMode) {
-        Button(this.showTrace ? '收起脚本轨迹与标记' : '脚本轨迹与章节 / 书签').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showTrace = !this.showTrace; })
+        Button(this.showTrace ? '收起脚本轨迹与标记' : '脚本轨迹与章节 / 书签').flatButton().constraintSize({ minHeight: 40 }).width('100%')
+          .backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline }).fontWeight(FontWeight.Medium)
+          .onClick(() => { this.showTrace = !this.showTrace; })
         if (this.showTrace) { this.traceArea() }
       }
     }.width('100%')
@@ -3045,6 +3198,7 @@ struct Index {
       }.width('100%')
       this.timeline()
       Button(this.showMarkerDetails ? '章节 / 书签  ▴' : '章节 / 书签  ▾').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
+        .backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline }).fontWeight(FontWeight.Medium)
         .onClick(() => { this.showMarkerDetails = !this.showMarkerDetails; })
       if (this.showMarkerDetails) { this.markerPanel() }
     }.width('100%')
@@ -3061,55 +3215,98 @@ struct Index {
   }
   @Builder
   videoLibraryScreen() {
-    Column({ space: 8 }) {
-      Row({ space: 8 }) {
-        TextInput({ text: this.librarySearch, placeholder: '搜索视频' }).height(48).layoutWeight(1).fontSize(16)
-          .backgroundColor(UiStyle.field).borderRadius(UiStyle.radius).maxLength(256)
+    Column({ space: 0 }) {
+      Row({ space: 12 }) {
+        Column({ space: 4 }) {
+          Text('视频库').fontSize(UiStyle.display).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).width('100%')
+          Text(this.libraryBusy ? t(this.libraryMessage) : this.visibleLibraryItems().length + ' 个视频 · 选择卡片开始播放')
+            .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
+        }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+        Button(this.libraryBusy ? '取消' : '↻ 刷新').flatButton().height(44).padding({ left: 16, right: 16 })
+          .backgroundColor(this.libraryBusy ? UiStyle.dangerSoft : UiStyle.accentSoft)
+          .fontColor(this.libraryBusy ? UiStyle.danger : UiStyle.accent)
+          .border({ width: 0 }).fontWeight(FontWeight.Medium)
+          .enabled(this.libraryBusy || (!this.importing && !this.openingVideo))
+          .onClick(() => { if (this.libraryBusy) { this.cancelLibrary(); } else { this.refreshLibrary(); } })
+      }.width('100%').padding({ top: 12, bottom: 12 })
+
+      Row({ space: 0 }) {
+        Text('⌕').fontSize(20).fontColor(UiStyle.muted).padding({ left: 16, right: 8 })
+        TextInput({ text: this.librarySearch, placeholder: '搜索视频、脚本或 ZIP' }).height(48).layoutWeight(1).fontSize(UiStyle.body(this.compactControls()))
+          .backgroundColor(Color.Transparent).borderRadius(0).maxLength(256).padding({ left: 0, right: 8 })
           .onFocus(this.librarySearchFocusHandler(true))
           .onBlur(this.librarySearchFocusHandler(false))
           .onKeyPreIme(KeyboardInputSession.emergencyHandler(this.librarySearchEditor))
           .onChange(KeyboardInputSession.changeHandler(this.librarySearchEditor, this.librarySearchHandler()))
-        Button(this.libraryBusy ? '取消' : '刷新').flatButton().height(48).padding({ left: 12, right: 12 })
-          .enabled(this.libraryBusy || (!this.importing && !this.openingVideo))
-          .onClick(() => { if (this.libraryBusy) { this.cancelLibrary(); } else { this.refreshLibrary(); } })
-      }.width('100%')
+        if (this.librarySearch.length > 0) {
+          Button('✕').flatButton().width(40).height(40).margin({ right: 4 })
+            .backgroundColor(Color.Transparent).border({ width: 0 }).fontColor(UiStyle.muted)
+            .accessibilityText('清除搜索').onClick(() => this.clearLibrarySearch())
+        }
+      }.width('100%').height(52).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusPill)
+        .border({ width: 1, color: UiStyle.hairline })
+
       if (this.libraryBusy || this.libraryItems.length === 0) {
-        Text(t(this.libraryMessage)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
+        Text(t(this.libraryMessage)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').padding({ top: 8, bottom: 8 })
       }
       Scroll(this.sourceScroller) {
-        Column({ space: 0 }) {
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Start }) {
           if (!this.libraryBusy && this.visibleLibraryItems().length === 0) {
-            Text(this.librarySearch.length > 0 ? '没有找到匹配的视频' : '将视频和同名脚本放入 Download/com.multifunplayer.ohos，然后刷新。')
-              .fontSize(16).fontColor(UiStyle.muted).width('100%').padding({ top: 32, bottom: 32 })
+            Column({ space: 10 }) {
+              Text('▤').fontSize(40).fontColor(UiStyle.edge)
+              Text(this.librarySearch.length > 0 ? '没有找到匹配的视频' : '这里还没有视频').fontSize(UiStyle.section)
+                .fontWeight(FontWeight.Medium).fontColor(UiStyle.ink)
+              Text('将视频和同名脚本放入 Download/com.multifunplayer.ohos，然后点击刷新。')
+                .fontSize(UiStyle.helper).fontColor(UiStyle.muted).textAlign(TextAlign.Center)
+            }.width('100%').padding({ top: 48, bottom: 48, left: 24, right: 24 })
+              .backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard).margin({ bottom: UiStyle.cardGap })
           }
           ForEach(this.visibleLibraryItems().slice(0, this.libraryLimit), (item: ResourceLibraryItem) => {
             Column({ space: 0 }) {
               Row({ space: 8 }) {
-                Button() {
-                  Row({ space: 12 }) {
-                    Text('▶').fontSize(20).fontColor(UiStyle.accent).width(32)
-                    Column({ space: 4 }) {
-                      Text(item.title).fontSize(16).fontColor(UiStyle.ink).fontWeight(FontWeight.Medium).maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis }).width('100%')
-                      Text(item.videos.length > 1 ? '多个视频 · 选择后播放' : item.scripts.length + item.archives.length > 0 ? '已找到配套脚本' : '仅视频').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
-                    }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-                  }.width('100%')
-                }.flatButton().backgroundColor(UiStyle.page).border({ width: 0 }).borderRadius(0).layoutWeight(1)
-                  .constraintSize({ minHeight: 76 }).padding({ left: 0, right: 0, top: 8, bottom: 8 })
-                  .enabled(!this.libraryBusy && !this.importing && !this.openingVideo)
+                Row({ space: 12 }) {
+                  Stack({ alignContent: Alignment.Center }) {
+                    Column().width('100%').height('100%')
+                      .linearGradient({ angle: 135, colors: [[UiStyle.accent, 0.0], ['#5B94FF', 1.0]] })
+                    Text('▶').fontSize(18).fontColor('#FFFFFF')
+                  }.width(56).height(56).borderRadius(16).clip(true)
+                  Column({ space: 6 }) {
+                    Text(item.title).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.ink)
+                      .fontWeight(FontWeight.Medium).maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis }).width('100%')
+                    Row({ space: 6 }) {
+                      Text(item.videos.length > 1 ? item.videos.length + ' 个视频' : '视频')
+                        .fontSize(UiStyle.helper).fontColor(UiStyle.muted).padding({ left: 8, right: 8, top: 2, bottom: 2 })
+                        .backgroundColor(UiStyle.fill).borderRadius(10)
+                      Text(item.scripts.length + item.archives.length > 0 ? '已配对脚本' : '仅视频')
+                        .fontSize(UiStyle.helper).fontColor(item.scripts.length + item.archives.length > 0 ? UiStyle.success : UiStyle.muted)
+                        .padding({ left: 8, right: 8, top: 2, bottom: 2 })
+                        .backgroundColor(item.scripts.length + item.archives.length > 0 ? UiStyle.successSoft : UiStyle.fill)
+                        .borderRadius(10)
+                    }.width('100%')
+                  }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+                }.layoutWeight(1).constraintSize({ minHeight: 64 }).padding({ left: 0, right: 0, top: 4, bottom: 4 })
+                  .alignItems(VerticalAlign.Center)
+                  .accessibilityText('播放视频 ' + item.title)
                   .onClick(this.libraryPlayHandler(item))
-                Button(this.libraryDetailsId === item.id ? '⌃' : '•••').flatButton().width(48).height(48)
+                Button(this.libraryDetailsId === item.id ? '⌃' : '⋮').flatButton().width(40).height(40).padding(0).fontSize(20)
+                  .backgroundColor(UiStyle.fill).border({ width: 0 }).fontColor(UiStyle.muted)
                   .accessibilityText('视频详情与脚本配对').onClick(this.libraryDetailsHandler(item))
               }.width('100%')
               if (this.libraryDetailsId === item.id) { this.libraryItemDetails(item) }
-            }.width('100%').border({ width: { bottom: 1 }, color: UiStyle.edge })
+            }.width(this.widthVp >= 900 ? '49%' : '100%').backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
+              .padding({ left: 12, right: 12, top: 10, bottom: 10 })
+              .margin({ bottom: UiStyle.cardGap })
+              .shadow({ radius: 12, color: UiStyle.shadowColor, offsetY: 3 })
+              .onClick(this.libraryPlayHandler(item))
           }, (item: ResourceLibraryItem) => item.id)
           if (this.visibleLibraryItems().length > this.libraryLimit) {
-            Button('显示更多').flatButton().height(48).width('100%').onClick(() => { this.libraryLimit += 20; })
+            Button('显示更多').flatButton().height(48).width('100%')
+              .backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline })
+              .onClick(() => { this.libraryLimit += 20; })
           }
-        }.width('100%').padding({ bottom: this.videoFloating ? this.workspaceLayout().video.height + 16 : 0 })
-      }.layoutWeight(1).width('100%').align(Alignment.Top)
-        .onDidScroll(() => { if (this.videoMode && this.sourceScroller.currentOffset().yOffset > 96) { this.setVideoFloating(true); } })
-    }.padding({ left: this.contentPadding(), right: this.contentPadding(), top: 8, bottom: 8 })
+        }.width('100%').padding({ top: 12, bottom: this.videoFloating ? this.workspaceLayout().video.height + 16 : 24 })
+      }.layoutWeight(1).width('100%').align(Alignment.Top).scrollBar(BarState.Auto)
+    }.padding({ left: this.libraryContentInset(), right: this.libraryContentInset(), top: 8, bottom: 8 })
       .width(this.widthVp).height(this.workspaceLayout().settings.height)
       .position({ x: 0, y: this.workspaceLayout().settings.y })
   }
@@ -3117,20 +3314,31 @@ struct Index {
   libraryItemDetails(item: ResourceLibraryItem) {
     Column({ space: 8 }) {
       Text(t(item.status) + (item.reasons.length > 0 ? ' · ' + item.reasons.join('; ') : '')).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
+      if (item.videos.length > 0) { Text('选择视频').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
       ForEach(item.videos, (file: ResourceFileEntry) => {
         Button((this.manualVideoUri === file.uri ? '● ' : '○ ') + file.name).flatButton().constraintSize({ minHeight: 48 }).width('100%')
+          .backgroundColor(this.manualVideoUri === file.uri ? UiStyle.accentSoft : UiStyle.field)
+          .fontColor(this.manualVideoUri === file.uri ? UiStyle.accent : UiStyle.ink)
+          .border({ width: 1, color: this.manualVideoUri === file.uri ? UiStyle.accentSoft : UiStyle.hairline })
           .onClick(this.librarySelectionHandler(item, file.uri, false))
       }, (file: ResourceFileEntry) => file.uri)
       if (item.scripts.length > 0) { Text('脚本配对').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
       ForEach(item.scripts, (match: ResourceScriptMatch) => {
         Button((this.manualScriptUris.indexOf(match.file.uri) >= 0 ? '☑ ' : '☐ ') + match.file.name).flatButton().constraintSize({ minHeight: 48 }).width('100%')
+          .backgroundColor(this.manualScriptUris.indexOf(match.file.uri) >= 0 ? UiStyle.accentSoft : UiStyle.field)
+          .fontColor(this.manualScriptUris.indexOf(match.file.uri) >= 0 ? UiStyle.accent : UiStyle.ink)
+          .border({ width: 1, color: this.manualScriptUris.indexOf(match.file.uri) >= 0 ? UiStyle.accentSoft : UiStyle.hairline })
           .onClick(this.librarySelectionHandler(item, match.file.uri, true))
       }, (match: ResourceScriptMatch) => match.file.uri)
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
-        Button('自动配对播放').flatButton().constraintSize({ minHeight: 48 }).layoutWeight(1).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(this.libraryPlayHandler(item, true, true))
-        Button('按所选配对播放').flatButton().constraintSize({ minHeight: 48 }).layoutWeight(1).enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(this.libraryPlayHandler(item, true))
+        Button('自动配对播放').flatButton().constraintSize({ minHeight: 48 }).layoutWeight(1)
+          .backgroundColor(UiStyle.accent).fontColor(UiStyle.onAccent).border({ width: 0 })
+          .enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(this.libraryPlayHandler(item, true, true))
+        Button('按所选配对播放').flatButton().constraintSize({ minHeight: 48 }).layoutWeight(1)
+          .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline })
+          .enabled(!this.libraryBusy && !this.importing && !this.openingVideo).onClick(this.libraryPlayHandler(item, true))
       }.width('100%')
-    }.padding({ top: 8, bottom: 12 }).width('100%')
+    }.padding({ top: 8, bottom: 4 }).width('100%')
   }
   @Builder
   libraryPanel() {
@@ -3179,30 +3387,45 @@ struct Index {
 
   @Builder
   sourcePanel() {
-    Column({ space: 0 }) {
-      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
+    Column({ space: 10 }) {
+      Row({ space: 8 }) {
         Column({ space: 2 }) {
-          Text(t('Internal')).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold)
+          Text(t('Internal')).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Medium)
           Text(this.internalConnected ? t('Connected') : t('Disconnected')).fontSize(UiStyle.helper).fontColor(this.internalConnected ? UiStyle.success : UiStyle.muted)
-        }.width('50%').constraintSize({ minHeight: UiStyle.control }).justifyContent(FlexAlign.Center).backgroundColor(!this.videoMode && !this.deoVrActive ? UiStyle.accentSoft : UiStyle.card)
+        }.layoutWeight(1).height(60).justifyContent(FlexAlign.Center)
+          .backgroundColor(!this.videoMode && !this.deoVrActive ? UiStyle.accentSoft : UiStyle.field)
+          .borderRadius(14).border({ width: 1, color: !this.videoMode && !this.deoVrActive ? UiStyle.accentSoft : UiStyle.hairline })
           .onClick(() => { this.showSourceSettings = true; if (!this.internalConnected) { this.connectInternal(); } })
         Column({ space: 2 }) {
-          Text(t('Local video')).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold)
+          Text(t('Local video')).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Medium)
           Text(t(this.videoMode ? this.videoState : 'Disconnected')).fontSize(UiStyle.helper).fontColor(this.videoReady ? UiStyle.success : UiStyle.danger)
-        }.width('50%').constraintSize({ minHeight: UiStyle.control }).justifyContent(FlexAlign.Center).backgroundColor(this.videoMode ? UiStyle.accentSoft : UiStyle.card)
+        }.layoutWeight(1).height(60).justifyContent(FlexAlign.Center)
+          .backgroundColor(this.videoMode ? UiStyle.accentSoft : UiStyle.field)
+          .borderRadius(14).border({ width: 1, color: this.videoMode ? UiStyle.accentSoft : UiStyle.hairline })
           .onClick(() => { this.showLibrary(); })
-        Button(this.remoteName() + ' · ' + t(this.deoVrStatus)).flatButton().constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).width('100%').onClick(() => { this.showSourceSettings = true; })
-        Button('⌕').flatButton().constraintSize({ minHeight: UiStyle.control }).width('50%').accessibilityText(t('Resources and script libraries')).onClick(() => this.showLibrary())
-        Button(this.showSourceSettings ? '⌃' : '⚙').flatButton().constraintSize({ minHeight: UiStyle.control }).width('50%').accessibilityText(t('Source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
       }.width('100%')
-      Divider().color(UiStyle.edge)
-      Row() {
-        Button(this.videoMode ? '■' : '⌕').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText(this.videoMode ? t('Close local video') : t('Resources and script libraries')).enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
-          .onClick(() => { if (this.videoMode) { this.closeVideo(); } else { this.showLibrary(); } })
-        Text(t(this.videoMode ? this.videoName : this.fileName)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).layoutWeight(1).wordBreak(WordBreak.BREAK_ALL)
-        Button(this.showSourceSettings ? '⌃' : '⌄').flatButton().width(UiStyle.control).height(UiStyle.control).accessibilityText(t('Expand source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
-      }
-      Button(this.showMediaAdvanced ? '独立预览与运行恢复  ▴' : '独立预览与运行恢复  ▾').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showMediaAdvanced = !this.showMediaAdvanced; })
+      Button(this.remoteName() + ' · ' + t(this.deoVrStatus)).flatButton().constraintSize({ minHeight: 44, maxWidth: '100%' }).width('100%')
+        .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline }).borderRadius(12)
+        .onClick(() => { this.showSourceSettings = true; })
+      Row({ space: 8 }) {
+        Button('资源与脚本库').flatButton().layoutWeight(1).constraintSize({ minHeight: 44 })
+          .backgroundColor(UiStyle.accentSoft).fontColor(UiStyle.accent).border({ width: 0 })
+          .accessibilityText(t('Resources and script libraries')).onClick(() => this.showLibrary())
+        Button(this.showSourceSettings ? '收起来源设置' : '来源设置').flatButton().layoutWeight(1).constraintSize({ minHeight: 44 })
+          .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline })
+          .accessibilityText(t('Source settings')).onClick(() => { this.showSourceSettings = !this.showSourceSettings; })
+      }.width('100%')
+      Row({ space: 8 }) {
+        Text(t(this.videoMode ? this.videoName : this.fileName)).fontSize(UiStyle.helper).fontColor(UiStyle.muted).layoutWeight(1).maxLines(2).wordBreak(WordBreak.BREAK_ALL)
+        if (this.videoMode) {
+          Button('关闭视频').flatButton().constraintSize({ minHeight: 36 }).fontSize(14)
+            .backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).border({ width: 0 })
+            .enabled(!this.importing && !this.openingVideo && !this.libraryBusy)
+            .accessibilityText(t('Close local video')).onClick(() => this.closeVideo())
+        }
+      }.width('100%')
+      Button(this.showMediaAdvanced ? '独立预览与运行恢复  ▴' : '独立预览与运行恢复  ▾').flatButton().constraintSize({ minHeight: 44 }).width('100%')
+        .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline }).onClick(() => { this.showMediaAdvanced = !this.showMediaAdvanced; })
       if (this.showMediaAdvanced) {
       Column({ space: 6 }) {
         Button(this.standaloneMotion ? '停止独立Motion' : '关闭媒体并启动独立Motion').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
@@ -3235,15 +3458,19 @@ struct Index {
           }.padding({ top: 10, bottom: 10 })
         }
       }
-    }.backgroundColor(UiStyle.card).borderRadius(UiStyle.radius).width('100%')
+    }.padding(12).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard).width('100%')
   }
   @Builder
   preferencesPanel() {
-    Column({ space: 8 }) {
+    Column({ space: 12 }) {
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
-        Button(this.showGeneralSettings ? '收起通用设置' : '通用设置').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).onClick(() => { this.showGeneralSettings = !this.showGeneralSettings; })
-        Button(this.showInputSettings ? '结束编辑快捷键' : '键盘映射 / 触摸命令').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).onClick(() => this.toggleInputSettings())
-        Button('停止 · F12').flatButton().backgroundColor(UiStyle.danger).fontColor('#FFFFFF').height(UiStyle.control).margin(4).onClick(() => this.stop())
+        Button(this.showGeneralSettings ? '收起通用设置' : '通用设置').flatButton().constraintSize({ minHeight: 44 }).margin(4)
+          .backgroundColor(this.showGeneralSettings ? UiStyle.accentSoft : UiStyle.card).fontColor(this.showGeneralSettings ? UiStyle.accent : UiStyle.ink)
+          .border({ width: 1, color: UiStyle.hairline }).onClick(() => { this.showGeneralSettings = !this.showGeneralSettings; })
+        Button(this.showInputSettings ? '结束编辑快捷键' : '键盘映射 / 触摸命令').flatButton().constraintSize({ minHeight: 44 }).margin(4)
+          .backgroundColor(this.showInputSettings ? UiStyle.accentSoft : UiStyle.card).fontColor(this.showInputSettings ? UiStyle.accent : UiStyle.ink)
+          .border({ width: 1, color: UiStyle.hairline }).onClick(() => this.toggleInputSettings())
+        Button('停止 · F12').flatButton().backgroundColor(UiStyle.danger).fontColor(UiStyle.onAccent).border({ width: 0 }).height(44).margin(4).onClick(() => this.stop())
       }.width('100%')
       if (this.inputFocusMessage.length > 0) { Text(this.inputFocusMessage).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
       if (this.inputMessage.length > 0) { Text(this.inputMessage).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
@@ -3302,60 +3529,183 @@ struct Index {
   }
   @Builder
   outputPanel() {
-    Column({ space: 8 }) {
-      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
-        Text('设备输出 · ' + this.outputConnection).fontSize(UiStyle.body(this.compactControls())).fontWeight(FontWeight.Bold).layoutWeight(1)
-        Button(this.showOutputSettings ? '收起输出设置' : '输出设置').flatButton().constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' })
-          .onClick(() => { this.showOutputSettings = !this.showOutputSettings; })
+    Column({ space: 0 }) {
+      if (this.outputPage === 'add') { this.outputAddPage() }
+      else if (this.outputPage === 'detail') { this.outputDetailPage() }
+      else { this.outputListPage() }
+    }.width('100%')
+  }
+  @Builder
+  outputStatCard(label: string, value: number, tone: string, background: string) {
+    Column({ space: 3 }) {
+      Text(value.toString()).fontSize(22).fontWeight(FontWeight.Bold).fontColor(tone)
+      Text(label).fontSize(UiStyle.helper).fontColor(UiStyle.muted).maxLines(1)
+    }.layoutWeight(1).height(62).justifyContent(FlexAlign.Center)
+      .backgroundColor(background).borderRadius(14)
+  }
+  @Builder
+  outputTargetCard(target: OutputTargetSummary) {
+    Button() {
+      Row({ space: 10 }) {
+        Stack({ alignContent: Alignment.Center }) {
+          Text(this.outputKindShort(target.kind)).fontSize(UiStyle.helper).fontWeight(FontWeight.Bold).fontColor(UiStyle.accent)
+        }.width(46).height(46).borderRadius(14).backgroundColor(UiStyle.accentSoft)
+        Column({ space: 5 }) {
+          Text(target.name).fontSize(16).fontWeight(FontWeight.Medium).fontColor(UiStyle.ink).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+          Text(this.outputKindLabel(target.kind) + ' · ' + this.outputEndpointLabel(target.id))
+            .fontSize(UiStyle.helper).fontColor(UiStyle.muted).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+          Row({ space: 6 }) {
+            Text(t(target.connection)).fontSize(UiStyle.helper).fontColor(this.outputStatusTone(target))
+              .padding({ left: 8, right: 8, top: 2, bottom: 2 }).backgroundColor(this.outputStatusSoft(target)).borderRadius(9)
+            if (target.armed) {
+              Text(target.dispatchSuspended ? '待命' : '已启用').fontSize(UiStyle.helper)
+                .fontColor(target.dispatchSuspended ? UiStyle.warning : UiStyle.accent)
+                .padding({ left: 8, right: 8, top: 2, bottom: 2 })
+                .backgroundColor(target.dispatchSuspended ? UiStyle.warningSoft : UiStyle.accentSoft).borderRadius(9)
+            }
+            if (target.removing) {
+              Text('删除未确认').fontSize(UiStyle.helper).fontColor(UiStyle.danger)
+                .padding({ left: 8, right: 8, top: 2, bottom: 2 }).backgroundColor(UiStyle.dangerSoft).borderRadius(9)
+            }
+          }.width('100%')
+        }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+        Text('›').fontSize(22).fontColor(UiStyle.muted)
+      }.width('100%').padding(12).alignItems(VerticalAlign.Center)
+    }.flatButton().width('100%').backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline })
+      .borderRadius(UiStyle.radiusCard).onClick(() => this.openOutputTarget(target))
+  }
+  @Builder
+  outputListPage() {
+    Column({ space: 12 }) {
+      Row({ space: 10 }) {
+        Column({ space: 2 }) {
+          Text('设备连接').fontSize(24).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink)
+          Text(this.outputTargets.length === 0 ? '添加输出设备后，这里会显示连接状态' :
+            '共 ' + this.outputTargets.length + ' 个输出 · 点击卡片配置')
+            .fontSize(UiStyle.helper).fontColor(UiStyle.muted)
+        }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+        Button('＋ 添加').flatButton().height(42).padding({ left: 16, right: 16 })
+          .backgroundColor(UiStyle.accent).fontColor(UiStyle.onAccent).border({ width: 0 }).fontWeight(FontWeight.Medium)
+          .enabled(!this.settingsReadOnly && !this.recoveryRequired)
+          .onClick(() => { this.outputPage = 'add'; this.showAddOutput = true; })
       }.width('100%')
-      Text(this.outputSeeking ? '同源跳转等待确认 · 保留已有启用意图，发送门暂时关闭' : this.outputArmed ? (this.outputSuspended ? '待命，无输出 · 等待真实合法当前帧' : '已明确启用发送 · 每帧仍须通过来源与时钟检查') : '未启用发送 · 媒体播放与预览独立运行').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
-      SettingsChoiceField({ label: '当前目标', selected: this.selectedOutputId, compact: this.compactControls(),
-        options: this.outputTargets.map(target => new SettingsOption(target.id, target.name + ' · ' + t(target.connection) + (target.armed ? (target.dispatchSuspended ? ' · 待命，无输出' : ' · 已启用') : ' · 未启用'))), onSelect: this.outputChoiceHandler() })
-      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
-        Button(this.showAddOutput ? '收起添加' : '添加输出').flatButton().constraintSize({ minHeight: UiStyle.control }).margin({ right: 8, bottom: 8 }).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => { this.showAddOutput = !this.showAddOutput; })
-        Button('停止全部输出').flatButton().fontColor(UiStyle.danger).constraintSize({ minHeight: UiStyle.control }).onClick(() => this.stop())
+      Row({ space: 8 }) {
+        this.outputStatCard('目标', this.outputTargets.length, UiStyle.ink, UiStyle.field)
+        this.outputStatCard('已连接', this.outputConnectedCount(), UiStyle.success, UiStyle.successSoft)
+        this.outputStatCard('已启用', this.outputArmedCount(), UiStyle.accent, UiStyle.accentSoft)
+        if (this.outputFaultCount() > 0) {
+          this.outputStatCard('故障', this.outputFaultCount(), UiStyle.danger, UiStyle.dangerSoft)
+        }
       }.width('100%')
-      if (this.showAddOutput) {
-        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap }) {
-          Button('+ 串口 / USB').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('serial'))
-          Button('+ TCP').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('tcp'))
-          Button('+ UDP').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('udp'))
-          Button('+ WebSocket').flatButton().constraintSize({ minHeight: UiStyle.control }).margin(4).enabled(!this.settingsReadOnly && !this.recoveryRequired).onClick(() => this.addOutputTarget('webSocket'))
-        }.width('100%')
-      }
-      Text('每类最多10个；切换只选择编辑器，各目标独立发送。恢复配置保持断开，每个目标需明确连接及Arm。').fontSize(UiStyle.helper).fontColor(UiStyle.muted)
-      if (this.selectedOutputId.length > 0) {
-        OutputSettingsPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('output'), draftEpoch: this.settingsDraftEpoch, compact: this.compactControls(), profile: this.outputProfile, profileId: this.outputDeviceId, draft: this.outputDraft,
-          readOnly: this.settingsReadOnly || this.recoveryRequired, appliedConfigurationId: this.outputApplicationId,
-          onDraftChange: (draft: OutputSettingsDraft): void => this.updateOutputDraft(draft), connection: this.outputConnection, armed: this.outputArmed, dispatchSuspended: this.outputSuspended,
-          busy: this.outputBusy || this.diagnosticBlocked, completedLocalWrites: this.outputWrites, locallyAcceptedBytes: this.outputBytes,
-          diagnostic: this.outputDiagnostic, serialProbeState: this.serialProbeState, serialProbeNotice: this.serialProbeNotice,
-          onProbeSerial: (id: string, generation: number): void => { void this.probeSerial(id, generation); },
-          onCancelSerialProbe: (): void => this.cancelSerialProbe(), onCopySerialProbe: (): void => { void this.copySerialProbe(); }, serialPorts: this.serialDiscoveryState.ports, serialCapabilities: this.serialDiscoveryState.capabilities,
-          serialBusy: this.serialDiscoveryState.busy, serialMessage: this.serialDiscoveryState.message,
-          onRefreshSerial: (targetId: string, generation: number, backend: SavedSerialBackend): void => { this.refreshSerialPorts(targetId, generation, backend); },
-          onConnect: (configuration: OutputTargetConfig, endpoint: OutputEndpoint, generation: number): Promise<number> => this.applyOutputConfiguration(configuration, endpoint, generation),
-          onDisconnect: (targetId: string, generation: number): void => { this.disconnectOutput(targetId, generation); }, onArm: (targetId: string, generation: number): void => this.armOutput(targetId, generation),
-          onDisarm: (targetId: string, generation: number): void => this.disarmOutput(targetId, generation) })
-          .visibility(this.showOutputSettings ? Visibility.Visible : Visibility.None)
-      }
-      if (!this.showOutputSettings && this.outputDiagnostic.length > 0) {
-        Text(this.outputDiagnostic).fontSize(UiStyle.helper).fontColor(UiStyle.danger)
-      }
-      Button(this.showAllOutputStates ? '收起其它目标状态' : '查看全部目标状态（' + this.outputTargets.length + '）').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => { this.showAllOutputStates = !this.showAllOutputStates; })
-      ForEach(this.outputTargets.filter(target => this.showAllOutputStates || target.id === this.selectedOutputId), (target: OutputTargetSummary) => {
+      if (this.outputTargets.length === 0) {
         Column({ space: 8 }) {
-          if (this.showAllOutputStates) { Text(target.name + ' · ' + t(target.connection) + (target.armed ? (target.dispatchSuspended ? ' · 待命，无输出' : ' · 已启用') : ' · 未启用')).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL) }
-          if (target.id === this.selectedOutputId) {
-            Button(target.removing ? '重试删除此目标' : '删除当前目标').flatButton().fontColor(UiStyle.danger).constraintSize({ minHeight: UiStyle.control }).enabled(!this.settingsReadOnly && !this.recoveryRequired)
-              .onClick(this.removeOutputConfirmationHandler(target.id, target.generation))
-          }
+          Text('还没有输出设备').fontSize(UiStyle.section).fontWeight(FontWeight.Medium).fontColor(UiStyle.ink)
+          Text('添加 TCP、UDP、WebSocket 或串口设备，然后填写地址/端口并明确连接。').fontSize(UiStyle.helper)
+            .fontColor(UiStyle.muted).textAlign(TextAlign.Center)
+          Button('添加第一个设备').flatButton().constraintSize({ minHeight: 44 }).margin({ top: 4 })
+            .backgroundColor(UiStyle.accent).fontColor(UiStyle.onAccent).border({ width: 0 })
+            .enabled(!this.settingsReadOnly && !this.recoveryRequired)
+            .onClick(() => { this.outputPage = 'add'; this.showAddOutput = true; })
+        }.width('100%').padding({ top: 28, bottom: 28, left: 20, right: 20 })
+          .backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
+      } else {
+        Column({ space: 8 }) {
+          ForEach(this.outputTargets, (target: OutputTargetSummary) => {
+            this.outputTargetCard(target)
+          }, (target: OutputTargetSummary) => target.id + ':' + target.generation)
         }.width('100%')
-      }, (target: OutputTargetSummary) => target.id + ':' + target.generation)
-      Button(this.showSocketDiagnostic ? '收起网络诊断' : 'TCP / UDP 真实往返诊断').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
-        .onClick(() => { this.showSocketDiagnostic = !this.showSocketDiagnostic; })
+      }
+      Row({ space: 8 }) {
+        Button('停止全部输出').flatButton().layoutWeight(1).constraintSize({ minHeight: 42 })
+          .backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).border({ width: 0 })
+          .onClick(() => this.stop())
+        Button(this.showSocketDiagnostic ? '收起网络诊断' : '网络诊断').flatButton().layoutWeight(1).constraintSize({ minHeight: 42 })
+          .backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline })
+          .onClick(() => { this.showSocketDiagnostic = !this.showSocketDiagnostic; })
+      }.width('100%')
       if (this.showSocketDiagnostic) { this.socketDiagnosticPanel() }
-    }.padding({ top: 12, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).width('100%')
+      Text('连接和启用发送是两步：先连接，再明确 Arm。恢复配置不会自动连接；每个目标独立发送。')
+        .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+    }.width('100%').padding(12).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
+  }
+  @Builder
+  outputAddChoice(kind: SavedOutputTargetKind, title: string, detail: string, glyph: string) {
+    Button() {
+      Row({ space: 12 }) {
+        Stack({ alignContent: Alignment.Center }) {
+          Text(glyph).fontSize(UiStyle.helper).fontWeight(FontWeight.Bold).fontColor(UiStyle.accent)
+        }.width(46).height(46).borderRadius(14).backgroundColor(UiStyle.accentSoft)
+        Column({ space: 4 }) {
+          Text(title).fontSize(16).fontWeight(FontWeight.Medium).fontColor(UiStyle.ink)
+          Text(detail).fontSize(UiStyle.helper).fontColor(UiStyle.muted).maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis })
+        }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+        Text('添加 ›').fontSize(UiStyle.helper).fontColor(UiStyle.accent)
+      }.width('100%').padding(14).alignItems(VerticalAlign.Center)
+    }.flatButton().width('100%').backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline })
+      .borderRadius(UiStyle.radiusCard).enabled(!this.settingsReadOnly && !this.recoveryRequired)
+      .onClick(() => this.addOutputAndOpen(kind))
+  }
+  @Builder
+  outputAddPage() {
+    Column({ space: 12 }) {
+      Row({ space: 8 }) {
+        Button('‹ 设备列表').flatButton().height(40).padding({ left: 12, right: 12 })
+          .backgroundColor(UiStyle.fill).border({ width: 0 }).onClick(() => this.outputBack())
+        Text('添加设备').fontSize(22).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).layoutWeight(1)
+      }.width('100%')
+      Text('先选择协议，进入配置页后填写地址和端口；串口设备则先选择本机端口。')
+        .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
+      this.outputAddChoice('serial', '串口 / USB', '本机串口，或实验性 CH340/341 仅写后端', 'USB')
+      this.outputAddChoice('tcp', 'TCP', '本地或局域网设备，稳定、低延迟；需要地址与端口', 'TCP')
+      this.outputAddChoice('udp', 'UDP', '无连接设备或广播端点；需要地址与端口', 'UDP')
+      this.outputAddChoice('webSocket', 'WebSocket', 'WebSocket / WSS 端点，可选路径', 'WS')
+      Button('取消并返回').flatButton().height(42).width('100%')
+        .backgroundColor(UiStyle.fill).border({ width: 0 }).onClick(() => this.outputBack())
+    }.width('100%')
+  }
+  @Builder
+  outputDetailPage() {
+    Column({ space: 12 }) {
+      Row({ space: 8 }) {
+        Button('‹ 设备列表').flatButton().height(40).padding({ left: 12, right: 12 })
+          .backgroundColor(UiStyle.fill).border({ width: 0 }).onClick(() => this.outputBack())
+        Column({ space: 2 }) {
+          Text(this.selectedOutputName()).fontSize(20).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink)
+            .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+          Text(this.selectedOutputKind() + ' · ' + t(this.outputConnection)).fontSize(UiStyle.helper)
+            .fontColor(this.outputConnection === 'connected' ? UiStyle.success : UiStyle.muted)
+        }.layoutWeight(1).alignItems(HorizontalAlign.Start)
+        if (this.selectedOutputExists() && !this.settingsReadOnly && !this.recoveryRequired) {
+          Button(this.selectedOutputRemoving() ? '重试删除' : '删除').flatButton().height(40)
+            .backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).border({ width: 0 })
+            .onClick(this.removeOutputConfirmationHandler(this.selectedOutputId, this.selectedOutputGeneration()))
+        }
+      }.width('100%')
+      if (this.selectedOutputExists()) {
+        Column() {
+          OutputSettingsPanel({ draftOwner: this.settingsDraftOwner, draftScope: this.settingsScope('output'), draftEpoch: this.settingsDraftEpoch, compact: this.compactControls(), profile: this.outputProfile, profileId: this.outputDeviceId, draft: this.outputDraft,
+            readOnly: this.settingsReadOnly || this.recoveryRequired, appliedConfigurationId: this.outputApplicationId,
+            onDraftChange: (draft: OutputSettingsDraft): void => this.updateOutputDraft(draft), connection: this.outputConnection, armed: this.outputArmed, dispatchSuspended: this.outputSuspended,
+            busy: this.outputBusy || this.diagnosticBlocked, completedLocalWrites: this.outputWrites, locallyAcceptedBytes: this.outputBytes,
+            diagnostic: this.outputDiagnostic, serialProbeState: this.serialProbeState, serialProbeNotice: this.serialProbeNotice,
+            onProbeSerial: (id: string, generation: number): void => { void this.probeSerial(id, generation); },
+            onCancelSerialProbe: (): void => this.cancelSerialProbe(), onCopySerialProbe: (): void => { void this.copySerialProbe(); }, serialPorts: this.serialDiscoveryState.ports, serialCapabilities: this.serialDiscoveryState.capabilities,
+            serialBusy: this.serialDiscoveryState.busy, serialMessage: this.serialDiscoveryState.message,
+            onRefreshSerial: (targetId: string, generation: number, backend: SavedSerialBackend): void => { this.refreshSerialPorts(targetId, generation, backend); },
+            onConnect: (configuration: OutputTargetConfig, endpoint: OutputEndpoint, generation: number): Promise<number> => this.applyOutputConfiguration(configuration, endpoint, generation),
+            onDisconnect: (targetId: string, generation: number): void => { this.disconnectOutput(targetId, generation); }, onArm: (targetId: string, generation: number): void => this.armOutput(targetId, generation),
+            onDisarm: (targetId: string, generation: number): void => this.disarmOutput(targetId, generation) })
+        }.width('100%').padding(12).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
+        if (!this.showOutputSettings && this.outputDiagnostic.length > 0) {
+          Text(this.outputDiagnostic).fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%')
+        }
+      } else {
+        Column({ space: 8 }) {
+          Text('这个输出已不存在').fontSize(UiStyle.section).fontColor(UiStyle.ink)
+          Button('返回设备列表').flatButton().constraintSize({ minHeight: 44 }).onClick(() => this.outputBack())
+        }.width('100%').padding(24).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
+      }
+    }.width('100%')
   }
 
   changeOffset(axisOnly: boolean, delta: number): void {
@@ -3476,7 +3826,8 @@ struct Index {
   @Builder
   devicePanel() {
     Column({ space: 8 }) {
-      Button(this.showDeviceSettings ? t('Device profiles ⌃') : t('Device profiles ⌄')).flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%')
+      Button(this.showDeviceSettings ? t('Device profiles ⌃') : t('Device profiles ⌄')).flatButton().constraintSize({ minHeight: 44 }).width('100%')
+        .backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline }).borderRadius(14).fontWeight(FontWeight.Medium)
         .onClick(() => { this.showDeviceSettings = !this.showDeviceSettings; })
       Text(this.settingsMessage).fontSize(UiStyle.helper).fontColor(this.settingsReadOnly || this.recoveryRequired ? UiStyle.danger : UiStyle.muted).width('100%')
       if (this.recoveryRequired && !this.settingsReadOnly) {
@@ -3573,15 +3924,28 @@ struct Index {
   }
   @Builder
   transport() {
-    Row({ space: 12 }) {
-      Button(this.playing ? t('Pause') : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? t('Rewind') : t('Play'))).flatButton().height(52).layoutWeight(1).backgroundColor(UiStyle.accent).fontColor('#FFFFFF')
-        .enabled(this.videoMode ? this.videoCanToggle() : this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds))).onClick(() => { if (this.videoMode) { void this.videoPlaybackAction(); } else { void this.playPause(); } })
-      Button(t('Stop output')).flatButton().height(52).layoutWeight(1).backgroundColor(UiStyle.danger).fontColor('#FFFFFF').onClick(() => this.stop())
-    }.width('100%')
+    Row({ space: 8 }) {
+      Button(this.playing ? t('Pause') : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? t('Rewind') : t('Play'))).flatButton().height(48).layoutWeight(1)
+        .backgroundColor(this.transportPlayEnabled() ? UiStyle.accent : UiStyle.field)
+        .fontColor(this.transportPlayEnabled() ? UiStyle.onAccent : UiStyle.muted)
+        .border({ width: 0 }).fontWeight(FontWeight.Medium)
+        .enabled(this.transportPlayEnabled()).onClick(() => { if (this.videoMode) { void this.videoPlaybackAction(); } else { void this.playPause(); } })
+      Button(t('Stop output')).flatButton().height(48).layoutWeight(1)
+        .backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).border({ width: 0 }).fontWeight(FontWeight.Medium)
+        .onClick(() => this.stop())
+    }.width('100%').padding(8).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
   }
   @Builder
   workspaceStatus() {
     Column({ space: 8 }) {
+      if (this.videoMode && this.workspacePreviewCollapsed) {
+        Row({ space: 8 }) {
+          Text('视频预览已收起').fontSize(UiStyle.helper).fontColor(UiStyle.muted).layoutWeight(1)
+          Button('显示视频').flatButton().height(40).padding({ left: 14, right: 14 })
+            .backgroundColor(UiStyle.accentSoft).fontColor(UiStyle.accent).border({ width: 0 })
+            .onClick(() => this.toggleWorkspacePreview())
+        }.width('100%')
+      }
       if (this.sessionFault.length > 0) {
         Text(t('Playback fault · output closed: ') + this.sessionFault).fontSize(UiStyle.body(this.compactControls())).fontColor(UiStyle.danger).width('100%')
         Button('安全重建运行状态并停止').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').enabled(!this.runtimeBusy).onClick(() => { this.resetRuntimeSafely(); })
@@ -3611,11 +3975,15 @@ struct Index {
         .onLoad(() => this.surfaceChanged(this.videoSurface.getXComponentSurfaceId(), true))
       // Gestures live on ArkUI, never on the native Surface or the chrome parent.
       Column() {
-        Text(this.videoPlaybackStatus())
-          .fontSize(14).fontColor('#FFFFFF').backgroundColor('#66000000').padding(4)
+        Row({ space: 6 }) {
+          Column().width(6).height(6).borderRadius(3).backgroundColor(this.playing ? UiStyle.success : '#FFFFFFB3')
+          Text(this.videoPlaybackStatus())
+            .fontSize(14).fontColor('#FFFFFF').maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+        }.padding({ left: 10, right: 12, top: 6, bottom: 6 }).backgroundColor('#99000000').borderRadius(14)
           .visibility(this.videoFloating || this.videoControlsVisible ? Visibility.Visible : Visibility.Hidden)
           .hitTestBehavior(HitTestMode.None)
       }.width('100%').height(this.videoPictureHeight()).justifyContent(FlexAlign.Start)
+        .padding({ left: 10, top: 10 })
         .backgroundColor('#00000000').hitTestBehavior(HitTestMode.Block).zIndex(1)
         .accessibilityText('视频画面：单击暂停或继续；浮窗可拖动')
         .gesture(GestureGroup(GestureMode.Exclusive,
@@ -3624,26 +3992,34 @@ struct Index {
             .onActionEnd(this.videoGestureHandler('end')).onActionCancel(this.videoGestureHandler('cancel')),
           TapGesture({ count: 1, fingers: 1 }).onAction(this.videoGestureHandler('tap'))))
       Column({ space: 0 }) {
-        Row({ space: 0 }) {
+        Row({ space: 6 }) {
           Button(this.videoActionPending ? '…' : this.playing ? '暂停' : this.videoState === 'completed' ? '重播' : '播放')
-            .flatButton().width(this.videoFloating ? '50%' : 64).height(52).padding(4).fontSize(16)
-            .backgroundColor(UiStyle.accent).fontColor('#FFFFFF').enabled(this.videoCanToggle())
+            .flatButton().layoutWeight(1).height(40).padding({ left: 12, right: 12 }).fontSize(15)
+            .backgroundColor(UiStyle.accent).fontColor(UiStyle.onAccent).border({ width: 0 }).fontWeight(FontWeight.Medium)
+            .borderRadius(20).enabled(this.videoCanToggle())
             .accessibilityText(this.playing ? '暂停视频' : '播放视频').onClick(() => { void this.videoPlaybackAction(); })
           if (this.videoFloating && !this.videoFullscreen) {
-            Button('展开').flatButton().width('50%').height(52).padding(4).fontSize(16)
+            Button('展开').flatButton().width(72).height(40).padding(4).fontSize(15)
+              .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline }).borderRadius(20)
               .onClick(() => this.setVideoFloating(false))
           } else {
-            Button('■').flatButton().width(52).height(52).padding(4).backgroundColor(UiStyle.danger).fontColor('#FFFFFF')
-              .accessibilityText('停止输出和播放').onClick(() => this.stop())
-            if (this.currentScreen !== 'player') {
-              Button('浮窗').flatButton().width(56).height(52).padding(4).fontSize(16).onClick(() => this.setVideoFloating(true))
+            if (this.videoFullscreen) {
+              Button('■ 停止').flatButton().width(76).height(40).padding(4).fontSize(15)
+                .backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).border({ width: 0 }).borderRadius(20)
+                .accessibilityText('停止输出和播放').onClick(() => this.stop())
             }
-            Button(this.videoFullscreen ? '退出' : '全屏').flatButton().layoutWeight(1).height(52).padding(4).fontSize(16)
+            if (this.currentScreen !== 'player' && this.widthVp >= 300) {
+              Button('浮窗').flatButton().width(56).height(40).padding(4).fontSize(15)
+                .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline }).borderRadius(20)
+                .onClick(() => this.setVideoFloating(true))
+            }
+            Button(this.videoFullscreen ? '退出' : '全屏').flatButton().width(this.widthVp < 360 ? 52 : 64).height(40).padding(4).fontSize(15)
+              .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline }).borderRadius(20)
               .accessibilityText(this.videoFullscreen ? (this.presentationMode === 'native-fullscreen' ? '退出系统全屏' : '退出窗口内全屏') : '全屏')
               .onClick(() => this.setVideoFullscreen(!this.videoFullscreen))
           }
-        }.width('100%').height(52).hitTestBehavior(HitTestMode.Default)
-        Canvas(this.playerCanvas).width('100%').height(36)
+        }.width('100%').height(48).padding({ left: 8, right: 8, top: 4, bottom: 4 }).hitTestBehavior(HitTestMode.Default)
+        Canvas(this.playerCanvas).width('100%').height(32).backgroundColor(UiStyle.card)
           .onReady(() => this.drawTrace()).onAreaChange(() => this.drawTrace())
           .onClick((event: ClickEvent) => { this.cancelVideoChromeTimer(); this.seekTransport(Math.max(0, Math.min(1, event.x / Math.max(1, this.playerCanvas.width))) * this.durationMs); this.scheduleVideoChromeHide(); })
         if (this.workspaceLayout().controlsHeight >= 136) {
@@ -3659,7 +4035,9 @@ struct Index {
               .fontSize(14).fontColor(UiStyle.muted).maxLines(1)
           }.padding({ left: 8, right: 8 }).width('100%').height(48)
         }
-      }.width('100%').height(this.workspaceLayout().controlsHeight).backgroundColor(UiStyle.page)
+      }.width('100%').height(this.workspaceLayout().controlsHeight).backgroundColor(UiStyle.card)
+        .borderRadius({ topLeft: 16, topRight: 16 })
+        .shadow({ radius: 18, color: UiStyle.shadowColor, offsetY: -3 })
         .position({ x: 0, y: Math.max(0, this.workspaceLayout().video.height - this.workspaceLayout().controlsHeight) })
         .visibility(!this.videoFullscreen || this.videoControlsVisible ? Visibility.Visible : Visibility.Hidden)
         .hitTestBehavior(HitTestMode.Default).zIndex(2).clip(true)
@@ -3700,7 +4078,13 @@ struct Index {
   inspector() {
     Column({ space: 0 }) {
       this.toolNavigation()
-      Text(this.outputSummary()).fontSize(UiStyle.helper).fontColor(this.outputTargets.some(target => target.connection === 'fault') ? UiStyle.danger : UiStyle.muted).width('100%').padding({ top: 8, bottom: 8 }).wordBreak(WordBreak.BREAK_ALL)
+      Row({ space: 8 }) {
+        Column().width(6).height(6).borderRadius(3)
+          .backgroundColor(this.outputTargets.some(target => target.connection === 'fault') ? UiStyle.danger : this.outputTargets.some(target => target.armed) ? UiStyle.success : UiStyle.muted)
+        Text(this.outputSummary()).fontSize(UiStyle.helper).fontColor(this.outputTargets.some(target => target.connection === 'fault') ? UiStyle.danger : UiStyle.muted)
+          .layoutWeight(1).maxLines(2).wordBreak(WordBreak.BREAK_ALL)
+      }.width('100%').padding({ left: 10, right: 10, top: 7, bottom: 7 }).margin({ top: 8, bottom: 4 })
+        .backgroundColor(UiStyle.card).borderRadius(12).border({ width: 1, color: UiStyle.hairline })
       if (this.inspectorHeight() >= 220) { this.inspectorWarning() }
       Scroll(this.settingsScroller) {
         Column({ space: 16 }) {
@@ -3710,9 +4094,13 @@ struct Index {
           if (this.workspaceTool === 'output') { this.outputPanel() }
           if (this.workspaceTool === 'media') {
             this.mediaToolbar()
-            Button('打开视频列表').flatButton().height(48).width('100%').onClick(() => this.showLibrary())
+            Button('打开视频列表').flatButton().height(48).width('100%')
+              .backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline }).fontWeight(FontWeight.Medium)
+              .onClick(() => this.showLibrary())
             this.sourcePanel()
-            Button(this.showResources ? '收起资源详情' : '高级资源详情与手动配对').flatButton().height(48).width('100%').onClick(() => { this.showResources = !this.showResources; })
+            Button(this.showResources ? '收起资源详情' : '高级资源详情与手动配对').flatButton().height(48).width('100%')
+              .backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline }).fontWeight(FontWeight.Medium)
+              .onClick(() => { this.showResources = !this.showResources; })
             if (this.showResources) { this.libraryPanel() }
           }
           if (this.workspaceTool === 'settings') {
@@ -3725,22 +4113,24 @@ struct Index {
           if (!this.videoMode && !this.wideWorkspace() && this.workspaceTool === 'script') { this.traceArea() }
         }.padding({ top: 12, bottom: this.videoFloating ? this.workspaceLayout().video.height + 24 : 20 }).width('100%')
       }.width('100%').layoutWeight(1).align(Alignment.Top)
-        .onDidScroll(() => { if (this.videoMode && this.settingsScroller.currentOffset().yOffset > 96) { this.setVideoFloating(true); } })
     }.width(this.workspaceLayout().sideBySide || !this.wideWorkspace() ? '100%' : this.inspectorWidth()).height(this.inspectorHeight())
-      .padding({ left: this.workspaceLayout().sideBySide ? this.contentPadding() : 0, right: this.workspaceLayout().sideBySide ? this.contentPadding() : 0 })
+      .padding({ left: this.workspaceLayout().sideBySide ? this.contentPadding() : 0, right: this.workspaceLayout().sideBySide ? this.contentPadding() : 0, top: 8 })
   }
   @Builder
   toolNavigation() {
-    Row({ space: 0 }) {
+    Row({ space: 2 }) {
       ForEach(['script', 'output', 'media', 'settings'], (tool: string) => {
         Button(tool === 'script' ? '脚本' : tool === 'output' ? '连接' : tool === 'media' ? '媒体' : '设置').flatButton()
-          .width('25%').height(UiStyle.control).padding({ left: 4, right: 4 }).backgroundColor(UiStyle.page)
-          .fontColor(this.workspaceTool === tool ? UiStyle.accent : UiStyle.muted).fontWeight(this.workspaceTool === tool ? FontWeight.Bold : FontWeight.Normal)
-          .borderRadius(0).border({ width: { bottom: this.workspaceTool === tool ? 3 : 1 }, color: this.workspaceTool === tool ? UiStyle.accent : UiStyle.edge })
+          .width('25%').height(40).padding({ left: 4, right: 4 }).fontSize(15)
+          .backgroundColor(this.workspaceTool === tool ? UiStyle.card : Color.Transparent)
+          .fontColor(this.workspaceTool === tool ? UiStyle.accent : UiStyle.muted)
+          .fontWeight(this.workspaceTool === tool ? FontWeight.Medium : FontWeight.Normal)
+          .borderRadius(20).border({ width: 0 })
+          .shadow({ radius: this.workspaceTool === tool ? 10 : 0, color: UiStyle.shadowColor, offsetY: this.workspaceTool === tool ? 2 : 0 })
           .accessibilityText((this.workspaceTool === tool ? '当前工具：' : '切换工具：') + (tool === 'script' ? '脚本' : tool === 'output' ? '连接' : tool === 'media' ? '媒体' : '设置'))
           .onClick(() => this.selectWorkspaceTool(tool))
       })
-    }.width('100%')
+    }.padding(4).width('100%').height(48).borderRadius(UiStyle.radiusPill).backgroundColor(UiStyle.fillStrong)
   }
   @Builder
   wideTrace() {
@@ -3753,32 +4143,67 @@ struct Index {
   }
   @Builder
   globalStopButton() {
-    Button('停止').flatButton().width(64).height(52).flexShrink(0)
-      .backgroundColor(UiStyle.danger).fontColor('#FFFFFF').accessibilityText('全局停止 · F12')
+    Button('停止').flatButton().width(64).height(40).flexShrink(0)
+      .backgroundColor(UiStyle.danger).fontColor(UiStyle.onAccent).border({ width: 0 }).fontWeight(FontWeight.Medium)
+      .responseRegion({ y: -4, width: '100%', height: 48 })
+      .accessibilityText('全局停止 · F12')
       .onClick(() => this.stop())
   }
   @Builder
+  headerBrand() {
+    Row({ space: 8 }) {
+      Stack({ alignContent: Alignment.Center }) {
+        Column().width('100%').height('100%')
+          .linearGradient({ angle: 135, colors: [[UiStyle.accent, 0.0], ['#5B94FF', 1.0]] })
+        Text('M').fontSize(18).fontWeight(FontWeight.Bold).fontColor('#FFFFFF')
+      }.width(36).height(36).borderRadius(10).clip(true)
+      Text(this.widthVp < 520 ? 'MFP' : 'MultiFunPlayer')
+        .fontSize(this.widthVp < 520 ? 18 : 20).fontColor(UiStyle.ink).fontWeight(FontWeight.Bold).maxLines(1)
+    }.layoutWeight(1).alignItems(VerticalAlign.Center)
+  }
+  @Builder
+  headerNav(label: string, selected: boolean, target: string) {
+    Button(label).flatButton().height(40).padding({ left: this.widthVp < 380 ? 10 : 14, right: this.widthVp < 380 ? 10 : 14 })
+      .fontSize(15).fontWeight(selected ? FontWeight.Medium : FontWeight.Normal)
+      .backgroundColor(selected ? UiStyle.card : Color.Transparent)
+      .fontColor(selected ? UiStyle.accent : UiStyle.muted)
+      .borderRadius(20).border({ width: 0 })
+      .shadow({ radius: selected ? 10 : 0, color: UiStyle.shadowColor, offsetY: selected ? 2 : 0 })
+      .onClick(() => { if (target === 'library') { this.showLibrary(); } else { this.selectWorkspaceTool(this.workspaceTool); } })
+  }
+  @Builder
   headerTools() {
-    Button('•••').flatButton().width(UiStyle.control).height(UiStyle.control).flexShrink(0).backgroundColor(UiStyle.page).border({ width: 0 }).fontSize(22).accessibilityText('更多 · 通用、输入与设备设置').onClick(() => { this.showPortInfo = true; this.selectWorkspaceTool('settings'); })
+    Button('⚙').flatButton().width(40).height(40).flexShrink(0)
+      .backgroundColor(UiStyle.fill).border({ width: 0 }).fontSize(19)
+      .accessibilityText('更多 · 通用、输入与设备设置')
+      .onClick(() => { this.showPortInfo = true; this.selectWorkspaceTool('settings'); })
   }
   @Builder
   workspaceHeader() {
-    Row({ space: 4 }) {
+    Row({ space: this.widthVp < 380 ? 4 : 8 }) {
       if (this.currentScreen === 'player') {
-        Button('‹').flatButton().width(44).height(48).fontSize(26).accessibilityText('返回视频列表').onClick(() => this.showLibrary())
-        Text(this.videoName || '播放器').fontSize(16).fontColor(UiStyle.ink).layoutWeight(1).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
-        Button('⚙').flatButton().width(44).height(48).accessibilityText('轴与连接设置').onClick(() => this.selectWorkspaceTool('script'))
+        Button('‹').flatButton().width(40).height(40).fontSize(24)
+          .backgroundColor(UiStyle.fill).border({ width: 0 }).accessibilityText('返回视频列表').onClick(() => this.showLibrary())
+        Text(this.videoName || '播放器').fontSize(16).fontColor(UiStyle.ink).fontWeight(FontWeight.Medium).layoutWeight(1).maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+        Button('设置').flatButton().width(64).height(40).fontSize(15)
+          .backgroundColor(UiStyle.fill).border({ width: 0 }).accessibilityText('轴与连接设置').onClick(() => this.selectWorkspaceTool('script'))
       } else {
-        Text(this.widthVp < 520 ? 'MFP' : 'MultiFunPlayer').fontSize(this.widthVp < 520 ? 18 : 20).fontColor(UiStyle.ink).fontWeight(FontWeight.Bold).layoutWeight(1).maxLines(1)
-        Button('视频').flatButton().height(48).padding({ left: 10, right: 10 }).backgroundColor(this.currentScreen === 'library' ? UiStyle.accentSoft : UiStyle.page).onClick(() => this.showLibrary())
-        Button('控制').flatButton().height(48).padding({ left: 10, right: 10 }).backgroundColor(this.currentScreen === 'workspace' ? UiStyle.accentSoft : UiStyle.page).onClick(() => this.selectWorkspaceTool(this.workspaceTool))
-        if (this.currentScreen === 'workspace' && this.widthVp >= 900) { Button(this.workspacePreviewCollapsed ? '展开预览' : '收起预览').flatButton().height(48).onClick(() => this.toggleWorkspacePreview()) }
-        if (this.videoMode && this.widthVp >= 400) { Button('▶').flatButton().width(44).height(48).accessibilityText('返回播放器').onClick(() => this.selectScreen('player')) }
+        this.headerBrand()
+        Row({ space: 2 }) {
+          this.headerNav('视频', this.currentScreen === 'library', 'library')
+          this.headerNav('控制', this.currentScreen === 'workspace', 'workspace')
+        }.padding(4).height(48).backgroundColor(UiStyle.fillStrong).borderRadius(UiStyle.radiusPill)
+        if (this.videoMode && this.widthVp >= 520 && this.currentScreen === 'workspace') {
+          Button('播放页').flatButton().width(64).height(40).fontSize(14)
+            .backgroundColor(UiStyle.fill).border({ width: 0 }).accessibilityText('返回播放器').onClick(() => this.selectScreen('player'))
+        }
       }
       this.globalStopButton()
-    }.padding({ left: 8, right: 8, top: 4, bottom: 4 })
-      .width('100%').height(this.workspaceLayout().headerHeight).backgroundColor(UiStyle.page)
-      .border({ width: { bottom: 1 }, color: UiStyle.edge })
+    }.padding({ left: 12, right: 12, top: 6, bottom: 6 })
+      .width('100%').height(this.workspaceLayout().headerHeight).backgroundColor(UiStyle.headerSurface)
+      .backgroundBlurStyle(BlurStyle.COMPONENT_THICK)
+      .border({ width: { bottom: 1 }, color: UiStyle.hairline })
+      .shadow({ radius: 12, color: UiStyle.shadowColor, offsetY: 4 })
       .visibility(this.videoFullscreen ? Visibility.Hidden : Visibility.Visible)
   }
   build() {

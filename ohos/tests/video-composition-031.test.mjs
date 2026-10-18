@@ -8,7 +8,7 @@ const fixture=JSON.parse(fs.readFileSync(new URL('./fixtures/video-stage-031-sdk
 const source=fs.readFileSync(new URL('../entry/src/main/ets/pages/Index.ets',import.meta.url),'utf8');
 function compose(page){
  const nodes=[],stack=[];let current,gestureOwner;const gestureStack=[];
- const context={UiStyle:{control:48,page:'#fff',accent:'#088',edge:'#ddd',danger:'#f00'},Alignment:{TopStart:0},Visibility:{Visible:'visible',Hidden:'hidden',None:'none'},HitTestMode:{None:'none',Block:'block',Default:'default'},FlexAlign:{Start:0},GesturePriority:{Low:0},GestureMode:{Exclusive:'exclusive'},PanDirection:{All:0},SliderChangeMode:{Begin:0,Moving:1,End:2,Click:3},MfpSliderMaterialModifier:class {}};
+ const context={UiStyle:{control:48,page:'#fff',accent:'#088',edge:'#ddd',danger:'#f00'},Alignment:{TopStart:0},Visibility:{Visible:'visible',Hidden:'hidden',None:'none'},HitTestMode:{None:'none',Block:'block',Default:'default'},FlexAlign:{Start:0},GesturePriority:{Low:0},GestureMode:{Exclusive:'exclusive'},PanDirection:{All:0},SliderChangeMode:{Begin:0,Moving:1,End:2,Click:3},TextOverflow:{Ellipsis:0,Clip:1,None:2},FontWeight:{Normal:400,Medium:500,Bold:700},MfpSliderMaterialModifier:class {}};
  for(const name of ['Stack','Column','Row','Button','Text','Canvas','Slider','XComponent','If']){
   context[name]=new Proxy({}, {get(_t,method){return (...args)=>{
    if(method==='create'||method==='createWithLabel'){
@@ -34,7 +34,7 @@ for(const [w,h] of [[240,640],[390,844],[844,390],[1024,768]])test(`actual SDK b
  const {page}=pageFor(w,h);const nodes=compose(page);const surface=nodes.find(n=>n.type==='XComponent'),input=nodes.find(n=>n.gestures),chrome=nodes.find(n=>n.type==='Column'&&n.props.zIndex===2);
  assert.equal(nodes.filter(n=>n.type==='XComponent').length,1);assert.equal(surface.props.hitTestBehavior,'none');assert.equal(surface.props.onClick,undefined);assert.equal(surface.parent,input.parent);assert.equal(input.parent,chrome.parent);assert.equal(input.props.zIndex,1);assert.equal(chrome.props.hitTestBehavior,'default');
  assert.equal(input.gestures.find(g=>g.type==='GestureGroup').options,'exclusive');assert.equal(input.gestures.find(g=>g.type==='PanGesture').options.distance,8);assert.equal(input.gestures.find(g=>g.type==='TapGesture').options.count,1);
- const buttons=nodes.filter(n=>n.type==='Button');assert.equal(buttons.length,2);assert.ok(buttons.every(n=>n.props.width==='50%'&&n.props.height===52));assert.equal(chrome.props.height,88);assert.equal(nodes.find(n=>n.type==='Canvas').props.height,36);
+ const buttons=nodes.filter(n=>n.type==='Button');assert.equal(buttons.length,2);assert.ok(buttons.every(n=>n.props.height===40));assert.equal(buttons[1].props.width,72);assert.equal(chrome.props.height,88);assert.equal(nodes.find(n=>n.type==='Canvas').props.height,32);
  assert.equal(input.props.height,chrome.props.position.y);assert.ok(!chrome.gestures);assert.ok(buttons.every(b=>!b.gestures));
  for(const child of nodes.filter(n=>['Button','Canvas','Slider'].includes(n.type)))for(let p=child.parent;p;p=p.parent)assert.notEqual(p.props.hitTestBehavior,'block','SDK Block excludes children: '+p.type+' blocks '+child.type);
 });

@@ -104,6 +104,7 @@ export struct SettingsNumberField {
   @Prop @Watch('refreshValue') editable: boolean = true;
   @Prop commitEqualEdits: boolean = false;
   @State private edited: boolean = false;
+  @State private focused: boolean = false;
   onCommit: (value: number) => boolean = (_value: number): boolean => true;
   onEdit: () => void = (): void => {};
   @State draft: string = '';
@@ -144,6 +145,9 @@ export struct SettingsNumberField {
     const token: number = this.draftToken; const onEdit: () => void = this.onEdit; const guard: () => boolean = this.draftGuard;
     return (text: string): void => {
       if (!this.editable || !this.draftCurrent(token) || onEdit !== this.onEdit || guard !== this.draftGuard) { return; }
+      // ArkUI may replay the bound text when the input is re-created. That is
+      // not a user edit; only accept an identical text once the input has focus.
+      if (!this.focused && text === this.draft) { return; }
       this.draft = text; this.error = false; this.edited = true; this.saveDraft(); this.onEdit();
     };
   }
@@ -158,10 +162,10 @@ export struct SettingsNumberField {
       this.draft = SettingsNumberLogic.format(this.value); this.error = false; this.edited = false; this.saveDraft();
     };
   }
+  private canonicalDraft(): string { return SettingsNumberLogic.format(this.value); }
   private commit(): void {
     if (!this.editable || this.storageError || !this.draftCurrent(this.draftToken)) { return; }
-    const value: number | null = SettingsNumberLogic.parse(this.draft, this.allowInfinity);
-    if (value === null || !SettingsNumberLogic.valid(value, this.minimum, this.maximum, this.allowInfinity, this.integer)) {
+    const value: number | null = SettingsNumberLogic.parse(this.draft, this.allowInfinity);    if (value === null || !SettingsNumberLogic.valid(value, this.minimum, this.maximum, this.allowInfinity, this.integer)) {
       this.error = true; this.saveDraft(); return;
     }
     if (value === this.value && (!this.commitEqualEdits || !this.edited)) {
@@ -174,21 +178,23 @@ export struct SettingsNumberField {
   build() {
     Column({ space: 2 }) {
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
-        Text(this.label + (this.unit.length > 0 ? ' · ' + this.unit : '')).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink)
-          .width(UiStyle.numberLabelWidth(this.fieldWidth, this.label, this.unit, this.compact)).padding({ right: 12, top: 6, bottom: 6 }).textAlign(TextAlign.Start).wordBreak(WordBreak.BREAK_ALL)
-        TextInput({ text: this.draft }).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).borderRadius(UiStyle.radius)
-          .backgroundColor(UiStyle.field).border({ width: 1, color: this.error ? UiStyle.danger : UiStyle.edge })
+        Text(this.label + (this.unit.length > 0 ? ' · ' + this.unit : '')).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink)
+          .width(UiStyle.numberLabelWidth(this.fieldWidth, this.label, this.unit, this.compact)).padding({ right: 6, top: 2, bottom: 2 }).textAlign(TextAlign.Start).wordBreak(WordBreak.BREAK_ALL)
+        TextInput({ text: this.draft }).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).constraintSize({ minHeight: this.compact ? 38 : 42, maxWidth: '100%' }).borderRadius(UiStyle.radius)
+          .padding({ left: 10, right: 10 }).backgroundColor(UiStyle.field).border({ width: 1, color: this.error ? UiStyle.danger : UiStyle.edge })
           .width(UiStyle.numberControlWidth(this.fieldWidth, this.label, this.unit, this.compact)).enabled(this.editable && this.draftToken > 0)
+          .responseRegion({ y: -3, width: '100%', height: UiStyle.control })
           .accessibilityText(this.label).onChange(KeyboardInputSession.changeHandler(this.keyboardEditorId, this.changeHandler()))
           .onSubmit(KeyboardInputSession.submitHandler(this.keyboardEditorId, this.commitHandler())).onFocus(KeyboardInputSession.focusHandler(this.keyboardEditorId, true))
           .onBlur(KeyboardInputSession.focusHandler(this.keyboardEditorId, false))
           .onKeyPreIme(KeyboardInputSession.emergencyHandler(this.keyboardEditorId))
+          .onTouch((event: TouchEvent) => { if (event.type === TouchType.Down) { this.focused = true; } })
       }.width('100%')
       if (this.edited || this.error) {
         Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
           Text('未应用').fontSize(UiStyle.helper).fontColor(UiStyle.warning).padding({ right: 12 })
           Button('确认').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-            .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+            .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact))
             .borderRadius(UiStyle.radius).margin({ right: 8 })
             .enabled(this.editable && !this.storageError).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
             .stateStyles({
@@ -196,7 +202,7 @@ export struct SettingsNumberField {
               disabled: { .opacity(UiStyle.disabledOpacity) }
             }).onClick(this.commitHandler())
           Button('取消').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-            .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+            .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact))
             .borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
             .stateStyles({
               focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -235,9 +241,11 @@ export struct SettingsTextField {
   measureField(width: number): void { if (Number.isFinite(width) && width > 0) { this.fieldWidth = width; } }
   @Prop @Watch('refreshValue') label: string = '';
   @Prop @Watch('refreshValue') value: string = '';
+  @Prop placeholder: string = '';
   @Prop compact: boolean = false;
   @Prop @Watch('refreshValue') editable: boolean = true;
   @State private edited: boolean = false;
+  @State private focused: boolean = false;
   onCommit: (value: string) => boolean = (_value: string): boolean => true;
   onEdit: () => void = (): void => {};
   @State draft: string = '';
@@ -277,6 +285,9 @@ export struct SettingsTextField {
     const token: number = this.draftToken; const onEdit: () => void = this.onEdit; const guard: () => boolean = this.draftGuard;
     return (text: string): void => {
       if (!this.editable || !this.draftCurrent(token) || onEdit !== this.onEdit || guard !== this.draftGuard) { return; }
+      // ArkUI may replay the bound text when the input is re-created. That is
+      // not a user edit; only accept an identical text once the input has focus.
+      if (!this.focused && text === this.draft) { return; }
       this.draft = text; this.error = false; this.edited = true; this.saveDraft(); this.onEdit();
     };
   }
@@ -291,6 +302,7 @@ export struct SettingsTextField {
       this.draft = this.value; this.error = false; this.edited = false; this.saveDraft();
     };
   }
+  private canonicalDraft(): string { return this.value; }
   private commit(): void {
     if (!this.editable || this.storageError || !this.draftCurrent(this.draftToken)) { return; }
     if (this.draft === this.value) { this.error = false; this.edited = false; this.saveDraft(); return; }
@@ -299,20 +311,23 @@ export struct SettingsTextField {
     this.saveDraft();
   }
   build() {
-    Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
-      Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width(UiStyle.fieldLabelWidth(this.fieldWidth)).padding({ right: 12, top: 6, bottom: 6 }).wordBreak(WordBreak.BREAK_ALL)
-      TextInput({ text: this.draft }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).borderRadius(UiStyle.radius)
-        .backgroundColor(UiStyle.field).border({ width: 1, color: this.error ? UiStyle.danger : UiStyle.edge }).width(UiStyle.fieldControlWidth(this.fieldWidth))
+    Column({ space: 4 }) {
+      Text(this.label).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%').padding({ top: 2, bottom: 2 }).wordBreak(WordBreak.BREAK_ALL)
+      TextInput({ text: this.draft, placeholder: this.placeholder }).constraintSize({ minHeight: this.compact ? 38 : 42, maxWidth: '100%' }).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).borderRadius(UiStyle.radius)
+        .padding({ left: 10, right: 10 }).backgroundColor(UiStyle.field).border({ width: 1, color: this.error ? UiStyle.danger : UiStyle.edge }).width('100%')
+        .placeholderColor(UiStyle.muted)
+        .responseRegion({ y: -3, width: '100%', height: UiStyle.control })
         .enabled(this.editable && this.draftToken > 0).accessibilityText(this.label)
         .onChange(KeyboardInputSession.changeHandler(this.keyboardEditorId, this.changeHandler()))
         .onSubmit(KeyboardInputSession.submitHandler(this.keyboardEditorId, this.commitHandler())).onFocus(KeyboardInputSession.focusHandler(this.keyboardEditorId, true))
           .onBlur(KeyboardInputSession.focusHandler(this.keyboardEditorId, false))
           .onKeyPreIme(KeyboardInputSession.emergencyHandler(this.keyboardEditorId))
+          .onTouch((event: TouchEvent) => { if (event.type === TouchType.Down) { this.focused = true; } })
       if (this.edited || this.error) {
         Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
           Text('未应用').fontSize(UiStyle.helper).fontColor(UiStyle.warning).padding({ right: 12 })
           Button('确认').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-            .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+            .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact))
             .borderRadius(UiStyle.radius).margin({ right: 8 })
             .enabled(this.editable && !this.storageError).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
             .stateStyles({
@@ -320,7 +335,7 @@ export struct SettingsTextField {
               disabled: { .opacity(UiStyle.disabledOpacity) }
             }).onClick(this.commitHandler())
           Button('取消').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-            .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+            .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact))
             .borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
             .stateStyles({
               focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -354,8 +369,8 @@ export struct SettingsSwitchField {
   }
   build() {
     Row({ space: 8 }) {
-      Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).layoutWeight(1).wordBreak(WordBreak.BREAK_ALL)
-      Toggle({ type: ToggleType.Switch, isOn: this.value }).width(48).height(28).attributeModifier(new MfpToggleMaterialModifier(this.materialRevision)).enabled(this.editable)
+      Text(this.label).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).layoutWeight(1).wordBreak(WordBreak.BREAK_ALL)
+      Toggle({ type: ToggleType.Switch, isOn: this.value }).width(48).height(28).selectedColor(UiStyle.accent).attributeModifier(new MfpToggleMaterialModifier(this.materialRevision)).enabled(this.editable)
         .responseRegion({ x: -2, y: -12, width: UiStyle.control, height: UiStyle.control })
         .accessibilityText(this.label + (this.value ? '，已开启' : '，已关闭')).onChange(this.changeHandler())
     }.width('100%').constraintSize({ minHeight: UiStyle.control }).margin({ bottom: 3 })
@@ -401,31 +416,33 @@ export struct SettingsChoiceField {
     };
   }
   build() {
-    Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
-      Text(this.label).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width(UiStyle.fieldLabelWidth(this.fieldWidth)).padding({ right: 12, top: 6, bottom: 6 }).wordBreak(WordBreak.BREAK_ALL)
+    Column({ space: 4 }) {
+      Text(this.label).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%').padding({ top: 2, bottom: 2 }).wordBreak(WordBreak.BREAK_ALL)
         .textAlign(TextAlign.Start)
-      Row({ space: 8 }) {
+      Row({ space: 6 }) {
         Select(this.options.map((option: SettingsOption): SelectOption => { return { value: option.label }; }))
-          .selected(this.index()).value(this.labelText()).optionHeight(UiStyle.control).font({ size: UiStyle.body(this.compact) }).optionFont({ size: UiStyle.body(this.compact) }).selectedOptionFont({ size: UiStyle.body(this.compact) }).fontColor(UiStyle.ink)
+          .selected(this.index()).value(this.labelText()).optionHeight(UiStyle.control).font({ size: UiStyle.textFor(this.compact) }).optionFont({ size: UiStyle.textFor(this.compact) }).selectedOptionFont({ size: UiStyle.textFor(this.compact) }).fontColor(UiStyle.ink)
+          .backgroundColor(UiStyle.field).borderRadius(UiStyle.radius)
           .attributeModifier(new MfpSelectMaterialModifier(this.materialRevision))
-          .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%' }).layoutWeight(1)
+          .constraintSize({ minHeight: this.compact ? 38 : 42, maxWidth: '100%' }).layoutWeight(1)
           .enabled(this.editable).accessibilityText(this.label + '：' + this.labelText())
           .onSelect(this.selectHandler())
         Button(this.detailExpanded ? '收起' : '全文').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true)
-          .labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).fontSize(UiStyle.body(this.compact))
-          .padding({ left: 6, right: 6, top: 12, bottom: 12 })
-          .width(UiStyle.control).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).flexShrink(0)
+          .labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).fontSize(UiStyle.textFor(this.compact))
+          .padding({ left: 6, right: 6, top: 8, bottom: 8 })
+          .width(UiStyle.control).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).flexShrink(0)
           .accessibilityText((this.detailExpanded ? '收起完整值：' : '查看完整值：') + this.label + '，' + this.labelText())
-          .borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .borderRadius(UiStyle.radius).fontColor(UiStyle.muted).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          .visibility(this.labelText().length > 18 ? Visibility.Visible : Visibility.None)
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
             disabled: { .opacity(UiStyle.disabledOpacity) }
           }).onClick(this.detailHandler())
-      }.width(UiStyle.fieldControlWidth(this.fieldWidth))
+      }.width('100%')
       // A native Select may elide. Complete text is always available on explicit
       // disclosure, including in read-only mode, and in its accessibility label.
       if (this.detailExpanded) {
-        Text(this.labelText()).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        Text(this.labelText()).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       }
     }.width('100%').margin({ bottom: UiStyle.gap(this.compact) })
       .onAreaChange((_old: Area, area: Area) => this.measureField(Number(area.width)))
@@ -437,8 +454,12 @@ export struct SettingsSectionTitle {
   @Prop label: string = '';
   @Prop topLevel: boolean = false;
   build() {
-    Text(this.label).fontSize(this.topLevel ? UiStyle.heading : UiStyle.section).fontWeight(FontWeight.Medium).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
-      .padding({ top: 8, bottom: 12 }).border({ width: { bottom: 1 }, color: UiStyle.edge }).margin({ top: this.topLevel ? 0 : 12, bottom: 12 })
+    Row({ space: 8 }) {
+      Column().width(4).height(this.topLevel ? 20 : 16).borderRadius(2)
+        .backgroundColor(this.topLevel ? UiStyle.accent : UiStyle.muted)
+      Text(this.label).fontSize(this.topLevel ? UiStyle.heading : UiStyle.section).fontWeight(FontWeight.Medium).fontColor(UiStyle.ink).layoutWeight(1).wordBreak(WordBreak.BREAK_ALL)
+    }.width('100%').alignItems(VerticalAlign.Center)
+      .padding({ top: 4, bottom: 8 }).margin({ top: this.topLevel ? 0 : 8, bottom: 8 })
   }
 }
 
@@ -771,17 +792,17 @@ export struct CurvePointEditor {
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       if (this.previewIssue.length > 0) { Text(this.previewIssue).fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
       if (this.outsideCount() > 0) { Text(String(this.outsideCount()) + ' 个点在预览范围外，已保留，可在下方修改。').fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%') }
-      if (this.points.length === 0) { Text('暂无曲线点').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted) }
+      if (this.points.length === 0) { Text('暂无曲线点').fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted) }
       if (this.points.length > 0) {
         List({ space: 4 }) {
           ForEach(this.points, (point: MotionCurvePoint, index: number) => {
             ListItem() {
               Column() {
                 Row() {
-                  Text('点 ' + (index + 1) + (index === this.selected ? ' · 已选' : '')).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).layoutWeight(1)
+                  Text('点 ' + (index + 1) + (index === this.selected ? ' · 已选' : '')).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).layoutWeight(1)
                     .fontWeight(index === this.selected ? FontWeight.Medium : FontWeight.Normal).wordBreak(WordBreak.BREAK_ALL)
                   Button('删除')
-                    .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius)
+                    .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).borderRadius(UiStyle.radius)
                     .fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
                     .stateStyles({
                       focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -809,7 +830,7 @@ export struct CurvePointEditor {
         draftSource: this.coordinateDraftSource(), draftEpoch: this.draftEpoch, draftGuard: this.coordinateGuard(), onCommit: this.draftHandler('y') })
       }, (context: string): string => context)
       Button('＋ 添加曲线点')
-        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').fontSize(UiStyle.body(this.compact))
+        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').fontSize(UiStyle.textFor(this.compact))
         .borderRadius(UiStyle.radius).enabled(this.points.length < this.maximumPoints).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
         .stateStyles({
           focused: { .outline({ width: 2, color: UiStyle.accent }) },

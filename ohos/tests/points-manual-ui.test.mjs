@@ -29,7 +29,7 @@ test('actual SkipGap command uses original all-axis candidate and existing seek 
 });
 
 test('manual start/status touch controls remain full-width52 and paused-waiting reaches controlled output panel',()=>{
- const source=readFileSync(new URL('../entry/src/main/ets/pages/Index.ets',import.meta.url),'utf8');assert.match(source,/关闭媒体和输出连接，启动手动预览'\)\.flatButton\(\)\.constraintSize\(\{ minHeight: UiStyle.control \}\)\.width\('100%'\)/);assert.match(source,/dispatchSuspended: this.outputSuspended/);assert.match(source,/Button\('停止全部输出'\)[^\n]*\.onClick\(\(\) => this.stop\(\)\)/);
+ const source=readFileSync(new URL('../entry/src/main/ets/pages/Index.ets',import.meta.url),'utf8');assert.match(source,/关闭媒体和输出连接，启动手动预览'\)\.flatButton\(\)\.constraintSize\(\{ minHeight: UiStyle.control \}\)\.width\('100%'\)/);assert.match(source,/dispatchSuspended: this.outputSuspended/);assert.match(source,/Button\('停止全部输出'\)[\s\S]{0,200}\.onClick\(\(\) => this\.stop\(\)\)/);
 });
 
 test('readonly or recovery arriving during native close cannot grant delayed manual admission',async()=>{

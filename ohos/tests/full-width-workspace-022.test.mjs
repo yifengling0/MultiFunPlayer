@@ -35,9 +35,9 @@ test('ordinary panes have no width caps or nested horizontal gutters; modal limi
   assert.doesNotMatch(text,/\.padding\(UiStyle.padding\(this.compact\)\)/,name);
   assert.doesNotMatch(text,/backgroundColor\(UiStyle.card\)\.borderRadius\(UiStyle.radius\)\.border/,name);
  }
- assert.equal(UiStyle.page,UiStyle.card);assert.doesNotMatch(page.slice(page.indexOf('function flatButton()'),page.indexOf('class ShortcutConnectionOwner')),/shadow\(/);
+ assert.notEqual(UiStyle.page,UiStyle.card);assert.doesNotMatch(page.slice(page.indexOf('function flatButton()'),page.indexOf('class ShortcutConnectionOwner')),/shadow\(/);
  const title=fields.slice(fields.indexOf('export struct SettingsSectionTitle'),fields.indexOf('export struct CurvePointEditor'));
- assert.doesNotMatch(title,/backgroundColor|left: 12|right: 12/);assert.match(title,/bottom: 1/);
+ assert.match(title,/Column\(\)\.width\(4\)/);assert.doesNotMatch(title,/border\(\{ width: \{ bottom: 1 \}/);
 });
 test('width changes alone preserve actual session/frame/source/permission state',()=>{
  const core=new PlaybackSessionCore();core.setConnected(true);core.load(FunscriptParser.parse('{"actions":[{"at":0,"pos":10},{"at":1000,"pos":90}]}'));core.play();core.tick(40,40);
@@ -58,11 +58,21 @@ for(const name of ['SettingsNumberField','SettingsTextField','SettingsChoiceFiel
  for(const width of [0,-1,NaN,Infinity])field.measureField(width);
  assert.equal(field.fieldWidth,300);assert.equal(changed,0);
  const block=fields.slice(fields.indexOf('export struct '+name),fields.indexOf('\n@Component',fields.indexOf('export struct '+name)));
- assert.match(block,name==='SettingsNumberField'?/numberLabelWidth\(this.fieldWidth,/:/fieldLabelWidth\(this.fieldWidth\)/);assert.match(block,name==='SettingsNumberField'?/numberControlWidth\(this.fieldWidth,/:/fieldControlWidth\(this.fieldWidth\)/);
+ if (name === 'SettingsNumberField') {
+  assert.match(block,/numberLabelWidth\(this.fieldWidth,/);
+  assert.match(block,/numberControlWidth\(this.fieldWidth,/);
+ } else if (name === 'SettingsTextField') {
+  assert.match(block, /Text\(this\.label\)[\s\S]{0,160}width\('100%'\)/);
+  assert.match(block, /TextInput\([\s\S]*?width\('100%'\)/);
+ } else {
+  assert.match(block, /Text\(this\.label\)[\s\S]{0,160}width\('100%'\)/);
+  assert.match(block, /Select\([\s\S]*?layoutWeight\(1\)/);
+ }
  assert.equal((block.match(/TextInput\(/g)||[]).length,name==='SettingsChoiceField'?0:1);
  assert.doesNotMatch(block,/if \(this.fieldWidth/);
 });
 test('field columns use measured pane width, including a wide window with a narrow video sidebar',()=>{
- for(const w of [240,320,520,599]){assert.equal(UiStyle.fieldLabelWidth(w),'100%');assert.equal(UiStyle.fieldControlWidth(w),'100%');}
- for(const w of [600,800,936]){assert.equal(UiStyle.fieldLabelWidth(w),'40%');assert.equal(UiStyle.fieldControlWidth(w),'60%');}
+ for(const w of [240,320,359]){assert.equal(UiStyle.fieldLabelWidth(w),'100%');assert.equal(UiStyle.fieldControlWidth(w),'100%');}
+ for(const w of [360,390,520,599]){assert.equal(UiStyle.fieldLabelWidth(w),'40%');assert.equal(UiStyle.fieldControlWidth(w),'56%');}
+ for(const w of [600,800,936]){assert.equal(UiStyle.fieldLabelWidth(w),'38%');assert.equal(UiStyle.fieldControlWidth(w),'60%');}
 });

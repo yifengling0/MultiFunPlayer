@@ -25,8 +25,9 @@ test('output status summary is derived independently from every real target',()=
 });
 test('approved workspace keeps one video node, permanent Stop and all original protocol add choices',()=>{
  assert.equal((page.match(/XComponent\(\{/g)||[]).length,1);const build=page.slice(page.indexOf('  build() {'));assert.match(build,/this\.videoStage\(\)/);assert.match(build,/this\.workspaceHeader\(\)/);
- assert.match(builder('globalStopButton'),/width\(64\)\.height\(52\)/);assert.match(builder('workspaceHeader'),/this\.globalStopButton\(\)/);assert.match(builder('videoStage'),/Button\('■'\)[\s\S]*this.stop\(\)/);
- const output=builder('outputPanel');for(const kind of ['serial','tcp','udp','webSocket'])assert.match(output,new RegExp("addOutputTarget\\('"+kind+"'\\)"));assert.match(output,/removeOutputConfirmationHandler\(target.id, target.generation\)/);assert.match(output,/target\.dispatchSuspended/);
+ assert.match(builder('globalStopButton'),/width\(64\)\.height\(40\)/);assert.match(builder('workspaceHeader'),/this\.globalStopButton\(\)/);assert.match(builder('videoStage'),/Button\('■ 停止'\)[\s\S]*this.stop\(\)/);
+ const output=builder('outputPanel');assert.match(output,/this\.outputPage === 'add'/);const add=builder('outputAddPage');for(const kind of ['serial','tcp','udp','webSocket'])assert.match(add,new RegExp("outputAddChoice\\('"+kind+"'"));const list=builder('outputListPage');assert.match(list,/outputStatCard/);assert.match(list,/ForEach\(this\.outputTargets/);const detail=builder('outputDetailPage');
+ assert.match(detail,/removeOutputConfirmationHandler\(this\.selectedOutputId, this\.selectedOutputGeneration\(\)\)/);assert.match(detail,/OutputSettingsPanel\(/);assert.match(detail,/dispatchSuspended/);
 });
 for(const [w,h]of [[240,640],[320,640],[390,844],[568,320],[800,1280],[1024,768],[1920,1080]])test(`player and inspector remain bounded at ${w}×${h}`,()=>{
  const layout=videoWorkspaceLayout(w,h,true,false);for(const rect of [layout.video,layout.settings,layout.trace]){assert.ok(rect.x>=0&&rect.y>=0&&rect.width>=0&&rect.height>=0);assert.ok(rect.x+rect.width<=w&&rect.y+rect.height<=h);}
@@ -49,9 +50,11 @@ test('sync action visibly navigates to its controls and output state stays above
  const inspector=builder('inspector');assert.ok(inspector.indexOf('Text(this.outputSummary())')<inspector.indexOf('Scroll(this.settingsScroller)'));
  const {page:p}=setupIndex();p.outputTargets=[{connection:'fault',armed:false,dispatchSuspended:false}];assert.equal(p.outputSummary(),'0 个已连接 · 输出未启用 · 1 个故障');
 });
-test('selected output details precede folded other-target status and repeated axis titles/folds are absent',()=>{
- const output=builder('outputPanel');assert.ok(output.indexOf('OutputSettingsPanel(')<output.indexOf('this.showAllOutputStates'));
- assert.match(output,/if \(this.showAllOutputStates\)/);assert.match(output,/ForEach\(this.outputTargets.filter\(target => this.showAllOutputStates \|\| target.id === this.selectedOutputId\)/);assert.match(builder('axisToolbar'),/showTitle: false/);
+test('connection workspace is a page flow: inventory, add page and target detail editor',()=>{
+ const output=builder('outputPanel');assert.match(output,/this\.outputPage === 'add'/);assert.match(output,/this\.outputPage === 'detail'/);
+ const list=builder('outputListPage');assert.match(list,/outputStatCard\('目标'/);assert.match(list,/outputStatCard\('已连接'/);assert.match(list,/outputStatCard\('已启用'/);assert.match(list,/this\.outputTargetCard\(target\)/);
+ const add=builder('outputAddPage');assert.match(add,/TCP/);assert.match(add,/UDP/);assert.match(add,/WebSocket/);
+ const detail=builder('outputDetailPage');assert.match(detail,/OutputSettingsPanel\(/);assert.match(detail,/this\.selectedOutputName\(\)/);assert.match(builder('axisToolbar'),/showTitle: false/);
  assert.equal((builder('axes').match(/showAxisValues/g)||[]).length,0);
 });
 

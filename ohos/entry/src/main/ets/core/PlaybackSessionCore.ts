@@ -1086,24 +1086,31 @@ export class PlaybackSessionCore {
         (this.state === 'playing' || (event.kind === 'autoHome' && (updateKind === 'polled' || original.provenance.some(value =>
           value.axisName === event.axisName && value.autoHomeApplied && value.stages.indexOf('autoHome') >= 0))))))
     });
-    const invalid = (): OutputDispatchSource => this.dispatchResult(frame, null, 'invalidated', updateKind);
-    const pending = (): OutputDispatchSource => this.dispatchResult(frame, null, 'pendingCurrentFrame', updateKind);
+    const invalid = (reason: string = 'unknown'): OutputDispatchSource => this.dispatchResult(frame, null, 'invalidated', updateKind, false, reason);
+    const pending = (reason: string = 'pending'): OutputDispatchSource => this.dispatchResult(frame, null, 'pendingCurrentFrame', updateKind, false, reason);
     if ((updateKind !== 'fixed' && updateKind !== 'polled') || names.length === 0 || names.some((name, index) => names.indexOf(name) !== index ||
-      !this.registry.axes.some(axis => axis.name === name)) || frame.axisStates.length !== names.length) { return invalid(); }
+      !this.registry.axes.some(axis => axis.name === name)) || frame.axisStates.length !== names.length) { return invalid('axisShape names=' + names.length + ' states=' + frame.axisStates.length); }
     if (!this.processingEnabled || this.failure.length > 0 || !this.foreground || !this.connected || this.state === 'stopped' || this.state === 'ended' ||
-      original.sequence <= 0 || original.epoch !== this.epoch || original.profileRevision !== this.registry.revision) { return invalid(); }
+      original.sequence <= 0 || original.epoch !== this.epoch || original.profileRevision !== this.registry.revision) {
+      return invalid('runtime processing=' + this.processingEnabled + ' failure=' + this.failure.length + ' fg=' + this.foreground +
+        ' connected=' + this.connected + ' state=' + this.state + ' seq=' + original.sequence + ' epoch=' + original.epoch + '/' + this.epoch +
+        ' profile=' + original.profileRevision + '/' + this.registry.revision);
+    }
     const playing = this.state === 'playing';
     const control = this.remoteControlProof();
-    if (control !== null && control.status === 'cancelled') { return invalid(); }
+    if (control !== null && control.status === 'cancelled') { return invalid('controlCancelled'); }
     if (control !== null && (control.status === 'pending' || !control.frameCurrent)) { return pending(); }
     if (this.remoteSourceClock && (this.remoteSnapshot?.diagnostic !== null || (this.remoteSnapshot?.playerState !== 0 && this.remoteSnapshot?.playerState !== 1) || !this.remoteClock.ready(Math.max(this.monotonicMs, this.remoteControlNow)) ||
       this.publishedRemoteGeneration !== this.remoteClock.generation || this.publishedRemoteResource !== this.remoteClock.resourceRevision)) { return invalid(); }
     if (this.remoteSourceClock && this.remoteBindingsPending) { return pending(); }
     if (this.externalClock && (this.publishedNativeGeneration !== this.nativeGeneration ||
       (playing ? !this.nativeGate || !this.armed || this.nativeObservedAt < 0 ||
-        this.monotonicMs - this.nativeObservedAt > 750 : !this.nativeReadyForPaused))) { return invalid(); }
-    if (playing && !this.armed) { return invalid(); }
-    if (this.scriptReloadToken !== 0) { return this.isScriptReloadCurrent(this.scriptReloadToken) ? pending() : invalid(); }
+        this.monotonicMs - this.nativeObservedAt > 750 : !this.nativeReadyForPaused))) {
+      return invalid('native generation=' + this.publishedNativeGeneration + '/' + this.nativeGeneration + ' gate=' + this.nativeGate +
+        ' armed=' + this.armed + ' observed=' + this.nativeObservedAt + ' now=' + this.monotonicMs);
+    }
+    if (playing && !this.armed) { return invalid('engineArmed=false playing=true'); }
+    if (this.scriptReloadToken !== 0) { return this.isScriptReloadCurrent(this.scriptReloadToken) ? pending('scriptReloadPending') : invalid('scriptReloadStale'); }
     if (this.externalClock && !playing && (this.nativePlaying || this.pendingNativePlay)) { return pending(); }
     // A live edit/pause does not relabel the previous frame with the new config.
     // The coordinator may suspend candidates while retaining an existing arm.
@@ -1130,11 +1137,12 @@ export class PlaybackSessionCore {
       }
     }
     const provenance = original.provenance.filter(value => names.indexOf(value.axisName) >= 0);
-    if (provenance.length !== names.length) { return invalid(); }
+    if (provenance.length !== names.length) { return invalid('provenance=' + provenance.length + '/' + names.length); }
     if (frame.axisStates.some(axis => !Number.isFinite(axis.value))) {
       // A fresh explicit preview can be armed waiting with no scalar at all.
       // This admission cannot authorize a write; true unknown lineage stays invalid.
-      return this.manualAdmission(frame, updateKind) !== null ? pending() : invalid();
+      const invalidAxes: string = frame.axisStates.filter(axis => !Number.isFinite(axis.value)).map(axis => axis.axisName).join(',');
+      return this.manualAdmission(frame, updateKind) !== null ? pending('manualAdmissionNoScalar') : invalid('axisValueNonFinite=' + invalidAxes);
     }
     if (provenance.some(value => value.frameSequence !== original.sequence || value.epoch !== original.epoch ||
       value.profileRevision !== original.profileRevision || value.configurationRevision !== original.configurationRevision ||
@@ -1160,7 +1168,7 @@ export class PlaybackSessionCore {
             (this.currentHistoricalAnchor(origin, original) && origin.anchor !== null &&
             origin.anchor.role === dependency.role && origin.anchor.sourceAxisName === dependency.axisName &&
             origin.anchor.sourceFrameSequence === dependency.frameSequence && origin.anchor.sourceEpoch === dependency.epoch &&
-            origin.anchor.sourceConfigurationRevision === dependency.configurationRevision)))))) { return invalid(); }
+            origin.anchor.sourceConfigurationRevision === dependency.configurationRevision)))))) { return invalid('provenanceAuditFailed'); }
     const intents: DispatchIntent[] = [];
     if (playing) {
       // Current configured activity may intentionally consume known historic
@@ -1172,7 +1180,7 @@ export class PlaybackSessionCore {
         origin.configurationRevision === original.configurationRevision &&
         (origin.source === 'script' || origin.source === 'autoHome' || origin.source === 'transition' ||
           (origin.source === 'motion' && value.motionSampleProduced === true && value.motionApplied))));
-      if (!active) { return pending(); }
+      if (!active) { return pending('noActivePlaybackOrigin'); }
       intents.push('activePlayback');
     }
     else {
@@ -1202,7 +1210,9 @@ export class PlaybackSessionCore {
       playing && this.externalClock ? this.publishedNativeObservedAt : original.monotonicMs;
     if (observedAt < 0 || observedAt > original.monotonicMs ||
       (playing && (this.externalClock || this.remoteSourceClock) && original.monotonicMs - observedAt > 750)) {
-      return this.dispatchResult(frame, null, 'invalidated', updateKind);
+      return this.dispatchResult(frame, null, 'invalidated', updateKind, false,
+        'observedAt=' + observedAt + ' monotonic=' + original.monotonicMs + ' publishedNative=' + this.publishedNativeObservedAt +
+        ' native=' + this.nativeObservedAt + ' external=' + this.externalClock + ' playing=' + playing);
     }
     const authorization: DispatchAuthorization = Object.freeze({ epoch: original.epoch,
       sourceFrameSequence: original.sequence, updateKind,
@@ -1293,10 +1303,11 @@ export class PlaybackSessionCore {
       authorizedAxes: Object.freeze(names) });
   }
   private dispatchResult(frame: PipelineFrameSource, authorization: DispatchAuthorization | null,
-    availability: 'ready' | 'pendingCurrentFrame' | 'invalidated', updateKind: 'fixed' | 'polled' = 'fixed', knownPaused: boolean = false): OutputDispatchSource {
+    availability: 'ready' | 'pendingCurrentFrame' | 'invalidated', updateKind: 'fixed' | 'polled' = 'fixed', knownPaused: boolean = false,
+    reason: string = ''): OutputDispatchSource {
     const mediaState: 'playing' | 'paused' | 'stopped' = this.state === 'playing' ? 'playing' : this.state === 'paused' ? 'paused' : 'stopped';
     const result = { frame, authorization, availability, mediaState, sourceControl: this.remoteControlProof(knownPaused), manualPreviewAdmission: this.manualAdmission(frame, updateKind), foreground: this.foreground, faulted: this.failure.length > 0,
-      sourceIdentity: this.sourceIdentity, sourceGeneration: this.sourceGeneration, seekTransition: this.seekTransition ?? undefined };
+      reason, sourceIdentity: this.sourceIdentity, sourceGeneration: this.sourceGeneration, seekTransition: this.seekTransition ?? undefined };
     return Object.freeze(result);
   }
   previewSamples(): AxisSample[] { return this.frame().axisStates.map(axis => new AxisSample(axis.axisName, axis.value * 100)); }

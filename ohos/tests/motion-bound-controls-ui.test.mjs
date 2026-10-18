@@ -95,7 +95,7 @@ test('Random raw Octaves 12 displays 8 without an implicit provider write or sto
 test('actual edited numeric submit of the same displayed 8 commits through userEdit and the real controlled callback exactly once', () => {
   const { panel, edits } = fixture('Random', { octaves: 12, minimum: .9, maximum: .2 });
   const field = numeric(panel, 'octaves'); field.blur(); assert.deepEqual(edits, []);
-  field.change('8'); field.submit();
+  field.input.focused = true; field.change('8'); field.submit();
   assert.equal(field.input.error, false); assert.equal(edits.length, 1); assert.equal(edits[0].octaves, 8);
   assert.equal(panel.configuration.octaves, 8); assert.equal(panel.octavesDifference(), '');
   assert.equal(edits[0].minimum, .9); assert.equal(edits[0].maximum, .2, 'editing Octaves must not write effective range');
@@ -104,7 +104,7 @@ test('actual edited numeric submit of the same displayed 8 commits through userE
 
 test('an explicit same-effective endpoint edit writes only that endpoint while preserving the reversed raw partner', () => {
   const { panel, edits } = fixture('Random', { minimum: .9, maximum: .2, octaves: 12 });
-  const field = numeric(panel, 'minimum'); field.change('0.9'); field.submit();
+  const field = numeric(panel, 'minimum'); field.input.focused = true; field.change('0.9'); field.submit();
   assert.equal(edits.length, 1); assert.equal(edits[0].minimum, .9); assert.equal(edits[0].maximum, .2); assert.equal(edits[0].octaves, 12);
   field.input.aboutToDisappear();
 });
@@ -239,7 +239,7 @@ test('real session configuration edits publish no synthetic frame, clock or outp
   panel.aboutToAppear(); panel.configurationChanged(); panel.rangeDifference(); panel.octavesDifference();
   assert.equal(engine.revision(), revision); assert.equal(engine.getMotionConfiguration('L0', 'Random').octaves, 12);
   const field = numeric(panel, 'octaves'); field.blur(); assert.equal(engine.revision(), revision);
-  field.change('8'); field.submit();
+  field.input.focused = true; field.change('8'); field.submit();
   assert.equal(engine.getMotionConfiguration('L0', 'Random').octaves, 8); assert.equal(engine.revision(), revision + 1);
   assert.equal(engine.frame(), frame); assert.equal(engine.snapshot().positionMs, position);
   assert.equal(output.status().armed, false); assert.equal(ports[0].writeRecords().length, 0);

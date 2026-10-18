@@ -36,7 +36,7 @@ test('scroll shrinks the same surface and player heatmap uses the same document/
  assert.match(source,/this.drawTraceInto\(this.canvas\); this.drawTraceInto\(this.playerCanvas\)/);
  const painter=source.slice(source.indexOf('  drawTraceInto('),source.indexOf('  @Builder\n  heading'));
  for(const value of ['this.engine.displayDocument()','this.selectedAxis','this.positionMs','this.durationMs'])assert.ok(painter.includes(value));
- assert.equal((source.match(/currentOffset\(\).yOffset > 96/g)||[]).length,2);
+ assert.equal((source.match(/currentOffset\(\).yOffset > 96/g)||[]).length,0);
  const stage=source.slice(source.indexOf('  videoStage()'),source.indexOf('  workspaceSettings()'));
  assert.match(stage,/this.videoPictureHeight\(\)/);assert.match(stage,/videoGestureHandler/);
  assert.match(stage,/SliderChangeMode.End.*SliderChangeMode.Click.*scheduleVideoChromeHide/);

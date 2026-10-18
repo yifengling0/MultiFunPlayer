@@ -15,6 +15,7 @@ export class Ch34xWriteOnlyBackend implements SerialBackend {
   private stopped: boolean = true;
   private transfer: usbManager.UsbDataTransferParams | null = null;
   private pending: Promise<number> | null = null;
+  private writes: number = 0;
   constructor(deviceName: string) { this.deviceName = deviceName; }
   async open(attributes: SerialAttributes, sink: SerialSink, timeoutMs: number): Promise<void> {
     if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 300000) { throw new Error('invalidSerialTimeout'); }
@@ -30,7 +31,9 @@ export class Ch34xWriteOnlyBackend implements SerialBackend {
     if (!usbManager.hasRight(device.name) && !await usbManager.requestRight(device.name)) { throw new Error('usbPermissionDenied'); }
     this.requireLive(sink);
     this.pipe = usbManager.connectDevice(device);
-    const selection: Ch34xSelection = parseCh34xUart(usbManager.getRawDescriptor(this.pipe), device.vendorId, device.productId);
+    let selection: Ch34xSelection;
+    try { selection = parseCh34xUart(usbManager.getRawDescriptor(this.pipe), device.vendorId, device.productId); }
+    catch (error) { console.info('[MFP ch34x] descriptor rejected ' + String(error)); throw new Error('ch34xDescriptorRejected'); }
     if (selection.configuration !== device.configs[0].id || candidate.id !== selection.interfaceId || candidate.endpoints.length < 2 || candidate.endpoints.length > 3) { throw new Error('ch34xDescriptorMismatch'); }
     const input: usbManager.USBEndpoint[] = candidate.endpoints.filter(ep => ep.address === selection.inputAddress && ep.direction === 128 && ep.interfaceId === candidate.id && ep.type === 2 && (ep.attributes & 3) === 2 && ep.number === (ep.address & 15) && ep.maxPacketSize === selection.inputPacketSize);
     const output: usbManager.USBEndpoint[] = candidate.endpoints.filter(ep => ep.address === selection.outputAddress && ep.direction === 0 && ep.interfaceId === candidate.id && ep.type === 2 && (ep.attributes & 3) === 2 && ep.number === (ep.address & 15) && ep.maxPacketSize === selection.outputPacketSize);
@@ -38,10 +41,26 @@ export class Ch34xWriteOnlyBackend implements SerialBackend {
     if (usbManager.claimInterface(this.pipe, candidate, false) !== 0) { throw new Error('usbInterfaceBusy'); }
     this.iface = candidate; this.endpoint = selection.outputAddress;
     // Read-only vendor version query comes after exact model/descriptor/permission.
-    const version: Uint8Array = await this.control({ input: true, request: 0x5f, value: 0, index: 0, expected: [-1, 0] }, timeoutMs);
+    let version: Uint8Array;
+    try { version = await this.control({ input: true, request: 0x5f, value: 0, index: 0, expected: [-1, 0] }, timeoutMs); }
+    catch (error) { console.info('[MFP ch34x] version query failed ' + String(error)); throw new Error('ch34xVersionQueryFailed'); }
+    console.info('[MFP ch34x] version ' + Array.from(version).join(','));
     if (!ch34xVersionSupported(version)) { throw new Error('unsupportedCh34xVersion'); }
-    for (const command of commands) { this.requireLive(sink); await this.control(command, timeoutMs); }
-    this.requireLive(sink);
+    console.info('[MFP ch34x] init commands=' + commands.length + ' live=' + sink.live());
+    try {
+      for (const command of commands) {
+        this.requireLive(sink);
+        try { await this.control(command, timeoutMs); }
+        catch (error) { console.info('[MFP ch34x] init failed request=' + command.request + ' ' + String(error)); throw new Error('ch34xInitFailed'); }
+      }
+      this.requireLive(sink);
+      console.info('[MFP ch34x] initialized');
+    } catch (error) {
+      const text: string = String(error);
+      console.info('[MFP ch34x] init sequence error ' + text);
+      if (text.indexOf('cancelled') >= 0) { throw new Error('cancelled'); }
+      throw new Error('ch34xInitSequenceFailed');
+    }
   }
   private requireLive(sink: SerialSink): void { if (this.stopped || !sink.live()) { throw new Error('cancelled'); } }
   private async control(command: Ch34xControl, timeoutMs: number): Promise<Uint8Array> {
@@ -64,6 +83,8 @@ export class Ch34xWriteOnlyBackend implements SerialBackend {
         callback: (error: BusinessError, result: usbManager.SubmitTransferCallback): void => {
           this.transfer = null;
           if (error || result === undefined || result.status !== usbManager.UsbTransferStatus.TRANSFER_COMPLETED || !Number.isSafeInteger(result.actualLength) || result.actualLength < 1 || result.actualLength > copy.length) { reject(new Error('ch34xWriteFailedUnknownPrefix')); return; }
+          this.writes++;
+          if (this.writes === 1 || this.writes % 100 === 0) { console.info('[MFP ch34x] writes=' + this.writes + ' last=' + result.actualLength); }
           resolve(result.actualLength);
         } };
       this.transfer = transfer;

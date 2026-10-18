@@ -21,12 +21,12 @@ const { SettingsOption } = new Function(stripTypeScriptTypes(helper) + '\nreturn
 const Choice = controller('SettingsChoiceField', { SettingsOption });
 const Switch = controller('SettingsSwitchField');
 
-test('approved 0.25 palette and typography retain explicit density and one pane gutter', () => {
-  for (const [name, value] of Object.entries({ page: '#F5F6F8', card: '#F5F6F8', field: '#FFFFFF',
-    ink: '#1C2937', muted: '#647181', edge: '#DFE4EA', accent: '#236B73', accentSoft: '#E7F0F0',
-    danger: '#B4434A', dangerSoft: '#F9EBED' })) assert.equal(UiStyle[name], value, name);
+test('approved 0.32 palette and typography retain explicit density and one pane gutter', () => {
+  for (const [name, value] of Object.entries({ page: '#F1F3F5', card: '#FFFFFF', field: '#F4F6F9',
+    ink: '#182431', muted: '#5E6A75', edge: '#E3E7EC', accent: '#0A59F7', accentSoft: '#E8F0FE',
+    danger: '#C6382F', dangerSoft: '#FDECEA' })) assert.equal(UiStyle[name], value, name);
   assert.equal(UiStyle.body(), 16); assert.equal(UiStyle.helper, 14); assert.equal(UiStyle.section, 18);
-  assert.equal(UiStyle.heading, 22); assert.equal(UiStyle.control, 48); assert.equal(UiStyle.radius, 8);
+  assert.equal(UiStyle.heading, 22); assert.equal(UiStyle.control, 48); assert.equal(UiStyle.radius, 12);
   for (const width of [240, 320, 359]) assert.equal(UiStyle.contentInset(width), 12);
   for (const width of [360, 390, 768, 839]) assert.equal(UiStyle.contentInset(width), 16);
   for (const width of [840, 1024, 1280, 1920]) assert.equal(UiStyle.contentInset(width), 24);
@@ -36,7 +36,12 @@ for (const name of names) test(name + ': commands share bounded 48vp hit targets
   const text = source(name);
   for (const match of text.matchAll(/(?<![A-Za-z])Button\(/g)) {
     const action = text.slice(match.index, text.indexOf('.onClick(', match.index));
-    assert.match(action, /minHeight: (?:UiStyle.control|52), maxWidth: '100%', minWidth: UiStyle.control/);
+    // Readable keeps the 48vp box itself; compact may draw 40vp but must widen
+    // the touch box back to UiStyle.control, so no hit target ever shrinks.
+    const readableBox = /minHeight: (?:UiStyle\.control|52), maxWidth: '100%', minWidth: UiStyle\.control/.test(action);
+    const compactBox = /minHeight: UiStyle\.controlFor\(this\.compact\), maxWidth: '100%', minWidth: UiStyle\.controlFor\(this\.compact\)/.test(action)
+      && /responseRegion\(\{ y: -4, width: '100%', height: UiStyle\.control \}\)/.test(action);
+    assert.ok(readableBox || compactBox, 'commands keep a bounded 48vp hit target');
     assert.match(action, /stateEffect\(true\)/); // Native pressed feedback is retained.
     assert.match(action, /borderRadius\(UiStyle.radius\)/);
     assert.match(action, /\.border\(\{ width: 1, color:/);
@@ -117,16 +122,16 @@ for (const compact of [false, true]) test('numeric short-label inline layout is 
     assert.equal(UiStyle.numberControlWidth(width, '强度', '%', compact), '100%');
   }
   for (const width of [300, 320, 360, 390, 480, 599]) {
-    assert.equal(UiStyle.numberLabelWidth(width, '强度', '%', compact), '45%');
-    assert.equal(UiStyle.numberControlWidth(width, '强度', '%', compact), '55%');
-    assert.ok(width * 0.55 >= 120);
+    assert.equal(UiStyle.numberLabelWidth(width, '强度', '%', compact), '40%');
+    assert.equal(UiStyle.numberControlWidth(width, '强度', '%', compact), '56%');
+    assert.ok(width * 0.56 >= 120);
     for (const [label, unit] of [['安全限速与自动归位的较长说明'.repeat(2), '秒'], ['输出', '长单位与额外的边界说明'.repeat(2)]]) {
       assert.equal(UiStyle.numberLabelWidth(width, label, unit, compact), '100%');
       assert.equal(UiStyle.numberControlWidth(width, label, unit, compact), '100%');
     }
   }
   for (const width of [600, 800, 1200]) {
-    assert.equal(UiStyle.numberLabelWidth(width, '轴偏移', 'ms', compact), '40%');
+    assert.equal(UiStyle.numberLabelWidth(width, '轴偏移', 'ms', compact), '38%');
     assert.equal(UiStyle.numberControlWidth(width, '轴偏移', 'ms', compact), '60%');
   }
   const block = fields.slice(fields.indexOf('export struct SettingsNumberField'), fields.indexOf('export struct SettingsTextField'));
@@ -142,7 +147,7 @@ test('secure paste keeps its native consent action and uses only supported secur
   assert.match(paste, /icon: PasteIconStyle.LINES, text: PasteDescription.PASTE, buttonType: ButtonType.Normal/);
   assert.match(paste, /fontColor\(UiStyle.ink\).iconColor\(UiStyle.ink\).backgroundColor\(UiStyle.field\)/);
   assert.match(paste, /borderWidth\(1\).borderColor\(UiStyle.edge\).borderRadius\(UiStyle.radius\)/);
-  assert.match(paste, /minHeight: (?:UiStyle.control|52), maxWidth: '100%', minWidth: UiStyle.control/);
+  assert.match(paste, /minHeight: (?:UiStyle.control|UiStyle.controlFor\(this.compact\)|52), maxWidth: '100%', minWidth: (?:UiStyle.control|UiStyle.controlFor\(this.compact\))/);
   assert.match(paste, /enabled\(!this.readOnly && !this.transferBusy\)/);
   assert.match(paste, /onClick\(this.pasteHandler\(\)\)/);
   assert.doesNotMatch(paste, /stateStyles|opacity|onTouch|onKeyEvent/);

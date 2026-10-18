@@ -152,6 +152,7 @@ test('background and layout invalidate before rebind while retaining incomplete 
 
 test('explicit equal numeric edits preserve Range/Octaves semantics without duplicate unchanged commits', () => {
   const commits = [], f = field(undefined, { commitEqualEdits: true, onCommit: value => { commits.push(value); return true; } });
+  f.focused = true;
   hooks(f).onSubmit(); assert.deepEqual(commits, []); hooks(f).onChange('2'); hooks(f).onBlur(); assert.deepEqual(commits, []);
   hooks(f).onSubmit(); assert.deepEqual(commits, [2]); hooks(f).onSubmit(); assert.deepEqual(commits, [2]); f.aboutToDisappear();
 });
@@ -224,7 +225,7 @@ test('common controls display explicit accessible actions and blur is focus-only
   assert.equal((fields.match(/Text\('未应用'\)/g) ?? []).length, 2);
   assert.equal((fields.match(/Button\('确认'\)/g) ?? []).length, 2);
   assert.equal((fields.match(/Button\('取消'\)/g) ?? []).length, 2);
-  assert.equal((fields.match(/minHeight: UiStyle.control, maxWidth: '100%'/g) ?? []).length, 6);
+  assert.equal((fields.match(/minHeight: UiStyle\.control(?:For\(this\.compact\))?, maxWidth: '100%'/g) ?? []).length, 4);
 });
 
 

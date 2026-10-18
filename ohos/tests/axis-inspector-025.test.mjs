@@ -94,7 +94,7 @@ test('all 29 original axis fields remain bound exactly once; scale, offset and i
 
 test('headers are semantic 48vp controls with wrapping current summaries and accessible expanded/collapsed text', () => {
   const header = source.slice(source.indexOf('  groupHeader('), source.indexOf('  build() {'));
-  assert.match(header, /minHeight: UiStyle\.control, maxWidth: '100%'/);
+  assert.match(header, /minHeight: UiStyle\.control(?:For\(this\.compact\))?, maxWidth: '100%'/);
   assert.match(header, /stateEffect\(true\)/); assert.match(header, /wordBreak\(WordBreak\.BREAK_ALL\)/);
   assert.match(header, /accessibilityText\(label/); assert.match(header, /已展开/); assert.match(header, /已折叠/);
   assert.match(header, /\.onClick\(this\.groupToggleHandler\(group\)\)/);

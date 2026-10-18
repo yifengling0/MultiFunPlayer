@@ -863,21 +863,21 @@ export struct InputSettingsPanel {
       }
       Flex({ wrap: FlexWrap.Wrap }) {
         Button('动作上移')
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).margin({ right: 6, bottom: 6 })
           .enabled(!this.readOnly && index > 0).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
             disabled: { .opacity(UiStyle.disabledOpacity) }
           }).onClick(this.bindEditCommand(() => this.moveAction(mapping.id, index, -1)))
         Button('动作下移')
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).margin({ right: 6, bottom: 6 })
           .enabled(!this.readOnly && index + 1 < mapping.actions.length).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
             disabled: { .opacity(UiStyle.disabledOpacity) }
           }).onClick(this.bindEditCommand(() => this.moveAction(mapping.id, index, 1)))
         Button('移除动作')
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).margin({ right: 6, bottom: 6 })
           .enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -900,11 +900,11 @@ export struct InputSettingsPanel {
           draftSource: this.mappingDraftSource(mapping), draftEpoch: this.draftEpoch,
         onCommit: this.bindEditText((value: string): boolean => this.changeName(mapping.id, value)) })
       Text('按键组合：' + (mapping.keys.length === 0 ? '未设置' : chordLabel(mapping.keys)))
-        .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Flex({ wrap: FlexWrap.Wrap }) {
         ForEach(mapping.keys, (code: number) => {
           Button('移除 ' + keyLabel(code))
-            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact))
+            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact))
             .margin({ right: 6, bottom: 6 }).enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
             .stateStyles({
               focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -918,17 +918,17 @@ export struct InputSettingsPanel {
         onSelect: this.bindEditChoice((value: string) => this.addKey(mapping.id, value)) })
       if (this.captureId === mapping.id) {
         Text('捕获中：' + (this.captureKeys.length === 0 ? '请按下组合键，然后应用。' : chordLabel(this.captureKeys)))
-          .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.accent).width('100%')
+          .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.accent).width('100%')
         Flex({ wrap: FlexWrap.Wrap }) {
           Button('应用捕获按键')
-            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).margin({ right: 6, bottom: 6 })
             .enabled(!this.readOnly && this.captureKeys.length > 0).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
             .stateStyles({
               focused: { .outline({ width: 2, color: UiStyle.accent }) },
               disabled: { .opacity(UiStyle.disabledOpacity) }
             }).onClick(this.captureApplyHandler(mapping.id))
           Button('取消捕获')
-            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+            .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).margin({ right: 6, bottom: 6 })
             .enabled(!this.readOnly).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
             .stateStyles({
               focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -937,7 +937,7 @@ export struct InputSettingsPanel {
         }.width('100%')
       } else {
         Button('从键盘捕获组合键')
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).width('100%')
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).width('100%')
           .enabled(!this.readOnly).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -958,21 +958,21 @@ export struct InputSettingsPanel {
         onSelect: this.bindEditChoice((value: string) => this.addAction(mapping.id, value)) })
       Flex({ wrap: FlexWrap.Wrap }) {
         Button('映射上移')
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).margin({ right: 6, bottom: 6 })
           .enabled(!this.readOnly && index > 0).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
             disabled: { .opacity(UiStyle.disabledOpacity) }
           }).onClick(this.bindEditCommand(() => this.moveMapping(mapping.id, -1)))
         Button('映射下移')
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).margin({ right: 6, bottom: 6 })
           .enabled(!this.readOnly && index + 1 < this.configuration.mappings.length).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
             disabled: { .opacity(UiStyle.disabledOpacity) }
           }).onClick(this.bindEditCommand(() => this.moveMapping(mapping.id, 1)))
         Button('移除此映射')
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).margin({ right: 6, bottom: 6 })
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).margin({ right: 6, bottom: 6 })
           .enabled(!this.readOnly).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -988,28 +988,28 @@ export struct InputSettingsPanel {
       Text('本地键盘映射按列表顺序匹配和执行。输入文字、捕获按键或应用进入后台时，普通映射暂停。')
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Text('F12 · 全局停止是 OHOS 新增的保留键，不可重新映射；只读和文字输入时仍可停止。')
-        .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.danger).width('100%')
-      Button('全局停止 · F12').fontSize(UiStyle.body(this.compact))
-        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: 52, maxWidth: '100%', minWidth: UiStyle.control }).width('100%')
+        .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.danger).width('100%')
+      Button('全局停止 · F12').fontSize(UiStyle.textFor(this.compact))
+        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: 52, maxWidth: '100%', minWidth: UiStyle.control }).width('100%')
         .fontColor(UiStyle.field).backgroundColor(UiStyle.danger).border({ width: 1, color: UiStyle.danger })
         .stateStyles({
           focused: { .outline({ width: 2, color: UiStyle.accent }) },
           disabled: { .opacity(UiStyle.disabledOpacity) }
         }).onClick(() => this.stop())
-      if (this.readOnly) { Text('当前设置仅可查看。全局停止始终可用。').fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.warning).width('100%') }
-      if (this.error.length > 0) { Text(this.error).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.danger).width('100%') }
+      if (this.readOnly) { Text('当前设置仅可查看。全局停止始终可用。').fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.warning).width('100%') }
+      if (this.error.length > 0) { Text(this.error).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.danger).width('100%') }
       SettingsSwitchField({ label: '启用键盘映射', value: this.configuration.enabled, editable: !this.readOnly,
         compact: this.compact,
         onChange: this.bindEditFlag((value: boolean) => this.changeEnabled(value)) })
       if (this.configuration.mappings.length === 0) {
         Text('暂无自定义映射。默认不分配普通快捷键；可添加映射，或直接使用下方触控动作。')
-          .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL).padding(8)
+          .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL).padding(8)
       }
       ForEach(this.configuration.mappings, (mapping: KeyboardShortcutMapping, index: number) => {
         this.mappingRow(mapping, index)
       }, (mapping: KeyboardShortcutMapping) => mapping.id + ':view:' + this.renderRevision)
-      Button('添加键盘映射 · ' + this.configuration.mappings.length + '/64').fontSize(UiStyle.body(this.compact))
-        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%')
+      Button('添加键盘映射 · ' + this.configuration.mappings.length + '/64').fontSize(UiStyle.textFor(this.compact))
+        .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%')
         .enabled(!this.readOnly && this.configuration.mappings.length < KeyboardShortcutConfiguration.MAX_MAPPINGS).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
         .stateStyles({
           focused: { .outline({ width: 2, color: UiStyle.accent }) },
@@ -1043,7 +1043,7 @@ export struct InputSettingsPanel {
         compact: this.compact,
             onSelect: this.touchChoiceHandler('targetAxis') })
         }
-        Text(this.targetDescription(this.touchAction)).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        Text(this.targetDescription(this.touchAction)).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
         if (this.executionNote(this.touchAction).length > 0) {
           Text(this.executionNote(this.touchAction)).fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%')
         }
@@ -1114,7 +1114,7 @@ export struct InputSettingsPanel {
             'touch:' + this.touchActionId + ':points', this.touchDraftSource(), this.draftScope + ':touch')
         }
         Button('执行触控动作 · ' + this.spec(this.touchActionId).label)
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 12, bottom: 12 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').fontSize(UiStyle.body(this.compact))
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 12, right: 12, top: 8, bottom: 8 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').fontSize(UiStyle.textFor(this.compact))
           .enabled(!this.readOnly || this.touchActionId === 'App::Stop')
           .fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
           .stateStyles({
@@ -1123,10 +1123,10 @@ export struct InputSettingsPanel {
           }).onClick(this.touchActionHandler())
       }, (identity: string) => identity)
       if (this.actionStatus.length > 0) {
-        Text('执行结果：' + this.actionStatus).fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
+        Text('执行结果：' + this.actionStatus).fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
       }
       Text('此版只支持本地键盘按钮手势。模拟轴、鼠标轴与手柄输入尚未适配，不提供占位开关。')
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
-    }.width('100%').padding({ top: UiStyle.padding(this.compact), bottom: UiStyle.padding(this.compact) })
+    }.width('100%').padding(UiStyle.cardPadding).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
   }
 }

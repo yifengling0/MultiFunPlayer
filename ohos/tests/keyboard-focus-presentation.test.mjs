@@ -2,6 +2,7 @@ import { SettingsDraftOwner } from '../entry/src/main/ets/presentation/SettingsD
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
+import { sep } from 'node:path';
 import { stripTypeScriptTypes } from 'node:module';
 import { KeyboardInputSession as Keyboard } from '../entry/src/main/ets/app/KeyboardInputSession.ts';
 import { ErrorPresentation, horizontalWorkspace } from '../entry/src/main/ets/presentation/GeneralPresentation.ts';
@@ -294,10 +295,11 @@ for (const [name, initial, refreshed, nextText, expected] of [
 test('every production TextInput binds change, focus, blur and pre-IME to the rendered editor ID', () => {
   const owners = [];
   for (const path of readdirSync(etsRoot, { recursive: true }).filter(path => path.endsWith('.ets'))) {
+    const normalized = path.split(sep).join('/');
     for (const calls of textInputs(source(path))) {
-      owners.push(path);
+      owners.push(normalized);
       const focus = /^KeyboardInputSession\.focusHandler\(this\.(\w+), true\)$/.exec(calls.get('onFocus') ?? '');
-      if (path === 'pages/Index.ets') {
+      if (normalized === 'pages/Index.ets') {
         assert.equal(calls.get('onFocus'), 'this.librarySearchFocusHandler(true)');
         assert.equal(calls.get('onBlur'), 'this.librarySearchFocusHandler(false)');
         assert.equal(calls.get('onChange'), 'KeyboardInputSession.changeHandler(this.librarySearchEditor, this.librarySearchHandler())');
@@ -305,12 +307,12 @@ test('every production TextInput binds change, focus, blur and pre-IME to the re
         assert.match(source(path), /const revision = this.screenRevision; const editor = this.librarySearchEditor/);
         continue;
       }
-      assert.ok(focus, path + ': missing bound focus callback');
+      assert.ok(focus, normalized + ': missing bound focus callback');
       const id = focus[1];
-      assert.match(calls.get('onChange') ?? '', new RegExp('^KeyboardInputSession\\.changeHandler\\(this\\.' + id + ','), path);
-      assert.match(calls.get('onBlur') ?? '', new RegExp('^KeyboardInputSession\\.(?:focusHandler|blurHandler)\\(this\\.' + id + ','), path);
-      if (calls.get('onBlur').includes('.focusHandler(')) assert.ok(calls.get('onBlur').endsWith(', false)'), path);
-      assert.equal(calls.get('onKeyPreIme'), 'KeyboardInputSession.emergencyHandler(this.' + id + ')', path);
+      assert.match(calls.get('onChange') ?? '', new RegExp('^KeyboardInputSession\\.changeHandler\\(this\\.' + id + ','), normalized);
+      assert.match(calls.get('onBlur') ?? '', new RegExp('^KeyboardInputSession\\.(?:focusHandler|blurHandler)\\(this\\.' + id + ','), normalized);
+      if (calls.get('onBlur').includes('.focusHandler(')) assert.ok(calls.get('onBlur').endsWith(', false)'), normalized);
+      assert.equal(calls.get('onKeyPreIme'), 'KeyboardInputSession.emergencyHandler(this.' + id + ')', normalized);
       if (calls.has('onSubmit')) assert.match(calls.get('onSubmit'), new RegExp('^KeyboardInputSession\\.submitHandler\\(this\\.' + id + ','), path);
       assert.equal(calls.has('onKeyEvent'), false, 'ordinary field keys must stay private: ' + path);
     }

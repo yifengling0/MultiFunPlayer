@@ -326,7 +326,7 @@ export struct ContinuousInputPanel {
         }
       }
       Button('移除动作').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-        .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius)
+        .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).borderRadius(UiStyle.radius)
         .fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge }).enabled(!this.readOnly)
         .onClick(this.command(() => { this.changeMapping(mapping.id, item => { item.actions.splice(index, 1); }); }))
     }.width('100%').padding({ top: 8, bottom: 8 })
@@ -370,11 +370,11 @@ export struct ContinuousInputPanel {
         (_action: ContinuousInputAction, index: number) => mapping.id + ':' + index + ':' + this.renderRevision)
       Flex({ wrap: FlexWrap.Wrap }) {
         Button('添加动作').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-          .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius)
+          .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).borderRadius(UiStyle.radius)
           .fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge }).margin({ right: 8, bottom: 8 })
           .enabled(!this.readOnly && mapping.actions.length < ContinuousInputConfiguration.MAX_ACTIONS).onClick(this.command(() => this.addAction(mapping.id)))
         Button('移除此映射').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-          .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius)
+          .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).borderRadius(UiStyle.radius)
           .fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge }).enabled(!this.readOnly)
           .onClick(this.command(() => { this.emit(ContinuousInputEdits.remove(this.configuration, mapping.id)); }))
       }.width('100%')
@@ -390,30 +390,30 @@ export struct ContinuousInputPanel {
       SettingsChoiceField({ label: '当前映射', selected: this.selectedMappingId, options: this.mappings(), compact: this.compact, editable: !this.readOnly,
         onSelect: this.selectHandler() }).onTouch(this.editorTouchHandler()).onMouse(this.editorMouseHandler())
       Button('添加本地映射').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-        .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius).width('100%')
+        .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).borderRadius(UiStyle.radius).width('100%')
         .fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
         .enabled(!this.readOnly && this.configuration.mappings.length < ContinuousInputConfiguration.MAX_MAPPINGS).onClick(this.command(() => this.addMapping()))
       ForEach(this.selectedMappings(), (mapping: ContinuousInputMapping) => { this.mappingEditor(mapping) },
         (mapping: ContinuousInputMapping) => mapping.id + ':' + this.renderRevision)
       Text(this.receiving ? (this.contactActive ? '接收输入 · 接触中' : '接收输入 · 等待新接触') : '输入接收已停止')
-        .fontSize(UiStyle.body(this.compact)).fontColor(this.receiving ? UiStyle.accent : UiStyle.muted).width('100%')
+        .fontSize(UiStyle.textFor(this.compact)).fontColor(this.receiving ? UiStyle.accent : UiStyle.muted).width('100%')
       if (this.status.length > 0) { Text(this.status).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
       if (this.error.length > 0) { Text(this.error).fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
       Text(t('Value ' + this.latestValue.toFixed(3) + ' · Delta ' + this.latestDelta.toFixed(3)) + (this.lastAction.length > 0 ? ' · 最近动作：' + this.lastAction : ''))
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Flex({ wrap: FlexWrap.Wrap }) {
         Button('明确启用本地接收').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-          .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius)
+          .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).borderRadius(UiStyle.radius)
           .fontColor(UiStyle.field).backgroundColor(UiStyle.accent).margin({ right: 8, bottom: 8 }).enabled(this.available() && !this.receiving)
           .onClick(this.enableHandler())
         Button('取消本地接收').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
-          .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).fontSize(UiStyle.body(this.compact)).borderRadius(UiStyle.radius)
+          .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).fontSize(UiStyle.textFor(this.compact)).borderRadius(UiStyle.radius)
           .fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge }).enabled(this.receiving)
           .onClick(this.cancelHandler('user-cancel'))
       }.width('100%')
       Column() {
         Text(this.receiving ? '在此区域触摸、按住左键移动，或使用所选滚动轴' : '先选择映射并明确启用接收')
-          .fontSize(UiStyle.body(this.compact)).fontColor(UiStyle.muted).textAlign(TextAlign.Center).padding(16)
+          .fontSize(UiStyle.textFor(this.compact)).fontColor(UiStyle.muted).textAlign(TextAlign.Center).padding(16)
       }.width('100%').height(180).justifyContent(FlexAlign.Center).borderRadius(UiStyle.radius)
         .backgroundColor(this.receiving ? UiStyle.accentSoft : UiStyle.field).border({ width: 1, color: UiStyle.edge })
         .focusable(true).focusOnTouch(true).accessibilityText('本地连续输入接收区域')
@@ -421,6 +421,6 @@ export struct ContinuousInputPanel {
         .onHover(this.hoverHandler()).onBlur(this.cancelHandler('surface-blur')).onAreaChange(this.areaHandler())
       Text('触屏 / 鼠标使用区域 vp 位置与相邻位移归一化，动作时长为 0；离开、失焦或尺寸变化后需重新启用。输出仍受独立 Arm 与预览许可约束。')
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
-    }.width('100%')
+    }.width('100%').padding(UiStyle.cardPadding).backgroundColor(UiStyle.card).borderRadius(UiStyle.radiusCard)
   }
 }

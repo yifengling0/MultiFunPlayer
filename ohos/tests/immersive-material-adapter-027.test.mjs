@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { registerHooks, stripTypeScriptTypes } from 'node:module';
+const { UiStyle } = await import('../entry/src/main/ets/presentation/UiStyle.ts');
 
 const folder = new URL('../entry/src/main/ets/presentation/immersive/', import.meta.url);
 const contexts = new Map();
@@ -90,9 +91,9 @@ for (const api of [20, 25, 0, -1, NaN, Infinity, 26.5, '26', undefined, null]) {
     new MfpSelectMaterialModifier(1).applyNormalAttribute(select);
     new MfpToggleMaterialModifier(1).applyNormalAttribute(toggle);
     new MfpSliderMaterialModifier(1).applyNormalAttribute(slider);
-    assert.deepEqual(select.calls, [['backgroundColor', '#FFFFFF'], ['border', { width: 1, color: '#DFE4EA' }],
-      ['borderRadius', 8], ['menuBackgroundColor', '#FFFFFF']]);
-    assert.deepEqual(toggle.calls, [['selectedColor', '#236B73']]); assert.deepEqual(slider.calls, []);
+    assert.deepEqual(select.calls, [['backgroundColor', UiStyle.field], ['border', { width: 1, color: UiStyle.edge }],
+      ['borderRadius', UiStyle.radius], ['menuBackgroundColor', UiStyle.field]]);
+    assert.deepEqual(toggle.calls, [['selectedColor', UiStyle.accent]]); assert.deepEqual(slider.calls, []);
     for (const method of ['decorateDialog', 'decorateCustomDialog']) {
       const options = { title: 'Confirm', builder() {}, cancel() {}, onWillDismiss() {}, buttons: [{ action() {} }] };
       assert.equal(manager[method](options), options); assert.equal('systemMaterial' in options, false);
@@ -259,7 +260,7 @@ test('official-engine-derived staged modifier model removes fallback surface on 
     stage.clear();
   };
   new context.MfpSelectMaterialModifier(0).applyNormalAttribute(instance); patch();
-  assert.equal(committed.get('backgroundColor'), '#FFFFFF');
+  assert.equal(committed.get('backgroundColor'), UiStyle.field);
   wait.resolve(); await pending;
   new context.MfpSelectMaterialModifier(1).applyNormalAttribute(instance); patch();
   assert.equal(committed.has('backgroundColor'), false); assert.equal(committed.has('border'), false);

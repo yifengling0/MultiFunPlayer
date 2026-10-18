@@ -55,6 +55,8 @@ export interface OutputDispatchSource {
   readonly faulted: boolean;
   /** Missing means fail-closed on null authorization; pending never grants a new arm. */
   readonly availability?: 'ready' | 'pendingCurrentFrame' | 'invalidated';
+  /** Non-sensitive source-gate reason for diagnostics; never a write authorization. */
+  readonly reason?: string;
   /** Required for trusted same-source seeks; absent legacy sources cannot hand off an arm. */
   readonly sourceIdentity?: string;
   readonly sourceGeneration?: number;
@@ -206,6 +208,33 @@ export class OutputCoordinator {
   private enabledAxes(): string[] {
     return this.config === null ? [] : this.config.axisRanges.filter(range => range.enabled).map(range => range.axisId);
   }
+  private armRefusal(source: OutputDispatchSource): string {
+    const reasons: string[] = [];
+    const authorization = source.authorization;
+    if (this.config === null) {
+      reasons.push('config=missing');
+    } else if (authorization !== null) {
+      if (authorization.updateKind !== this.config.updateContext.kind) {
+        reasons.push('updateKind=' + authorization.updateKind + '/' + this.config.updateContext.kind);
+      }
+      if (!authorizedAxesMatch(authorization.authorizedAxes, this.enabledAxes())) {
+        reasons.push('axes=' + authorization.authorizedAxes.join(',') + '/' + this.enabledAxes().join(','));
+      }
+      if (authorization.intents.indexOf('pausedManual') >= 0 && this.config.allowPausedManual !== true) {
+        reasons.push('pausedManual=not-allowed');
+      }
+      if (authorization.intents.indexOf('pausedManual') >= 0 && this.config.updateContext.kind !== 'fixed') {
+        reasons.push('pausedManual=not-fixed');
+      }
+    }
+    if (authorization === null) reasons.push('authorization=null');
+    if (source.availability !== undefined && source.availability !== 'ready') reasons.push('availability=' + source.availability);
+    if (source.reason !== undefined && source.reason.length > 0) reasons.push('source=' + source.reason);
+    if (source.faulted) reasons.push('faulted');
+    if (!source.foreground) reasons.push('foreground=false');
+    if (source.mediaState === 'stopped') reasons.push('media=stopped');
+    return 'No current authorized playback frame. ' + (reasons.length === 0 ? 'gate-rejected' : reasons.join('; '));
+  }
   arm(): boolean {
     if (this.session === null || this.busy) { return false; }
     const source: OutputDispatchSource = this.source.dispatchSource(this.enabledAxes(), this.config === null ? 'fixed' : this.config.updateContext.kind);
@@ -231,7 +260,7 @@ export class OutputCoordinator {
         (source.manualPreviewAdmission !== undefined && !this.manualAdmissionValid(source)))) ||
       (source.availability !== undefined && source.availability !== 'ready') || source.authorization === null || this.config === null || source.authorization.updateKind !== this.config.updateContext.kind || !authorizedAxesMatch(source.authorization.authorizedAxes, this.enabledAxes()) || source.faulted || !source.foreground || source.mediaState === 'stopped') {
       this.session.disarm();
-      this.diagnostic = 'No current authorized playback frame. Start playback or an explicitly allowed paused source first.'; return false;
+      this.diagnostic = this.armRefusal(source); return false;
     }
     this.diagnostic = '';
     const armed: boolean = this.session.arm(source.frame.epoch, source.frame.profileRevision);

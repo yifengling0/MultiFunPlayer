@@ -1755,15 +1755,15 @@
     },
     {
       "path": "ohos/entry/src/main/ets/pages/Index.ets",
-      "sha256": "8d7dc16286bbeac86a16df28940f3c0160127c44fe7b5cb91a38243022531083"
+      "sha256": "d1824ebfd6bbed8ec643fa780bf9a1e7fead3c28195c42c2620360c2d78da3b7"
     },
     {
       "path": "ohos/entry/src/main/ets/core/PlaybackSessionCore.ts",
-      "sha256": "299e7125c1427378c28b3ac0194b9f70df8baf278608d6005f168408dc8ee877"
+      "sha256": "5c310a4b9cfcb8cb64b64d65fee82543c5eb5dfa8d545d049a68ed79a6d48d85"
     },
     {
       "path": "ohos/entry/src/main/ets/components/ContinuousInputPanel.ets",
-      "sha256": "6479c0808b447d46428155b08f59cb573fca77e18a5d6fd0b14e1be68bfee882"
+      "sha256": "1eac7d99144083e45ed5b2451e73831e8c565c971f97e5eb68e34e05d893c495"
     },
     {
       "path": "ohos/tools/reference/continuous-drive-028/source-manifest.json",

@@ -9,9 +9,11 @@ test('UI version derives from the tested version constants matching the package 
   assert.match(page, /Text\('MultiFunPlayer ' \+ APP_VERSION_NAME \+ ' · OHOS'\)/);
   assert.doesNotMatch(page, /Text\(['"]\d+\.\d+\.\d+ OHOS['"]\)/);
 });
-test('narrow media toolbar distributes bounded touch targets rather than overflowing or shrinking them', () => {
+test('media toolbar is a balanced 3x2 grid of bounded touch targets, not a cramped wrapping strip', () => {
   const toolbar = page.slice(page.indexOf('  mediaToolbar() {'), page.indexOf('  timeline() {'));
-  assert.match(toolbar, /wrap: FlexWrap\.Wrap/); assert.doesNotMatch(toolbar, /Blank\(\)/);
-  assert.equal((toolbar.match(/\.flexShrink\(0\)/g) || []).length, 6);
-  assert.equal((toolbar.match(/\.width\(this.mediaToolWidth\(\)\)/g) || []).length, 6);
+  assert.doesNotMatch(toolbar, /FlexWrap\.Wrap/);
+  assert.equal((toolbar.match(/(?<![A-Za-z])Button\(/g) || []).length, 6);
+  assert.equal((toolbar.match(/\.layoutWeight\(1\)/g) || []).length, 6);
+  assert.equal((toolbar.match(/\.height\(48\)/g) || []).length, 6);
+  assert.match(toolbar, /Column\(\{ space: 8 \}\)/);
 });

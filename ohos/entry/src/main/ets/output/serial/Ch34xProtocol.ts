@@ -64,11 +64,9 @@ export function ch34xBaudControls(baudRate: number): Ch34xControl[] {
 }
 export function ch34xControlLines(dtr: boolean, rts: boolean): Ch34xControl { return out(0xa4, (~((dtr ? 0x20 : 0) | (rts ? 0x40 : 0))) & 0xffff, 0); }
 export function ch34xVersionSupported(bytes: Uint8Array): boolean {
-  // These are the two reference driver's documented observed version bytes.
-  // Unknown ROMs/clones require a separate evidence-backed compatibility entry.
-  // Linux ch341 documents inverted baud bit 7 on some 0x27 chips and
-  // different pre-0x30 line-control registers; this sequence excludes them.
-  return bytes.length === 2 && bytes[0] === 0x30 && bytes[1] === 0;
+  // 0x30 is the reference ROM; common genuine CH340 boards report 0x31 with the
+  // same 0x9a/0x95/0xa4 line-coding sequence. Pre-0x30 clones stay excluded.
+  return bytes.length === 2 && (bytes[0] === 0x30 || bytes[0] === 0x31) && bytes[1] === 0;
 }
 export function ch34xInitialization(baudRate: number, dtr: boolean, rts: boolean): Ch34xControl[] {
   const initial: Ch34xControl[] = [out(0xa1, 0, 0)];

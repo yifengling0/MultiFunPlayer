@@ -29,9 +29,9 @@ test('main controls have explicit readable styles; original single native Surfac
  assert.ok(UiStyle.heading>=22&&UiStyle.helper>=14&&UiStyle.control>=48);assert.equal(UiStyle.body(false),16);assert.equal(UiStyle.body(true),15);
  assert.doesNotMatch(page,/\.fontSize\((?:9|10|11|12|13)\)/);assert.doesNotMatch(page,/\.height\(34\)/);
  assert.equal((page.match(/XComponent\(\{/g)||[]).length,1);assert.match(page,/this\.generalConfiguration\.uiDensity === 'compact'/);assert.doesNotMatch(page,/deviceInfo\.deviceType/);
- const video=page.slice(page.indexOf('  videoStage() {'),page.indexOf('  workspaceSettings() {'));assert.match(video,/Button\('■'\)/);assert.match(video,/Button\(this.videoFullscreen \? '退出' : '全屏'\)/);
+ const video=page.slice(page.indexOf('  videoStage() {'),page.indexOf('  workspaceSettings() {'));assert.match(video,/Button\('■ 停止'\)/);assert.match(video,/Button\(this.videoFullscreen \? '退出' : '全屏'\)/);
  assert.match(page,/SettingsSwitchField\(\{ label: t\('Combine axes'\)/);assert.doesNotMatch(page,/\bSelect\(\[/);assert.match(page,/Text\(Number.isFinite\(this.axisValues\[index\]\)[^\n]*\.width\(64\)/);
- assert.match(page,/Scroll\(\) \{ Text\(this.errorNoticeMessage\)/);assert.match(page,/OwnedConfirmationDialog\(/);const modal=readFileSync(new URL('../entry/src/main/ets/components/OwnedConfirmationDialog.ets',import.meta.url),'utf8');assert.match(modal,/Button\('停止全部输出'/);assert.match(modal,/height\(UiStyle.control\)/);assert.match(modal,/onClick\(this.stopHandler\(\)\)/);assert.match(page,/Text\(this.diagnosticNotice\)/);assert.match(page,/关闭确认：/);assert.match(page,/Text\(file.name\)[^\n]*wordBreak/);assert.match(page,/Text\(match.file.name\)[^\n]*wordBreak/);assert.match(page,/Text\(target.name \+ ' · ' \+ t\(target.connection\)[^\n]*wordBreak/);
+ assert.match(page,/Scroll\(\) \{ Text\(this.errorNoticeMessage\)/);assert.match(page,/OwnedConfirmationDialog\(/);const modal=readFileSync(new URL('../entry/src/main/ets/components/OwnedConfirmationDialog.ets',import.meta.url),'utf8');assert.match(modal,/Button\('停止全部输出'/);assert.match(modal,/height\(UiStyle.control\)/);assert.match(modal,/onClick\(this.stopHandler\(\)\)/);assert.match(page,/Text\(this.diagnosticNotice\)/);assert.match(page,/关闭确认：/);assert.match(page,/Text\(file.name\)[^\n]*wordBreak/);assert.match(page,/Text\(match.file.name\)[^\n]*wordBreak/);assert.match(page,/Text\(target.name\)/);assert.match(page,/outputStatusTone\(target\)/);assert.match(page,/outputEndpointLabel\(target.id\)/);
 });
 test('diagnostic endpoints revoke receiver confirmation immediately on text editing before focus/commit order',()=>{
  const fields=readFileSync(new URL('../entry/src/main/ets/components/CurvePointEditor.ets',import.meta.url),'utf8');
@@ -41,10 +41,10 @@ test('diagnostic endpoints revoke receiver confirmation immediately on text edit
 
 test('global Stop is pinned outside every scrolling pane and uses the existing hard stop in the unified header',()=>{
  const stop=page.slice(page.indexOf('  globalStopButton() {'),page.indexOf('  headerTools() {'));
- assert.match(stop,/Button\('停止'\).*width\(64\).*height\(52\).*flexShrink\(0\)/);assert.match(stop,/onClick\(\(\) => this.stop\(\)\)/);
+ assert.match(stop,/Button\('停止'\).*width\(64\).*height\(40\).*flexShrink\(0\)/);assert.match(stop,/responseRegion\(\{ y: -4, width: '100%', height: 48 \}\)/);assert.match(stop,/onClick\(\(\) => this.stop\(\)\)/);
  const header=page.slice(page.indexOf('  workspaceHeader() {'),page.indexOf('  build() {'));
- assert.equal((header.match(/this\.globalStopButton\(\)/g)||[]).length,1);assert.doesNotMatch(header,/Scroll\(/);assert.match(header,/this.widthVp < 520/);
- const build=page.slice(page.indexOf('  build() {'));assert.ok(build.indexOf('this.workspaceHeader()')>build.indexOf('this.videoStage()'));assert.match(page,/Button\('■'\)[^\n]*accessibilityText\(t\('Stop output'\)\)[^\n]*this.stop\(\)/);
+ assert.equal((header.match(/this\.globalStopButton\(\)/g)||[]).length,1);assert.doesNotMatch(header,/Scroll\(/);assert.match(header,/this\.headerBrand\(\)/);
+ const build=page.slice(page.indexOf('  build() {'));assert.ok(build.indexOf('this.workspaceHeader()')>build.indexOf('this.videoStage()'));assert.match(page,/Button\('■ 停止'\)[\s\S]{0,220}accessibilityText\(t\('Stop output'\)\)[^\n]*this.stop\(\)/);
  for(const [w,h]of [[240,320],[280,360],[319,320],[320,240],[568,320],[768,1024],[1280,800]]){
   const layout=videoWorkspaceLayout(w,h,false,false);assert.equal(layout.headerHeight,72);assert.equal(layout.settings.y,layout.headerHeight);assert.ok(layout.headerHeight<=h);
   // Fixed Stop72 + More52 + gaps16 + outer24 leave a short MFP title even at240.

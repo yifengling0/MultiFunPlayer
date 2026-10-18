@@ -124,7 +124,7 @@ export struct OutputSettingsPanel {
     if (this.serial.backend === 'official19' && (this.serial.dtr !== null || this.serial.rts !== null)) {
       return '连接前需展开“连接设置”，将 DTR / RTS 都明确设为系统管理。';
     }
-    if (this.serial.backend === 'ch34xWriteOnly' && (this.serial.dtr === null || this.serial.rts === null)) {
+    if ((this.serial.backend === 'ch34xWriteOnly' || this.serial.backend === 'usbCdc') && (this.serial.dtr === null || this.serial.rts === null)) {
       return '连接前需展开“连接设置”，明确选择 DTR / RTS 启用或关闭。';
     }
     return '';
@@ -291,12 +291,17 @@ export struct OutputSettingsPanel {
     const capability = this.serialCapabilities.find(item => item.backend === this.serial.backend);
     return capability !== undefined && capability.available && this.serial.portName.length > 0 &&
       (this.serial.backend !== 'official19' || (this.serial.dtr === null && this.serial.rts === null)) &&
-      (this.serial.backend !== 'ch34xWriteOnly' || (this.serial.dtr !== null && this.serial.rts !== null));
+      ((this.serial.backend !== 'ch34xWriteOnly' && this.serial.backend !== 'usbCdc') || (this.serial.dtr !== null && this.serial.rts !== null));
   }
   private changeSerialBackend(value: string): void {
     if (!this.canEditSerial() || (value !== 'official26' && value !== 'official19' && value !== 'ch34xWriteOnly' && value !== 'usbCdc')) { return; }
     if (this.serial.backend === value) { return; }
-    this.serial.backend = value; this.serial.portName = ''; this.changed();
+    this.serial.backend = value; this.serial.portName = '';
+    // usbManager.serial has no DTR/RTS API. Make the required OS-managed
+    // choice explicit when switching to it instead of leaving inherited
+    // true/true values that would block Connect with a red warning.
+    if (value === 'official19') { this.serial.dtr = null; this.serial.rts = null; }
+    this.changed();
   }
   private selectSerialPort(value: string): void {
     if (!this.canEditSerial() || !this.serialPorts.some(port => port.backend === this.serial.backend && port.portName === value)) { return; }
@@ -312,15 +317,13 @@ export struct OutputSettingsPanel {
   private serialCapabilityText(): string {
     const capability = this.serialCapabilities.find(item => item.backend === this.serial.backend);
     if (capability === undefined) { return '尚未检查能力，请明确刷新本机端口。'; }
-    if (capability.available && this.serial.backend === 'ch34xWriteOnly') { return '实验性 CH340/CH341 仅写：仅 VID 1a86 / PID 7523 或 5523，严格描述符与 ROM 0x30。尚未真机验收，不保证所有克隆芯片兼容。'; }
+    if (capability.available && this.serial.backend === 'ch34xWriteOnly') { return '实验性 USB 串口输出：CH340/CH341（描述符与 ROM 0x30/0x31）、CP210x、FTDI；仅写，不读取设备回传，设备按钮、轴输入、接收数据与执行 ACK 未接。尚未真机验收，不保证克隆芯片兼容。'; }
+    if (capability.available && this.serial.backend === 'usbCdc') { return '实验性 USB CDC-ACM：标准 CDC 控制/数据接口，读写均走 bulk 端点。短包和部分 ACM 固件兼容性尚未真机验收。'; }
     if (capability.available) { return '本机有此后端能力，硬件收发仍未验收；本地写成功不是设备执行确认。'; }
-    if (capability.diagnostic === 'cdcShortPacketContractUnverified') { return 'CDC 的短包与接收语义未证明，当前不可连接。'; }
     return '此设备没有该原生串口能力。19/26 服务主要面向 PC/2in1；手机和平板请选择 USB 后端并核对支持状态。';
   }
   build() {
     Column({ space: 6 }) {
-      Text(this.model.kind === 'serial' ? '串口输出 · 手动连接' : '网络输出 · 手动连接').fontSize(UiStyle.section).fontWeight(FontWeight.Medium).fontColor(UiStyle.ink).width('100%')
-      Text(t(this.model.kind === 'serial' ? 'Serial · ' : 'TCP / UDP / WebSocket · ') + t(this.connection) + (this.armed ? (this.dispatchSuspended ? ' · 待命，无输出' : ' · 发送门开放') : ' · 未启用发送')).fontSize(UiStyle.body(this.compact))
       // Connection destination is always first and never hidden in an accordion.
       Column({ space: 4 }) {
         if (this.model.kind === 'serial') {
@@ -329,44 +332,54 @@ export struct OutputSettingsPanel {
           }
           Text(this.serial.portName.length === 0 ? '尚未选择端口' : '保存的端口提示：' + this.serial.portName).fontSize(UiStyle.helper).fontColor(UiStyle.ink).width('100%').wordBreak(WordBreak.BREAK_ALL)
           SettingsNumberField({ draftOwner: this.draftOwner, draftScope: this.draftScope, draftEpoch: this.draftEpoch + this.rawDraftEpoch, compact: this.compact, editable: this.canEditSerial(), draftKey: 'baudRate', draftSource: this.model.kind + ':' + this.serial.backend, label: '波特率', value: this.serial.baudRate, minimum: 1, maximum: 4000000, integer: true, onCommit: this.guardedNumber((value: number): boolean => this.commitBaud(value))})
-          Button(this.serialBusy ? '正在刷新本机端口' : '刷新本机串口 / USB 候选').fontSize(UiStyle.body(this.compact)).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').enabled(this.canEditSerial()).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          Button(this.serialBusy ? '正在刷新本机端口' : '刷新本机串口 / USB 候选').fontSize(UiStyle.textFor(this.compact)).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').enabled(this.canEditSerial()).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
             .stateStyles({
               focused: { .outline({ width: 2, color: UiStyle.accent }) },
               disabled: { .opacity(UiStyle.disabledOpacity) }
             }).onClick(this.guardedAction(() => this.refreshSerial()))
         } else {
           SettingsTextField({ draftOwner: this.draftOwner, draftScope: this.draftScope, draftKey: 'host', draftEpoch: this.draftEpoch + this.rawDraftEpoch,
-            label: '目标主机 / IP · 不含凭据', value: this.host, compact: this.compact, editable: this.canEditEndpoint(),
+            label: '目标主机 / IP · 不含凭据', value: this.host, placeholder: '例如 192.168.1.100', compact: this.compact, editable: this.canEditEndpoint(),
             onCommit: this.guardedText((value: string): boolean => this.commitHost(value)) })
-          SettingsNumberField({ draftOwner: this.draftOwner, draftScope: this.draftScope, draftEpoch: this.draftEpoch + this.rawDraftEpoch, compact: this.compact, editable: this.canEditEndpoint(), draftKey: 'port', draftSource: this.model.kind + ':' + this.serial.backend, label: '目标端口', value: this.port, minimum: 1, maximum: 65535, integer: true, onCommit: this.guardedNumber((value: number): boolean => this.commitPort(value))})
+          SettingsNumberField({ draftOwner: this.draftOwner, draftScope: this.draftScope, draftEpoch: this.draftEpoch + this.rawDraftEpoch, compact: this.compact, editable: this.canEditEndpoint(), draftKey: 'port', draftSource: this.model.kind + ':' + this.serial.backend, label: '目标端口', unit: '1–65535', value: this.port, minimum: 1, maximum: 65535, integer: true, onCommit: this.guardedNumber((value: number): boolean => this.commitPort(value))})
+          Text('地址示例：192.168.1.100；端口示例：8000。填写后按确认或 Enter，再点“连接设备”。')
+            .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
         }
       }.width('100%').padding({ top: 4, bottom: 4 })
       if (this.editingBlockReason().length > 0) { Text(this.editingBlockReason()).fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%').wordBreak(WordBreak.BREAK_ALL) }
       Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, alignItems: ItemAlign.Center }) {
-        Button('连接 / 应用配置').fontSize(UiStyle.body(this.compact))
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 6, bottom: 6 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).margin({ right: 8, bottom: 4 }).enabled(this.canEditEndpoint() && this.canConnectDraft()).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
+        if (this.connection === 'disconnected') {
+        Button('连接设备').fontSize(UiStyle.textFor(this.compact))
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 6, bottom: 6 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).margin({ right: 8, bottom: 4 }).enabled(this.canEditEndpoint() && this.canConnectDraft()).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
             disabled: { .opacity(UiStyle.disabledOpacity) }
           }).onClick(this.guardedAction(() => this.connectFromPanel()))
-        Button('断开 / 编辑连接').fontSize(UiStyle.body(this.compact))
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 6, bottom: 6 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).margin({ bottom: 4 }).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+        }
+        if (this.connection !== 'disconnected') {
+        Button('断开连接').fontSize(UiStyle.textFor(this.compact))
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 6, bottom: 6 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).margin({ bottom: 4 }).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
             disabled: { .opacity(UiStyle.disabledOpacity) }
           }).onClick(this.guardedAction(() => this.disconnect()))
-        Button('启用发送').fontSize(UiStyle.body(this.compact))
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 6, bottom: 6 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).margin({ right: 8, bottom: 4 }).enabled(!this.unappliedInputs() && this.canEdit() && !this.busy && this.isApplied() && this.connection === 'connected' && !this.armed).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
+        }
+        if (this.connection === 'connected' && !this.armed) {
+        Button('启用发送').fontSize(UiStyle.textFor(this.compact))
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 6, bottom: 6 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).margin({ right: 8, bottom: 4 }).enabled(!this.unappliedInputs() && this.canEdit() && !this.busy && this.isApplied() && this.connection === 'connected' && !this.armed).fontColor(UiStyle.field).backgroundColor(UiStyle.accent).border({ width: 1, color: UiStyle.accent })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
             disabled: { .opacity(UiStyle.disabledOpacity) }
           }).onClick(this.guardedAction(() => this.arm()))
-        Button('解除发送').fontSize(UiStyle.body(this.compact))
-          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 6, bottom: 6 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).margin({ bottom: 4 }).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+        }
+        if (this.armed) {
+        Button('停止发送').fontSize(UiStyle.textFor(this.compact))
+          .type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).padding({ left: 14, right: 14, top: 6, bottom: 6 }).borderRadius(UiStyle.radius).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).margin({ bottom: 4 }).fontColor(UiStyle.danger).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
           .stateStyles({
             focused: { .outline({ width: 2, color: UiStyle.accent }) },
             disabled: { .opacity(UiStyle.disabledOpacity) }
           }).onClick(this.guardedAction(() => this.disarm()))
+        }
       }
       Text('连接 ≠ 启用发送；地址和数字输入请按确认或 Enter。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
       if (this.connectionBlockReason().length > 0 && this.connectionBlockReason() !== this.editingBlockReason()) { Text(this.connectionBlockReason()).fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%').wordBreak(WordBreak.BREAK_ALL) }
@@ -380,15 +393,15 @@ export struct OutputSettingsPanel {
         }
         if (this.serialProbeNotice.length > 0) { Text(this.serialProbeNotice).fontSize(UiStyle.helper).fontColor(UiStyle.warning).width('100%') }
         if (this.serialProbeState.busy) {
-          Button('取消识别 · 等待清理').fontSize(UiStyle.body(this.compact)).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+          Button('取消识别 · 等待清理').fontSize(UiStyle.textFor(this.compact)).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
             .stateStyles({
               focused: { .outline({ width: 2, color: UiStyle.accent }) },
               disabled: { .opacity(UiStyle.disabledOpacity) }
             }).onClick(this.guardedAction(() => this.onCancelSerialProbe()))
         }
       }
-      Button((this.connectionDetailsExpanded ? '⌃ ' : '⌄ ') + (this.model.kind === 'serial' ? '连接设置 · 后端 / 控制线 / 识别' : '连接设置 · ' + (this.model.kind === 'webSocket' ? 'WS / WSS / 路径' : this.model.kind === 'udp' ? '地址族 / 本地端口' : '地址族'))).fontSize(UiStyle.body(this.compact)).fontWeight(FontWeight.Medium)
-        .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
+      Button((this.connectionDetailsExpanded ? '⌃ ' : '⌄ ') + (this.model.kind === 'serial' ? '连接设置 · 后端 / 控制线 / 识别' : '连接设置 · ' + (this.model.kind === 'webSocket' ? 'WS / WSS / 路径' : this.model.kind === 'udp' ? '地址族 / 本地端口' : '地址族'))).fontSize(UiStyle.textFor(this.compact)).fontWeight(FontWeight.Medium)
+        .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
         .type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
         .accessibilityText(((this.model.kind === 'serial' ? '连接设置 · 后端 / 控制线 / 识别' : '连接设置 · ' + (this.model.kind === 'webSocket' ? 'WS / WSS / 路径' : this.model.kind === 'udp' ? '地址族 / 本地端口' : '地址族'))) + (this.connectionDetailsExpanded ? '，已展开，点击收起' : '，已收起，点击展开'))
         .stateStyles({
@@ -398,23 +411,24 @@ export struct OutputSettingsPanel {
       if (this.connectionDetailsExpanded) {
         Column({ space: 4 }) {
           if (this.model.kind === 'serial') {
-            SettingsChoiceField({ compact: this.compact, editable: this.canEditSerial(), label: '串口后端', selected: this.serial.backend, options: [new SettingsOption('ch34xWriteOnly', 'USB CH340/341 · 仅写实验'), new SettingsOption('official26', '系统串口 26 · PC/2in1'), new SettingsOption('official19', '系统串口 19 · PC/2in1'), new SettingsOption('usbCdc', 'USB CDC · 当前不可用')], onSelect: this.guardedChoice((value: string): void => this.changeSerialBackend(value), 'connection')})
+            SettingsChoiceField({ compact: this.compact, editable: this.canEditSerial(), label: '串口后端', selected: this.serial.backend, options: [new SettingsOption('ch34xWriteOnly', 'USB CH340/CP210x/FTDI · 实验'), new SettingsOption('official26', '系统串口 26 · busManager'), new SettingsOption('official19', '系统串口 19 · usbManager'), new SettingsOption('usbCdc', 'USB CDC · 实验')], onSelect: this.guardedChoice((value: string): void => this.changeSerialBackend(value), 'connection')})
             Text(this.serialCapabilityText()).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
             Text('当前实现 8 data bits / No parity / 1 stop bit / No handshake。原版其他格式尚未接入；不支持的波特率会拒绝连接。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
             SettingsChoiceField({ compact: this.compact, editable: this.canEditSerial(), label: 'DTR', selected: this.serial.dtr === null ? 'os' : this.serial.dtr ? 'on' : 'off', options: [new SettingsOption('on', '启用（原版默认）'), new SettingsOption('off', '关闭'), new SettingsOption('os', '明确接受系统管理')], onSelect: this.guardedChoice((value: string): void => { if (!this.canEditSerial()) { return; } this.serial.dtr = value === 'os' ? null : value === 'on'; this.changed(); }, 'connection')})
             SettingsChoiceField({ compact: this.compact, editable: this.canEditSerial(), label: 'RTS', selected: this.serial.rts === null ? 'os' : this.serial.rts ? 'on' : 'off', options: [new SettingsOption('on', '启用（原版默认）'), new SettingsOption('off', '关闭'), new SettingsOption('os', '明确接受系统管理')], onSelect: this.guardedChoice((value: string): void => { if (!this.canEditSerial()) { return; } this.serial.rts = value === 'os' ? null : value === 'on'; this.changed(); }, 'connection')})
-            if (this.serial.backend === 'ch34xWriteOnly') { Text('CH 实验后端必须明确选择 DTR/RTS 启用或关闭，不能选系统管理；未明确设置时不允许连接。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
+            if (this.serial.backend === 'ch34xWriteOnly') { Text('USB 芯片后端必须明确选择 DTR/RTS 启用或关闭，不能选系统管理；未明确设置时不允许连接。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
+            if (this.serial.backend === 'usbCdc') { Text('CDC 实验后端同样必须明确选择 DTR/RTS 启用或关闭。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
             if (this.serial.backend === 'official19') { Text('系统串口 19 无法控制 DTR/RTS；两项均须由你明确选择系统管理，才允许连接。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
             if (this.serial.backend === 'ch34xWriteOnly') {
               Text('只读识别：授权后仅读 USB 描述符与 ROM；不初始化串口，不发送轴数据。请先断开全部输出。最多等待 15 秒；取消仍需等待真实清理。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
-              Button('授权并只读识别设备').fontSize(UiStyle.body(this.compact)).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').enabled(this.canEditSerial() && this.serialPorts.some(port => port.backend === this.serial.backend && port.portName === this.serial.portName)).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+              Button('授权并只读识别设备').fontSize(UiStyle.textFor(this.compact)).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').enabled(this.canEditSerial() && this.serialPorts.some(port => port.backend === this.serial.backend && port.portName === this.serial.portName)).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
                 .stateStyles({
                   focused: { .outline({ width: 2, color: UiStyle.accent }) },
                   disabled: { .opacity(UiStyle.disabledOpacity) }
                 }).onClick(this.guardedAction(() => this.probeSerial(), 'connection'))
               if (this.serialProbeState.report.length > 0) {
                 Text(this.serialProbeState.report).fontSize(UiStyle.helper).width('100%').wordBreak(WordBreak.BREAK_ALL)
-                Button('复制诊断报告 · 覆盖剪贴板').fontSize(UiStyle.body(this.compact)).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+                Button('复制诊断报告 · 覆盖剪贴板').fontSize(UiStyle.textFor(this.compact)).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
                   .stateStyles({
                     focused: { .outline({ width: 2, color: UiStyle.accent }) },
                     disabled: { .opacity(UiStyle.disabledOpacity) }
@@ -422,7 +436,7 @@ export struct OutputSettingsPanel {
               }
             }
             Text('刷新不申请权限或打开。连接时可能显示系统授权；拒绝后不会自动重试。先连接观察状态，明确启用发送前不会发送轴命令；打开/控制线切换仍可能重置外接板。拔插后需要重新连接与 Arm。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
-            Text('CH340/341 当前仅写部分实现，设备按钮、轴输入、接收数据与执行 ACK 未接；CH343/CH9102、CP210x、FTDI 不冒充已支持。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%')
+            Text('USB 芯片后端当前为仅写实验：CH340/CH341、CP210x、FTDI 可发送，但不读取设备回传、不监控 CTS/DSR、不提供执行 ACK；CH343/CH9102 和其他克隆芯片未承诺兼容。CDC 为独立读写实验后端。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%')
           } else {
             if (this.model.kind === 'webSocket') {
               SettingsChoiceField({ compact: this.compact, editable: this.canEditEndpoint(), label: 'WebSocket scheme', selected: this.scheme, options: [new SettingsOption('ws'), new SettingsOption('wss')], onSelect: this.guardedChoice((value: string): void => { if (!this.canEditEndpoint()) { return; } this.scheme = value; this.changed(); }, 'connection')})
@@ -438,8 +452,8 @@ export struct OutputSettingsPanel {
           }
         }.width('100%').padding({ top: 4, bottom: 8 })
       }
-      Button((this.timingExpanded ? '⌃ ' : '⌄ ') + ('发送时序 / 暂停权限 · ' + (this.model.polled ? 'Polled' : 'Fixed ' + this.model.intervalMs + ' ms'))).fontSize(UiStyle.body(this.compact)).fontWeight(FontWeight.Medium)
-        .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
+      Button((this.timingExpanded ? '⌃ ' : '⌄ ') + ('发送时序 / 暂停权限 · ' + (this.model.polled ? 'Polled' : 'Fixed ' + this.model.intervalMs + ' ms'))).fontSize(UiStyle.textFor(this.compact)).fontWeight(FontWeight.Medium)
+        .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
         .type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
         .accessibilityText((('发送时序 / 暂停权限 · ' + (this.model.polled ? 'Polled' : 'Fixed ' + this.model.intervalMs + ' ms'))) + (this.timingExpanded ? '，已展开，点击收起' : '，已收起，点击展开'))
         .stateStyles({
@@ -465,8 +479,8 @@ export struct OutputSettingsPanel {
           Text('暂停策略还需当前帧来源授权；无有效来源时始终停止发送。精确睡眠暂不支持。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
         }.width('100%').padding({ top: 4, bottom: 8 })
       }
-      Button((this.rangesExpanded ? '⌃ ' : '⌄ ') + ('输出范围 · ' + this.model.ranges.filter(range => range.enabled).length + ' / ' + this.model.ranges.length + ' 轴启用')).fontSize(UiStyle.body(this.compact)).fontWeight(FontWeight.Medium)
-        .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
+      Button((this.rangesExpanded ? '⌃ ' : '⌄ ') + ('输出范围 · ' + this.model.ranges.filter(range => range.enabled).length + ' / ' + this.model.ranges.length + ' 轴启用')).fontSize(UiStyle.textFor(this.compact)).fontWeight(FontWeight.Medium)
+        .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
         .type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
         .accessibilityText((('输出范围 · ' + this.model.ranges.filter(range => range.enabled).length + ' / ' + this.model.ranges.length + ' 轴启用')) + (this.rangesExpanded ? '，已展开，点击收起' : '，已收起，点击展开'))
         .stateStyles({
@@ -486,8 +500,8 @@ export struct OutputSettingsPanel {
           Text('仅启用需要的输出轴；Fixed 模式下每个启用轴都须有已验证来源。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
         }.width('100%').padding({ top: 4, bottom: 8 })
       }
-      Button((this.helpExpanded ? '⌃ ' : '⌄ ') + '说明 / 输入管理').fontSize(UiStyle.body(this.compact)).fontWeight(FontWeight.Medium)
-        .constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
+      Button((this.helpExpanded ? '⌃ ' : '⌄ ') + '说明 / 输入管理').fontSize(UiStyle.textFor(this.compact)).fontWeight(FontWeight.Medium)
+        .constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })
         .type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
         .accessibilityText(('说明 / 输入管理') + (this.helpExpanded ? '，已展开，点击收起' : '，已收起，点击展开'))
         .stateStyles({
@@ -497,7 +511,7 @@ export struct OutputSettingsPanel {
       if (this.helpExpanded) {
         Column({ space: 4 }) {
           Text('本地完成写入 ' + this.completedLocalWrites + ' 次 / ' + this.locallyAcceptedBytes + ' bytes。不是设备执行确认；UDP 连接仅表示本地绑定。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
-          Text('协议 · ' + t(this.model.kind === 'webSocket' ? 'WebSocket' : this.model.kind.toUpperCase()) + '（类型固定；需要其他协议时请添加输出）').fontSize(UiStyle.body(this.compact))
+          Text('协议 · ' + t(this.model.kind === 'webSocket' ? 'WebSocket' : this.model.kind.toUpperCase()) + '（类型固定；需要其他协议时请添加输出）').fontSize(UiStyle.textFor(this.compact))
           if (this.model.kind === 'serial') {
             Text('串口目前通过本面板连接和编辑范围；串口目标的快捷键/触控动作映射尚未接入，全局停止仍有效。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
             Text('可保存多个串口目标；首版全应用同时只打开一个串口，避免不同后端占用同一硬件。网络目标仍独立。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
@@ -508,7 +522,7 @@ export struct OutputSettingsPanel {
           Text('File / Handy / Buttplug / Pipe 尚未实现；串口按所选后端能力开放，硬件执行尚未验证。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
           Column({ space: 4 }) {
             Text('未应用输入（含选项切换后隐藏的字段）不会连接或发送；可逐项确认，或在此全部取消。').fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%')
-            Button('取消本目标全部未应用输入').fontSize(UiStyle.body(this.compact)).constraintSize({ minHeight: UiStyle.control, maxWidth: '100%', minWidth: UiStyle.control }).width('100%').enabled(this.canEdit()).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
+            Button('取消本目标全部未应用输入').fontSize(UiStyle.textFor(this.compact)).constraintSize({ minHeight: UiStyle.controlFor(this.compact), maxWidth: '100%', minWidth: UiStyle.controlFor(this.compact) }).responseRegion({ y: -4, width: '100%', height: UiStyle.control }).width('100%').enabled(this.canEdit()).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip }).type(ButtonType.Normal).borderRadius(UiStyle.radius).fontColor(UiStyle.ink).backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.edge })
               .stateStyles({
                 focused: { .outline({ width: 2, color: UiStyle.accent }) },
                 disabled: { .opacity(UiStyle.disabledOpacity) }

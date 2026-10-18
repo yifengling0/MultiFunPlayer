@@ -3,6 +3,7 @@ import type { BusinessError } from '@kit.BasicServicesKit';
 import { parseCdcAcm, cdcLineCoding } from './CdcDescriptors';
 import type { CdcFunction } from './CdcDescriptors';
 import type { SerialAttributes, SerialBackend, SerialSink } from './SerialTransport';
+import type { SerialPortOption } from './SerialDiscoveryTypes';
 /** Non-admitted CDC prototype: NativeSerialFactory deliberately blocks production
  * creation pending SDK short-packet semantics verification. Direct construction
  * is reserved for the isolated mock/compile fixture.
@@ -124,4 +125,14 @@ export class UsbCdcBackend implements SerialBackend {
     this.pipe = null; this.output = null;
     if (failed) { throw new Error('usbReleaseUnconfirmed'); }
   }
+}
+
+/** Explicit port discovery for the experimental CDC backend. */
+export function listUsbCdcPorts(): SerialPortOption[] {
+  return usbManager.getDevices().filter(device => device.configs.length === 1 &&
+    device.configs[0].interfaces.some(iface => iface.clazz === 2 && iface.subClass === 2) &&
+    device.configs[0].interfaces.some(iface => iface.clazz === 10 && iface.subClass === 0))
+    .map((device): SerialPortOption => ({ backend: 'usbCdc', portName: device.name, portId: -1,
+      label: device.productName.length > 0 ? device.productName : device.name, vendorId: device.vendorId, productId: device.productId,
+      writeOnly: false, controlLines: true }));
 }
