@@ -13,23 +13,23 @@ for(const [w,h] of [[1,1],[240,320],[320,568],[390,844],[844,390],[768,1024],[10
 test('floating and fullscreen controls never reopen, seek, connect, arm or change playback position',()=>{
  const {page,calls}=setupIndex(); page.videoMode=true;page.viewActive=true;page.foreground=true;page.currentScreen='workspace';page.surfaceId='stable';page.positionMs=12500;page.playing=true;
  const n=calls.length;
- for(let i=0;i<10;i++){page.setVideoFloating(true);page.setVideoFloating(false);page.setVideoFullscreen(true);page.toggleVideoControls();page.toggleVideoControls();page.setVideoFullscreen(false);}
+ for(let i=0;i<10;i++){page.setVideoFloating(true);page.setVideoFloating(false);page.setVideoFullscreen(true);page.videoControlsVisible = true;page.scheduleVideoChromeHide();page.videoControlsVisible = true;page.scheduleVideoChromeHide();page.setVideoFullscreen(false);}
  assert.equal(page.surfaceId,'stable');assert.equal(page.positionMs,12500);assert.equal(page.playing,true);
  assert.ok(!calls.slice(n).some(c=>['video','release','seek','nativePlay','enginePlay','arm','connect'].includes(c[0])));
 });
-test('fullscreen starts clean; single tap reveals only, timer hides playing controls and exit cancels timer',(t)=>{
+test('fullscreen starts clean; revealed chrome follows its playing timer, timer hides playing controls and exit cancels timer',(t)=>{
  t.mock.timers.enable({apis:['setTimeout']});
  const {page}=setupIndex({setTimeout:globalThis.setTimeout,clearTimeout:globalThis.clearTimeout});Object.assign(page,{videoMode:true,viewActive:true,foreground:true,playing:true});
  page.setVideoFullscreen(true);assert.equal(page.videoControlsVisible,false);
- page.toggleVideoControls();assert.equal(page.videoControlsVisible,true);assert.equal(page.playing,true);
+ page.videoControlsVisible = true;page.scheduleVideoChromeHide();assert.equal(page.videoControlsVisible,true);assert.equal(page.playing,true);
  t.mock.timers.tick(3500);assert.equal(page.videoControlsVisible,false);
- page.toggleVideoControls();page.setVideoFullscreen(false);t.mock.timers.tick(4000);assert.equal(page.videoControlsVisible,true);
+ page.videoControlsVisible = true;page.scheduleVideoChromeHide();page.setVideoFullscreen(false);t.mock.timers.tick(4000);assert.equal(page.videoControlsVisible,true);
 });
 test('paused, background and replaced fullscreen epochs cannot hide the current controls',(t)=>{
  t.mock.timers.enable({apis:['setTimeout']});const {page}=setupIndex({setTimeout:globalThis.setTimeout,clearTimeout:globalThis.clearTimeout});Object.assign(page,{videoMode:true,viewActive:true,foreground:true,playing:false});
- page.setVideoFullscreen(true);page.toggleVideoControls();t.mock.timers.tick(3500);assert.equal(page.videoControlsVisible,true);
+ page.setVideoFullscreen(true);page.videoControlsVisible = true;page.scheduleVideoChromeHide();t.mock.timers.tick(3500);assert.equal(page.videoControlsVisible,true);
  page.playing=true;page.scheduleVideoChromeHide();page.foreground=false;t.mock.timers.tick(3500);assert.equal(page.videoControlsVisible,true);
- page.foreground=true;page.setVideoFullscreen(false);page.setVideoFullscreen(true);page.toggleVideoControls();page.cancelVideoChromeTimer();t.mock.timers.tick(4000);assert.equal(page.videoControlsVisible,true);
+ page.foreground=true;page.setVideoFullscreen(false);page.setVideoFullscreen(true);page.videoControlsVisible = true;page.scheduleVideoChromeHide();page.cancelVideoChromeTimer();t.mock.timers.tick(4000);assert.equal(page.videoControlsVisible,true);
 });
 test('scroll shrinks the same surface and player heatmap uses the same document/axis/position',()=>{
  assert.equal((source.match(/XComponent\(\{/g)||[]).length,1);
@@ -38,7 +38,7 @@ test('scroll shrinks the same surface and player heatmap uses the same document/
  for(const value of ['this.engine.displayDocument()','this.selectedAxis','this.positionMs','this.durationMs'])assert.ok(painter.includes(value));
  assert.equal((source.match(/currentOffset\(\).yOffset > 96/g)||[]).length,2);
  const stage=source.slice(source.indexOf('  videoStage()'),source.indexOf('  workspaceSettings()'));
- assert.match(stage,/this.videoFullscreen \? '100%'/);assert.match(stage,/toggleVideoControls/);
+ assert.match(stage,/this.videoPictureHeight\(\)/);assert.match(stage,/videoGestureHandler/);
  assert.match(stage,/SliderChangeMode.End.*SliderChangeMode.Click.*scheduleVideoChromeHide/);
 });
 

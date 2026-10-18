@@ -1,3 +1,4 @@
+import {videoPlaybackIntent,VideoDragBounds,VideoDragSession} from '../entry/src/main/ets/core/VideoInteraction.ts';
 import { ConfirmationOwner, ConfirmationRequest, ConfirmationActions } from '../entry/src/main/ets/presentation/ConfirmationOwner.ts';
 import { SettingsDraftOwner } from '../entry/src/main/ets/presentation/SettingsDraftOwner.ts';
 import test from 'node:test';
@@ -87,7 +88,7 @@ function setup(options = {}) {
   const initialDocument = { axes: [], metadata: {}, source: 'initial' };
   const state = { scriptText: '{}', candidateActions: 0, dialogs: [] };
   const inertRemote = { snapshot() { return {status:'disconnected',generation:0,resourceRevision:0,path:null,positionSeconds:null,durationSeconds:null,playing:false,diagnostic:null,closeConfirmed:true}; }, async disconnect() {}, subscribe() { return () => {}; } };
-  const dependencies = { SettingsDraftOwner, ConfirmationOwner, ConfirmationRequest, ConfirmationActions,
+  const dependencies = { videoPlaybackIntent, VideoDragBounds, VideoDragSession, SettingsDraftOwner, ConfirmationOwner, ConfirmationRequest, ConfirmationActions,
     ImmersiveMaterialManager: { initialize: async () => ({ state: 'unsupported-runtime' }), status: () => ({ state: 'unsupported-runtime' }), decorateCustomDialog: value => value },
     ConfirmationDialogGeometry: { width: value => Math.min(480, Math.max(160, value - 32)) }, DialogAlignment: { Center: 0 },
     CustomDialogController: class { constructor(options) { this.options = options; this.closed = 0; this.opened = 0; state.dialogs.push(this); } open() { this.opened++; if (options.dialogOpenError) throw Error('open failed'); } close() { this.closed++; if (options.dialogCloseError) throw Error('close failed'); } },

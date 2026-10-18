@@ -1,3 +1,4 @@
+import { videoPlaybackIntent, VideoDragBounds, VideoDragSession } from '../core/VideoInteraction';
 import { ContinuousInputConfiguration, ContinuousInputAction } from '../input/ContinuousInputConfiguration';
 import { ContinuousDriveEngine, ContinuousInputContext, ContinuousOutputIdentity, ContinuousCapture, ContinuousDispatch, ContinuousGestureData } from '../input/ContinuousDriveEngine';
 import { LocalDrivePointer, LocalSurfaceGeometry, LocalTouchPacket, LocalMousePacket, LocalWheelPacket, LocalPointerResult } from '../input/LocalDrivePointer';
@@ -156,6 +157,14 @@ struct Index {
   @State videoFullscreen: boolean = false;
   @State videoControlsVisible: boolean = true;
   @State videoFloating: boolean = false;
+  @State floatingXRatio: number = 1;
+  @State floatingYRatio: number = 1;
+  @State videoActionPending: boolean = false;
+  private observedVideo: MediaClockSnapshot | null = null;
+  private videoActionEpoch: number = 0;
+  private videoDragging: boolean = false;
+  private videoDrag: VideoDragSession = new VideoDragSession();
+  private videoTapBlockedUntil: number = 0;
   private videoChromeTimer: number = -1;
   private videoChromeEpoch: number = 0;
   private presentationOwner: number = 0;
@@ -322,7 +331,7 @@ struct Index {
     if (screen === 'player' && !this.videoMode) { return; }
     this.retireSettingsDrafts(); this.screenRevision++; KeyboardInputSession.setEditorFocus(this.librarySearchEditor, false);
     if (screen !== 'player') { this.cancelLibraryPlayback(); this.setVideoFullscreen(false); }
-    this.currentScreen = screen; this.videoFloating = false;
+    this.currentScreen = screen; this.videoFloating = false; this.videoDragging = false;
   }
   private selectWorkspaceTool(tool: string): void {
     if (!['script', 'output', 'media', 'settings'].some(value => value === tool)) { return; }
@@ -427,7 +436,7 @@ struct Index {
   private inspectorHeight(): number {
     const available = this.workspaceLayout().settings.height;
     if (this.workspaceLayout().sideBySide) { return available; }
-    return Math.max(0, available - (this.wideWorkspace() ? 32 : UiStyle.control + 36));
+    return Math.max(0, available - (this.wideWorkspace() ? 32 : 88));
   }
   private outputChoiceHandler(): (value: string) => void {
     const ids: string[] = this.outputTargets.map(target => target.id);
@@ -569,6 +578,7 @@ struct Index {
     this.scanDownloads();
   }
   aboutToDisappear(): void {
+    this.videoActionEpoch++; this.videoActionPending = false; this.videoDragging = false;
     this.libraryPlayRequest = -1; this.libraryOpeningRevision = -1; this.screenRevision++; KeyboardInputSession.releaseEditor(this.librarySearchEditor);
     this.closeConfirmation();
     this.settingsDraftOwner.dispose(); this.settingsDraftEpoch++;
@@ -588,7 +598,7 @@ struct Index {
     this.engine.stop(); this.engine.flush();
   }
   foregroundChanged(): void {
-    if (!this.foreground) { this.cancelLibraryPlayback(); this.screenRevision++; KeyboardInputSession.setEditorFocus(this.librarySearchEditor, false); }
+    if (!this.foreground) { this.videoActionEpoch++; this.videoActionPending = false; this.videoDragging = false; this.cancelLibraryPlayback(); this.screenRevision++; KeyboardInputSession.setEditorFocus(this.librarySearchEditor, false); }
     this.closeConfirmation();
     this.settingsDraftOwner.setAvailable(this.foreground); this.settingsDraftEpoch++;
     if (!this.foreground) { this.serialDiscovery.cancel(); }
@@ -649,11 +659,16 @@ struct Index {
       this.engine.resetCustomCurve(axisName); this.sync();
     };
   }
+  syncPlaybackDisplay(playing: boolean, positionMs: number, durationMs: number): void {
+    // Video UI follows the one native clock, not the output safety gate.
+    const media = this.videoMode ? this.observedVideo : null;
+    this.playing = media !== null ? media.playing : playing;
+    this.positionMs = media !== null ? media.positionMs : positionMs;
+    this.durationMs = media !== null ? media.durationMs : durationMs;
+  }
   sync(): void {
     const state = this.engine.snapshot();
-    this.playing = state.state === 'playing';
-    this.positionMs = state.positionMs;
-    this.durationMs = state.durationMs;
+    this.syncPlaybackDisplay(state.state === 'playing', state.positionMs, state.durationMs);
     this.activeAxes = this.engine.activeRegistry().axes.slice();
     this.axisNames = this.activeAxes.map((axis) => axis.name);
     if (this.selectedAxis >= this.axisNames.length) { this.selectedAxis = 0; }
@@ -2203,8 +2218,8 @@ struct Index {
     }
     if (this.videoMode) {
       if (this.playing) { this.mediaPlayIntent = false; await this.video.pause(); }
-      else if (this.durationMs > 0 && this.positionMs >= this.durationMs) {
-        this.video.seek(0); this.status = 'Rewinding · press Play when ready';
+      else if (this.videoState === 'completed' || (this.durationMs > 0 && this.positionMs >= this.durationMs)) {
+        this.mediaPlayIntent = true; this.seekTransport(0, true);
       } else if (this.engine.play()) { this.mediaPlayIntent = true; this.syncOutput(); await this.video.play(); }
       this.syncOutput(); return;
     }
@@ -2217,6 +2232,7 @@ struct Index {
     this.sync();
   }
   stop(): void {
+    this.videoActionEpoch++; this.videoActionPending = false; this.videoDragging = false;
     this.libraryPlayRequest = -1; this.libraryOpeningRevision = -1; this.screenRevision++;
     this.closeConfirmation();
     this.serialDiscovery.cancel();
@@ -2455,6 +2471,7 @@ struct Index {
     // must leave no previous native source or script that can accidentally resume.
     this.disconnectInternal(); this.cancelMediaSeek(); this.pendingVideoUri = ''; this.pauseTransport(); this.videoReady = false;
     this.openingVideo = true; this.importing = true; this.pairOpening = true;
+    this.observedVideo = null; this.videoActionEpoch++; this.videoActionPending = false; this.videoDragging = false;
     this.videoMode = true; this.videoOnly = false; this.videoName = video.name;
     this.activeVideoFile = new ResourceFileEntry(video.uri, video.name, video.relativePath);
     const request = ++this.openVideoRequest;
@@ -2548,7 +2565,7 @@ struct Index {
     const previousSeek = this.engine.sourceSeekSnapshot();
     const retainedResume = this.resumeSeekRequest >= 0 && previousSeek !== null && previousSeek.requestId === this.resumeSeekRequest && previousSeek.status !== 'cancelled';
     if (this.videoMode && !this.videoReady && (previousSeek === null || previousSeek.status !== 'pending')) { return; }
-    const resume = preservePlaying && (this.playing || retainedResume || (this.videoMode && this.mediaPlayIntent && this.videoState === 'completed'));
+    const resume = preservePlaying && (this.playing || retainedResume || (this.videoMode && this.mediaPlayIntent && (this.videoState === 'completed' || (this.durationMs > 0 && this.positionMs >= this.durationMs))));
     const now = systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, false);
     if (this.videoMode || this.internalConnected) {
       const request = this.engine.beginSeek(now);
@@ -2577,6 +2594,9 @@ struct Index {
   }
   videoSnapshot(snapshot: MediaClockSnapshot): void {
     if (!this.viewActive || !this.videoMode) { return; }
+    if (this.observedVideo !== null && snapshot.generation < this.observedVideo.generation) { return; }
+    if (this.observedVideo === null || snapshot.generation !== this.observedVideo.generation) { this.videoActionEpoch++; this.videoActionPending = false; }
+    this.observedVideo = snapshot;
     const wasReady = this.videoReady;
     this.videoReady = snapshot.ready && snapshot.valid && !snapshot.seeking;
     this.videoState = snapshot.state;
@@ -2619,7 +2639,79 @@ struct Index {
     this.status = 'Local video closed · connect Internal for script playback'; this.sync();
   }
   workspaceLayout(): VideoWorkspaceLayout {
-    return applicationWorkspaceLayout(this.widthVp, this.heightVp, this.currentScreen, this.videoMode && (this.currentScreen !== 'workspace' || !this.workspacePreviewCollapsed), this.videoFullscreen, this.generalConfiguration.appOrientation, this.videoFloating);
+    const layout = applicationWorkspaceLayout(this.widthVp, this.heightVp, this.currentScreen, this.videoMode && (this.currentScreen !== 'workspace' || !this.workspacePreviewCollapsed), this.videoFullscreen, this.generalConfiguration.appOrientation, this.videoFloating);
+    if (this.videoFloating && !this.videoFullscreen && this.currentScreen !== 'player' && layout.video.width > 0) {
+      const bounds = new VideoDragBounds(this.widthVp, this.heightVp, layout.video.width, layout.video.height, layout.headerHeight);
+      layout.video.x = bounds.x(this.floatingXRatio); layout.video.y = bounds.y(this.floatingYRatio);
+    }
+    return layout;
+  }
+  videoPictureHeight(): number {
+    return this.videoFullscreen ? this.workspaceLayout().video.height : Math.max(1, this.workspaceLayout().video.height - this.workspaceLayout().controlsHeight);
+  }
+  videoCommand(): string {
+    return videoPlaybackIntent(this.playing, this.mediaPlayIntent, this.videoReady,
+      this.videoState === 'completed' || (this.durationMs > 0 && this.positionMs >= this.durationMs),
+      this.viewActive && this.foreground && this.videoMode, this.videoActionPending,
+      this.runtimeBusy || this.importing || this.openingVideo || this.libraryBusy || this.sessionFault.length > 0);
+  }
+  videoCanToggle(): boolean { return this.videoCommand() !== 'blocked'; }
+  videoPlaybackStatus(): string {
+    if (this.videoActionPending) { return '正在处理播放操作…'; }
+    if (this.openingVideo || this.importing) { return '正在准备视频…'; }
+    if (this.sessionFault.length > 0 || this.videoState === 'error') { return '播放故障 · 输出已停止'; }
+    if (!this.videoReady) { return '视频未就绪'; }
+    if (this.libraryBusy && !this.playing) { return '正在读取列表，暂不能开始播放'; }
+    return this.videoFloating ? '拖动移动 · 单击暂停/继续' : this.playing ? '单击暂停' : '单击播放';
+  }
+  async videoPlaybackAction(): Promise<void> {
+    const command = this.videoCommand();
+    if (command === 'blocked') { return; }
+    this.cancelVideoChromeTimer(); this.videoControlsVisible = true;
+    const epoch = ++this.videoActionEpoch; this.videoActionPending = true;
+    try {
+      if (command === 'pause') {
+        this.cancelMediaSeek(); this.pauseTransport(); await this.video.pause();
+      } else if (command === 'replay') {
+        // Explicit replay is one seek transaction; only real seekDone may resume.
+        this.mediaPlayIntent = true; this.seekTransport(0, true);
+      } else { await this.playPause(); }
+    } catch (error) {
+      if (epoch === this.videoActionEpoch) { this.output.stop(); this.engine.stop(); this.status = '播放操作失败，输出已停止：' + String(error); }
+    } finally {
+      if (epoch === this.videoActionEpoch) { this.videoActionPending = false; this.sync(); this.scheduleVideoChromeHide(); }
+    }
+  }
+  videoGestureContext(): string {
+    return this.screenRevision + ':' + this.openVideoRequest + ':' + this.surfaceId + ':' + this.widthVp + ':' + this.heightVp + ':' + this.videoFloating + ':' + this.videoFullscreen;
+  }
+  videoGestureHandler(kind: string): (event: GestureEvent) => void {
+    const context = this.videoGestureContext();
+    return (event: GestureEvent): void => {
+      if (!this.viewActive || !this.foreground || !this.videoMode || context !== this.videoGestureContext()) { return; }
+      const now = systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, false);
+      if (kind === 'tap') {
+        if (!this.videoDragging && now >= this.videoTapBlockedUntil) { void this.videoPlaybackAction(); }
+        return;
+      }
+      if (kind === 'start') {
+        this.videoDragging = this.videoFloating && !this.videoFullscreen && this.currentScreen !== 'player';
+        if (this.videoDragging) { this.videoDrag.begin(this.workspaceLayout().video.x, this.workspaceLayout().video.y); }
+      }
+      if (this.videoDragging && (kind === 'start' || kind === 'update' || kind === 'end')) {
+        const pan = event as PanGestureEvent;
+        this.moveFloatingVideo(pan.offsetX, pan.offsetY);
+      }
+      if (kind === 'end' || kind === 'cancel') {
+        this.videoDragging = false; this.videoDrag.cancel(); this.videoTapBlockedUntil = now + 180;
+      }
+    };
+  }
+  moveFloatingVideo(offsetX: number, offsetY: number): void {
+    if (!this.videoDragging || !Number.isFinite(offsetX) || !Number.isFinite(offsetY)) { return; }
+    const layout = this.workspaceLayout();
+    const bounds = new VideoDragBounds(this.widthVp, this.heightVp, layout.video.width, layout.video.height, layout.headerHeight);
+    if (this.videoDrag.move(offsetX, offsetY, bounds)) { this.floatingXRatio = this.videoDrag.xRatio; this.floatingYRatio = this.videoDrag.yRatio; }
   }
   contentPadding(): number { return UiStyle.contentInset(this.widthVp); }
   scriptPaneWidth(): number {
@@ -2631,6 +2723,7 @@ struct Index {
     return this.generalConfiguration.uiDensity === 'compact';
   }
   resizeWorkspace(width: number, height: number): void {
+    this.videoDragging = false;
     // Geometry retires callbacks, never commits drafts, seeks or reopens a source.
     if ((Number.isFinite(width) && width > 0 && width !== this.widthVp) ||
       (Number.isFinite(height) && height > 0 && height !== this.heightVp)) { this.retireSettingsDrafts(); }
@@ -2646,12 +2739,6 @@ struct Index {
     this.videoChromeEpoch++;
     if (this.videoChromeTimer >= 0) { clearTimeout(this.videoChromeTimer); this.videoChromeTimer = -1; }
   }
-  toggleVideoControls(): void {
-    this.cancelVideoChromeTimer();
-    if (!this.viewActive || !this.foreground || !this.videoFullscreen) { return; }
-    this.videoControlsVisible = !this.videoControlsVisible;
-    if (this.videoControlsVisible) { this.scheduleVideoChromeHide(); }
-  }
   scheduleVideoChromeHide(): void {
     this.cancelVideoChromeTimer();
     if (!this.videoFullscreen || !this.videoControlsVisible) { return; }
@@ -2665,7 +2752,7 @@ struct Index {
   setVideoFloating(value: boolean): void {
     if (!this.viewActive || !this.foreground || !this.videoMode || this.videoFullscreen) { return; }
     if (value !== this.videoFloating) {
-      this.retireSettingsDrafts(); this.videoFloating = value;
+      this.retireSettingsDrafts(); this.videoFloating = value; this.videoDragging = false;
       if (!value) {
         if (this.currentScreen === 'library') { this.sourceScroller.scrollEdge(Edge.Top); }
         else { this.settingsScroller.scrollEdge(Edge.Top); }
@@ -2676,7 +2763,7 @@ struct Index {
     this.cancelVideoChromeTimer();
     if (value && this.videoMode) { this.selectScreen('player'); }
     this.videoFullscreen = value && this.videoMode && this.foreground && this.viewActive;
-    this.videoControlsVisible = !this.videoFullscreen; this.videoFloating = false;
+    this.videoControlsVisible = !this.videoFullscreen; this.videoFloating = false; this.videoDragging = false;
     // The listener owns observed diagnostics. Never let a late promise rewrite
     // the current page-layout intent or media state.
     NativeWindowPresentation.requestForOwner(this.presentationOwner, this.videoFullscreen);
@@ -2857,7 +2944,7 @@ struct Index {
       Button('AB').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).enabled(!this.libraryBusy && !this.importing && !this.openingVideo && (this.deoVrActive ? this.deoVrConnected : this.videoMode ? this.videoReady : this.internalConnected) && Number.isFinite(this.engine.mediaPositionSeconds())).accessibilityText(t('Set AB loop start, end, or clear')).onClick(() => { this.playlistAction(new PlaylistPanelAction('loopCycle')); })
       Button(this.playing ? 'Ⅱ' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? '↶' : '▶')).flatButton()
         .width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontColor(UiStyle.success).fontSize(22).accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
-        .enabled(this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds))).onClick(() => this.playPause())
+        .enabled(this.videoMode ? this.videoCanToggle() : this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds))).onClick(() => { if (this.videoMode) { void this.videoPlaybackAction(); } else { void this.playPause(); } })
       Button('■').flatButton().backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).fontSize(20).accessibilityText(t('Stop output')).onClick(() => this.stop())
       Button('同步').flatButton().width(this.mediaToolWidth()).height(UiStyle.control).flexShrink(0).accessibilityText(t('Media timing settings')).onClick(() => { this.showMediaSettings = true; this.selectWorkspaceTool('script'); })
     }.width('100%').backgroundColor(UiStyle.card).borderRadius(UiStyle.radius)
@@ -3488,7 +3575,7 @@ struct Index {
   transport() {
     Row({ space: 12 }) {
       Button(this.playing ? t('Pause') : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? t('Rewind') : t('Play'))).flatButton().height(52).layoutWeight(1).backgroundColor(UiStyle.accent).fontColor('#FFFFFF')
-        .enabled(this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds))).onClick(() => this.playPause())
+        .enabled(this.videoMode ? this.videoCanToggle() : this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && (this.deoVrActive ? this.deoVrConnected && !this.deoVrBusy : this.videoMode ? this.videoReady : this.internalConnected && this.playlist.currentItem !== null && Number.isFinite(this.playlist.durationSeconds))).onClick(() => { if (this.videoMode) { void this.videoPlaybackAction(); } else { void this.playPause(); } })
       Button(t('Stop output')).flatButton().height(52).layoutWeight(1).backgroundColor(UiStyle.danger).fontColor('#FFFFFF').onClick(() => this.stop())
     }.width('100%')
   }
@@ -3517,50 +3604,69 @@ struct Index {
   @Builder
   videoStage() {
     Stack({ alignContent: Alignment.TopStart }) {
-      // Keep this exact node mounted. The SDK's default SurfaceRect follows these
-      // actual XComponent bounds; do not pin it with setXComponentSurfaceSize.
+      // This exact Surface is unconditional. Only its bounds change.
       XComponent({ id: 'mfp-native-video', type: 'surface', controller: this.videoSurface })
-        .width('100%').height(this.videoFullscreen ? '100%' : Math.max(1, this.workspaceLayout().video.height - this.workspaceLayout().controlsHeight)).backgroundColor('#000000')
-        .onClick(() => { this.toggleVideoControls(); })
+        .width('100%').height(this.videoPictureHeight()).backgroundColor('#000000')
+        .hitTestBehavior(HitTestMode.None).zIndex(0)
         .onLoad(() => this.surfaceChanged(this.videoSurface.getXComponentSurfaceId(), true))
+      // Gestures live on ArkUI, never on the native Surface or the chrome parent.
+      Column() {
+        Text(this.videoPlaybackStatus())
+          .fontSize(14).fontColor('#FFFFFF').backgroundColor('#66000000').padding(4)
+          .visibility(this.videoFloating || this.videoControlsVisible ? Visibility.Visible : Visibility.Hidden)
+          .hitTestBehavior(HitTestMode.None)
+      }.width('100%').height(this.videoPictureHeight()).justifyContent(FlexAlign.Start)
+        .backgroundColor('#00000000').hitTestBehavior(HitTestMode.Block).zIndex(1)
+        .accessibilityText('视频画面：单击暂停或继续；浮窗可拖动')
+        .gesture(GestureGroup(GestureMode.Exclusive,
+          PanGesture({ fingers: 1, direction: PanDirection.All, distance: 8 })
+            .onActionStart(this.videoGestureHandler('start')).onActionUpdate(this.videoGestureHandler('update'))
+            .onActionEnd(this.videoGestureHandler('end')).onActionCancel(this.videoGestureHandler('cancel')),
+          TapGesture({ count: 1, fingers: 1 }).onAction(this.videoGestureHandler('tap'))))
       Column({ space: 0 }) {
-        Row({ space: 4 }) {
-          Button(this.playing ? 'Ⅱ' : (this.videoMode && this.durationMs > 0 && this.positionMs >= this.durationMs ? '↶' : '▶'))
-            .flatButton().width(UiStyle.control).height(Math.min(UiStyle.control, this.workspaceLayout().controlsHeight)).fontSize(22).backgroundColor(UiStyle.accent).fontColor('#FFFFFF')
-            .accessibilityText(this.playing ? t('Pause') : t('Play or rewind'))
-            .enabled(this.foreground && !this.importing && !this.openingVideo && !this.libraryBusy && this.videoReady)
-            .onClick(() => { void this.playPause(); this.scheduleVideoChromeHide(); })
-          Button('■').flatButton().width(52).height(52).backgroundColor(UiStyle.danger).fontColor('#FFFFFF').accessibilityText(t('Stop output')).visibility(this.videoFullscreen ? Visibility.Visible : Visibility.None).onClick(() => this.stop())
-          Text(this.videoName).fontSize(UiStyle.helper).fontColor(UiStyle.ink).layoutWeight(1).maxLines(1).visibility(this.workspaceLayout().video.width >= 360 ? Visibility.Visible : Visibility.None)
-          if (!this.videoFullscreen && this.currentScreen !== 'player') {
-            Button(this.videoFloating ? '展开' : '浮窗').flatButton().height(48).padding({ left: 6, right: 6 })
-              .accessibilityText(this.videoFloating ? '展开视频预览' : '缩小为浮动视频窗').onClick(() => { this.setVideoFloating(!this.videoFloating); })
+        Row({ space: 0 }) {
+          Button(this.videoActionPending ? '…' : this.playing ? '暂停' : this.videoState === 'completed' ? '重播' : '播放')
+            .flatButton().width(this.videoFloating ? '50%' : 64).height(52).padding(4).fontSize(16)
+            .backgroundColor(UiStyle.accent).fontColor('#FFFFFF').enabled(this.videoCanToggle())
+            .accessibilityText(this.playing ? '暂停视频' : '播放视频').onClick(() => { void this.videoPlaybackAction(); })
+          if (this.videoFloating && !this.videoFullscreen) {
+            Button('展开').flatButton().width('50%').height(52).padding(4).fontSize(16)
+              .onClick(() => this.setVideoFloating(false))
+          } else {
+            Button('■').flatButton().width(52).height(52).padding(4).backgroundColor(UiStyle.danger).fontColor('#FFFFFF')
+              .accessibilityText('停止输出和播放').onClick(() => this.stop())
+            if (this.currentScreen !== 'player') {
+              Button('浮窗').flatButton().width(56).height(52).padding(4).fontSize(16).onClick(() => this.setVideoFloating(true))
+            }
+            Button(this.videoFullscreen ? '退出' : '全屏').flatButton().layoutWeight(1).height(52).padding(4).fontSize(16)
+              .accessibilityText(this.videoFullscreen ? (this.presentationMode === 'native-fullscreen' ? '退出系统全屏' : '退出窗口内全屏') : '全屏')
+              .onClick(() => this.setVideoFullscreen(!this.videoFullscreen))
           }
-          Button(this.videoFullscreen ? '退出全屏' : '全屏').flatButton().height(Math.min(UiStyle.control, this.workspaceLayout().controlsHeight)).padding({ left: 10, right: 10 })
-            .backgroundColor(UiStyle.field).fontColor(UiStyle.ink).accessibilityText(this.videoFullscreen ? (this.presentationMode === 'native-fullscreen' ? '退出系统全屏' : '退出窗口内全屏') : '全屏').onClick(() => this.setVideoFullscreen(!this.videoFullscreen))
-        }.width('100%').height(Math.min(52, this.workspaceLayout().controlsHeight))
+        }.width('100%').height(52).hitTestBehavior(HitTestMode.Default)
         Canvas(this.playerCanvas).width('100%').height(36)
-          .onReady(() => this.drawTrace())
-          .onAreaChange(() => this.drawTrace())
+          .onReady(() => this.drawTrace()).onAreaChange(() => this.drawTrace())
           .onClick((event: ClickEvent) => { this.cancelVideoChromeTimer(); this.seekTransport(Math.max(0, Math.min(1, event.x / Math.max(1, this.playerCanvas.width))) * this.durationMs); this.scheduleVideoChromeHide(); })
-        Row({ space: 8 }) {
-          Slider({ value: this.positionMs, min: 0, max: Math.max(1, this.durationMs), step: 1 }).attributeModifier(new MfpSliderMaterialModifier(this.materialRevision))
-            .layoutWeight(1).height(UiStyle.control).selectedColor(UiStyle.accent).trackColor(UiStyle.edge).blockColor(UiStyle.accent)
-            .enabled(this.videoReady && !this.importing && !this.openingVideo && !this.libraryBusy)
-            .onChange((value: number, mode: SliderChangeMode) => {
-              this.cancelVideoChromeTimer(); this.seekTransport(value);
-              if (mode === SliderChangeMode.End || mode === SliderChangeMode.Click) { this.scheduleVideoChromeHide(); }
-            })
-          Text((this.positionMs / 1000).toFixed(1) + ' / ' + (this.durationMs / 1000).toFixed(1) + ' s')
-            .fontSize(UiStyle.helper).fontColor(UiStyle.muted).maxLines(1)
-        }.padding({ left: 8, right: 10 }).width('100%').height(UiStyle.control)
-          .visibility(this.workspaceLayout().controlsHeight >= 136 ? Visibility.Visible : Visibility.None)
-      }.width('100%').height(this.workspaceLayout().controlsHeight).backgroundColor(UiStyle.page).clip(true)
+        if (this.workspaceLayout().controlsHeight >= 136) {
+          Row({ space: 8 }) {
+            Slider({ value: this.positionMs, min: 0, max: Math.max(1, this.durationMs), step: 1 }).attributeModifier(new MfpSliderMaterialModifier(this.materialRevision))
+              .layoutWeight(1).height(48).selectedColor(UiStyle.accent).trackColor(UiStyle.edge).blockColor(UiStyle.accent)
+              .enabled(this.videoReady && !this.importing && !this.openingVideo && !this.libraryBusy)
+              .onChange((value: number, mode: SliderChangeMode) => {
+                this.cancelVideoChromeTimer(); this.seekTransport(value);
+                if (mode === SliderChangeMode.End || mode === SliderChangeMode.Click) { this.scheduleVideoChromeHide(); }
+              })
+            Text((this.positionMs / 1000).toFixed(1) + ' / ' + (this.durationMs / 1000).toFixed(1) + ' s')
+              .fontSize(14).fontColor(UiStyle.muted).maxLines(1)
+          }.padding({ left: 8, right: 8 }).width('100%').height(48)
+        }
+      }.width('100%').height(this.workspaceLayout().controlsHeight).backgroundColor(UiStyle.page)
         .position({ x: 0, y: Math.max(0, this.workspaceLayout().video.height - this.workspaceLayout().controlsHeight) })
         .visibility(!this.videoFullscreen || this.videoControlsVisible ? Visibility.Visible : Visibility.Hidden)
+        .hitTestBehavior(HitTestMode.Default).zIndex(2).clip(true)
     }.width(Math.max(1, this.workspaceLayout().video.width)).height(Math.max(1, this.workspaceLayout().video.height))
       .position({ x: this.workspaceLayout().video.x, y: this.workspaceLayout().video.y })
-      .visibility(this.videoMode && this.workspaceLayout().video.width > 0 ? Visibility.Visible : Visibility.Hidden).backgroundColor('#000000').clip(true)
+      .visibility(this.videoMode && this.workspaceLayout().video.width > 0 ? Visibility.Visible : Visibility.Hidden)
+      .backgroundColor('#000000').zIndex(this.videoFullscreen ? 20 : this.videoFloating ? 10 : 1).clip(true)
   }
   @Builder
   workspaceSettings() {
@@ -3685,18 +3791,18 @@ struct Index {
       this.workspaceHeader()
       if (this.currentScreen === 'player' && (this.openingVideo || this.importing || !this.videoReady || this.sessionFault.length > 0)) {
         Text(this.sessionFault.length > 0 ? '运行故障 · 输出关闭：' + this.sessionFault : this.openingVideo || this.importing ? '正在打开视频…' : t(this.status)).fontSize(14).fontColor('#FFFFFF').padding(12)
-          .width('100%').backgroundColor('#B3000000').position({ x: 0, y: this.workspaceLayout().headerHeight })
+          .width('100%').backgroundColor('#B3000000').zIndex(30).position({ x: 0, y: this.workspaceLayout().headerHeight })
       }
       if (this.currentScreen === 'player' && this.videoFullscreen && this.presentationMode === 'in-window' && !this.presentationRestorePending && this.presentationReason.length > 0 && this.videoReady && !this.openingVideo && !this.importing && this.sessionFault.length === 0) {
         Text('当前为窗口内全屏：' + this.presentationReason).fontSize(14).fontColor('#FFFFFF').padding(8)
-          .width('100%').backgroundColor('#B3000000').position({ x: 0, y: this.workspaceLayout().headerHeight })
+          .width('100%').backgroundColor('#B3000000').zIndex(30).position({ x: 0, y: this.workspaceLayout().headerHeight })
       }
       if (this.presentationRestorePending) {
         Column({ space: 4 }) {
           Text('窗口尚未恢复：' + this.presentationReason).fontSize(UiStyle.helper).fontColor('#FFFFFF').width('100%')
           Button('重试退出系统全屏').flatButton().constraintSize({ minHeight: UiStyle.control }).width('100%').onClick(() => this.setVideoFullscreen(false))
         }.padding(8).width(Math.max(1, this.widthVp - 16)).constraintSize({ maxWidth: 600 })
-          .backgroundColor(UiStyle.danger).position({ x: 8, y: this.videoFullscreen ? 8 : this.workspaceLayout().headerHeight + 8 })
+          .backgroundColor(UiStyle.danger).zIndex(30).position({ x: 8, y: this.videoFullscreen ? 8 : this.workspaceLayout().headerHeight + 8 })
       }
       if (this.errorNoticeMode === 'snackbar') {
         Column({ space: 8 }) {
@@ -3706,7 +3812,7 @@ struct Index {
             Button('关闭提示').flatButton().constraintSize({ minHeight: UiStyle.control }).layoutWeight(1).onClick(this.errorDismissHandler(this.errorNoticeId))
             Button('全局停止').flatButton().constraintSize({ minHeight: 52 }).layoutWeight(1).fontColor(UiStyle.danger).onClick(() => this.stop())
           }.width('100%')
-        }.padding(12).width('100%').backgroundColor(UiStyle.danger).align(Alignment.Bottom)
+        }.padding(12).width('100%').backgroundColor(UiStyle.danger).zIndex(30).align(Alignment.Bottom)
       }
 
     }.width('100%').height('100%').backgroundColor(UiStyle.page).focusable(true)

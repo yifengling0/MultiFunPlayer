@@ -1,0 +1,11 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {stripTypeScriptTypes} from 'node:module';
+import {createHash} from 'node:crypto';
+import {moduleNames,loadModule} from './load-module.mjs';
+const root=new URL('./',import.meta.url);
+const manifest=moduleNames.map(loadModule);
+let app=readFileSync(new URL('app.js',root),'utf8').replace(/^import .*?;\n/gm,'');
+app=app.replace("fetch('/manifest.json').then(r=>r.json())",`Promise.resolve(${JSON.stringify(manifest.map(m=>({file:m.name+'.ts',sha256:m.sha256})))})`);
+let html=readFileSync(new URL('index.html',root),'utf8').replace('src="sample.webm"','src="data:video/webm;base64,'+readFileSync(new URL('sample.webm',root)).toString('base64')+'"').replace('<script type="module" src="app.js"></script>','<script type="module">'+manifest.map(m=>m.js).join('\n')+'\n'+app+'</script>');
+writeFileSync(new URL('standalone.html',root),html);writeFileSync(new URL('manifest.json',root),JSON.stringify(manifest.map(({js,...m})=>m),null,2));
+console.log('Built standalone.html',Buffer.byteLength(html));

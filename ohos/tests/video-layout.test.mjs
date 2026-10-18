@@ -126,7 +126,7 @@ test('one permanent native surface exists outside conditional responsive/fullscr
   const stage = source.slice(source.indexOf('  videoStage() {'), source.indexOf('  workspaceSettings() {'));
   const prefix = stage.slice(0, stage.indexOf('XComponent({'));
   assert.doesNotMatch(prefix, /\bif\s*\(/);
-  assert.match(stage, /\.width\('100%'\)\.height\(this.videoFullscreen/);
+  assert.match(stage, /\.width\('100%'\)\.height\(this.videoPictureHeight\(\)/);
   assert.doesNotMatch(stage, /\.setXComponentSurface(?:Rect|Size)\(/);
   const build = source.slice(source.indexOf('  build() {'));
   assert.match(build, /this\.workspaceSettings\(\)[\s\S]*this\.videoStage\(\)[\s\S]*Row\(/);

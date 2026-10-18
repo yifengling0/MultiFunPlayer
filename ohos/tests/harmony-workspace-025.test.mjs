@@ -25,7 +25,7 @@ test('output status summary is derived independently from every real target',()=
 });
 test('approved workspace keeps one video node, permanent Stop and all original protocol add choices',()=>{
  assert.equal((page.match(/XComponent\(\{/g)||[]).length,1);const build=page.slice(page.indexOf('  build() {'));assert.match(build,/this\.videoStage\(\)/);assert.match(build,/this\.workspaceHeader\(\)/);
- assert.match(builder('globalStopButton'),/width\(64\)\.height\(52\)/);assert.match(builder('workspaceHeader'),/this\.globalStopButton\(\)/);assert.match(builder('videoStage'),/visibility\(this.videoFullscreen \? Visibility.Visible : Visibility.None\).*this.stop\(\)/);
+ assert.match(builder('globalStopButton'),/width\(64\)\.height\(52\)/);assert.match(builder('workspaceHeader'),/this\.globalStopButton\(\)/);assert.match(builder('videoStage'),/Button\('■'\)[\s\S]*this.stop\(\)/);
  const output=builder('outputPanel');for(const kind of ['serial','tcp','udp','webSocket'])assert.match(output,new RegExp("addOutputTarget\\('"+kind+"'\\)"));assert.match(output,/removeOutputConfirmationHandler\(target.id, target.generation\)/);assert.match(output,/target\.dispatchSuspended/);
 });
 for(const [w,h]of [[240,640],[320,640],[390,844],[568,320],[800,1280],[1024,768],[1920,1080]])test(`player and inspector remain bounded at ${w}×${h}`,()=>{
@@ -39,7 +39,7 @@ test('non-video inspector reserves the real transport, spacing and padding inste
  const {page:p}=setupIndex();p.videoMode=false;
  for(const [w,h] of [[240,640],[390,844],[568,320],[800,1280],[1024,768],[1920,1080]]){
   p.widthVp=w;p.heightVp=h;p.generalConfiguration.appOrientation='vertical';const available=p.workspaceLayout().settings.height;
-  assert.equal(p.inspectorHeight()+48+12+24,available,`${w}×${h}`);assert.ok(p.inspectorHeight()>100);
+  assert.equal(p.inspectorHeight()+52+12+24,available,`${w}×${h}`);assert.ok(p.inspectorHeight()>100);
  }
  p.widthVp=1024;p.heightVp=768;p.generalConfiguration.appOrientation='horizontal';assert.equal(p.inspectorHeight()+32,p.workspaceLayout().settings.height);
  p.videoMode=true;p.currentScreen='workspace';assert.equal(p.inspectorHeight(),p.workspaceLayout().settings.height);
