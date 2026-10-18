@@ -3,9 +3,9 @@
  * Device-level UI smoke for MultiFunPlayer OHOS.
  *
  * It drives the real app through hdc/uitest: launch, navigate every tool,
- * expand the settings editors, verify that each panel's controls rendered,
- * toggle one persisted switch and prove the visible state changed, then restore
- * the original value. Screenshots and layout dumps are kept as evidence.
+ * expand selected settings editors and check their labels. It does not edit
+ * preferences, test persistence, connect outputs, or validate emitted frames.
+ * Screenshots and layout dumps are kept as evidence.
  *
  * Usage:
  *   node tools/ui-automation.mjs
@@ -13,20 +13,22 @@
  *   HDC="C:/.../hdc.exe" ARTIFACT_DIR=.hvigor/outputs/ui-automation node tools/ui-automation.mjs
  *
  * This is a real-device acceptance check, not a substitute for the node unit
- * suite: it verifies rendering, hit-testing and persisted state on the target.
+ * suite: it checks navigation and selected rendered labels on the target.
+ * Settings edits/persistence, playback, Pause/Stop and TCP/UDP output require
+ * separate device acceptance. No hardware check runs when this module is imported.
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = resolve(new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const root = fileURLToPath(new URL('..', import.meta.url));
 const hdc = process.env.HDC || 'C:/Program Files/Huawei/DevEco Studio/sdk/default/openharmony/toolchains/hdc.exe';
 const target = process.env.HDC_TARGET || '192.168.180.76:44945';
 const bundle = 'com.multifunplayer.ohos';
 const artifactDir = resolve(process.env.ARTIFACT_DIR || join(root, '.hvigor/outputs/ui-automation'));
 const remoteLayout = '/data/local/tmp/mfp-ui-layout.json';
 const remoteShot = '/data/local/tmp/mfp-ui-shot.png';
-mkdirSync(artifactDir, { recursive: true });
 
 function run(args, { allowFailure = false } = {}) {
   const result = spawnSync(hdc, ['-t', target, ...args], { encoding: 'utf8', timeout: 30000 });
@@ -131,22 +133,24 @@ async function toggleExpand(label) {
   }
   throw new Error('Could not expand section: ' + label);
 }
-async function tapSwitch(label) {
-  const before = await waitFor(label, { label });
-  const node = nodes(before, label).find(candidate => /已开启|已关闭/.test(candidate.accessibilityText || '') ||
-    /已开启|已关闭/.test(candidate.text || ''));
-  if (node === undefined) throw new Error(`Switch not found: ${label}`);
-  const enabledBefore = /已开启/.test(node.accessibilityText || node.text || '');
-  const bounds = parseBounds(node.bounds);
-  run(['shell', 'uitest', 'uiInput', 'click', String(bounds.x), String(bounds.y)]);
-  await sleep(1200);
-  const after = dump('switch-' + label.replace(/[^\w\u4e00-\u9fa5-]+/g, '_'));
-  const changed = nodes(after, label).find(candidate => /已开启|已关闭/.test(candidate.accessibilityText || '') ||
-    /已开启|已关闭/.test(candidate.text || ''));
-  if (changed === undefined) throw new Error(`Switch state disappeared after tap: ${label}`);
-  const enabledAfter = /已开启/.test(changed.accessibilityText || changed.text || '');
-  if (enabledBefore === enabledAfter) throw new Error(`Switch did not reflect the tap: ${label} (${enabledBefore})`);
-  return { enabledBefore, enabledAfter };
+// Exact labels prevent a page heading or explanatory text from satisfying a
+// missing control's assertion. This checks label presence, not event wiring.
+export function assertVisibleLabels(tree, labels) {
+  for (const label of labels) {
+    const found = flatten(tree).some(node => {
+      const bounds = parseBounds(node.bounds);
+      return (node.text === label || node.accessibilityText === label) &&
+        bounds !== null && bounds.x2 > bounds.x1 && bounds.y2 > bounds.y1;
+    });
+    if (!found) throw new Error('Missing rendered label: ' + label);
+  }
+}
+async function requireLabels(labels) {
+  for (const label of labels) {
+    const tree = await waitFor(label);
+    assertVisibleLabels(tree, [label]);
+    check(true, 'rendered label: ' + label);
+  }
 }
 
 const failures = [];
@@ -155,6 +159,7 @@ function check(condition, message) {
 }
 
 async function smoke() {
+  mkdirSync(artifactDir, { recursive: true });
   console.log(`target=${target}`);
   check(existsSync(hdc), 'hdc exists: ' + hdc);
   run(['shell', 'power-shell', 'wakeup'], { allowFailure: true });
@@ -181,11 +186,11 @@ async function smoke() {
   console.log('STEP output');
   await click('连接', { label: 'output' });
   await waitFor('设备连接');
-  check(true, 'connection page renders inventory counters');
+  check(true, 'connection page heading renders');
   capture('03-output');
   await click('＋ 添加', { label: 'add-output' });
   await waitFor('添加设备');
-  check(true, 'add-device page exposes TCP/UDP/WebSocket/serial choices');
+  await requireLabels(['串口 / USB', 'TCP', 'UDP', 'WebSocket']);
   capture('03-add-device');
   await click('‹ 设备列表', { label: 'back-to-output' });
   await waitFor('设备连接');
@@ -212,25 +217,27 @@ async function smoke() {
   await click('脚本', { label: 'script-again' });
   await toggleExpand('运动与曲线');
   await waitFor('Motion 编辑器');
-  check(true, 'motion editor renders and exposes generator fields');
+  await requireLabels(['速度', '最小值', '最大值']);
   capture('07-motion');
   await toggleExpand('运动与曲线');
 
   console.log('STEP motion done');
   const pidAfter = run(['shell', 'pidof', bundle], { allowFailure: true });
-  check(/^\d+/.test(pidAfter), 'app process survives the full navigation: ' + pidAfter);
+  check(/^\d+/.test(pidAfter) && pidAfter === pidBefore, 'same app process survives navigation: ' + pidAfter);
   capture('09-final');
 }
 
-try {
-  await smoke();
-} catch (error) {
-  failures.push(String(error));
-  console.error(error);
-}
-if (failures.length > 0) {
-  console.error(`\n${failures.length} UI smoke failure(s). Artifacts: ${artifactDir}`);
-  process.exitCode = 1;
-} else {
-  console.log(`\nUI smoke passed. Artifacts: ${artifactDir}`);
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  try {
+    await smoke();
+  } catch (error) {
+    failures.push(String(error));
+    console.error(error);
+  }
+  if (failures.length > 0) {
+    console.error(`\n${failures.length} UI smoke failure(s). Artifacts: ${artifactDir}`);
+    process.exitCode = 1;
+  } else {
+    console.log(`\nUI smoke passed. Artifacts: ${artifactDir}`);
+  }
 }

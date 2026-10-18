@@ -537,7 +537,7 @@ struct Index {
   private inspectorHeight(): number {
     const available = this.workspaceLayout().settings.height;
     if (this.workspaceLayout().sideBySide) { return available; }
-    return Math.max(0, available - (this.wideWorkspace() ? 32 : 88));
+    return Math.max(0, available - (this.wideWorkspace() ? 32 : 100));
   }
   private outputChoiceHandler(): (value: string) => void {
     const ids: string[] = this.outputTargets.map(target => target.id);
@@ -1729,11 +1729,7 @@ struct Index {
       NativeOutputSession.draftDiagnostic(targetId).length > 0 || this.output.isRemoving(targetId)) {
       target.disarm(); this.syncOutput(); this.outputDiagnostic = '当前草稿尚未应用；请连接设备后再启用发送。'; return;
     }
-    if (this.videoMode && this.engine.snapshot().state !== 'playing') {
-      target.disarm(); this.syncOutput();
-      this.outputDiagnostic = '视频未在播放：先点播放，等画面开始走动后再启用发送。';
-      return;
-    }
+    // Coordinator validates real source authorization, including explicitly allowed paused intents.
     target.arm(); this.syncOutput();
   }
   disarmOutput(targetId: string, generation: number = NativeOutputSession.draftSnapshot(targetId).targetGeneration): void { if (!NativeOutputSession.matchesTarget(targetId, generation)) { return; } const target = this.output.get(targetId); if (target !== null) { target.disarm(); } this.syncOutput(); }
@@ -3125,6 +3121,7 @@ struct Index {
   @Builder
   axisToolbar() {
     Column({ space: 0 }) {
+      Scroll() {
       Row({ space: 2 }) {
         ForEach(this.axisNames, (name: string, index: number) => {
           Column({ space: 0 }) {
@@ -3136,7 +3133,8 @@ struct Index {
             .borderRadius(14)
             .onClick(() => { this.selectedAxis = index; this.sync(); })
         })
-      }.width('100%').padding(4).backgroundColor(UiStyle.fill).borderRadius(18)
+      }.padding(4).backgroundColor(UiStyle.fill).borderRadius(18)
+      }.width('100%').scrollable(ScrollDirection.Horizontal)
       Row({ space: 8 }) {
         Text((this.axisNames[this.selectedAxis] || '轴') + ' · ' + (this.selectedAxisDefinition.friendlyName || '轴控制')).fontSize(18).fontWeight(FontWeight.Bold).fontColor(UiStyle.ink).layoutWeight(1)
         Button(this.showAxisSettings ? '收起参数' : '轴参数').flatButton().constraintSize({ minHeight: 40 })
@@ -3994,26 +3992,26 @@ struct Index {
       Column({ space: 0 }) {
         Row({ space: 6 }) {
           Button(this.videoActionPending ? '…' : this.playing ? '暂停' : this.videoState === 'completed' ? '重播' : '播放')
-            .flatButton().layoutWeight(1).height(40).padding({ left: 12, right: 12 }).fontSize(15)
+            .flatButton().layoutWeight(1).height(40).responseRegion({ y: -4, width: '100%', height: 48 }).padding({ left: 12, right: 12 }).fontSize(15)
             .backgroundColor(UiStyle.accent).fontColor(UiStyle.onAccent).border({ width: 0 }).fontWeight(FontWeight.Medium)
             .borderRadius(20).enabled(this.videoCanToggle())
             .accessibilityText(this.playing ? '暂停视频' : '播放视频').onClick(() => { void this.videoPlaybackAction(); })
           if (this.videoFloating && !this.videoFullscreen) {
-            Button('展开').flatButton().width(72).height(40).padding(4).fontSize(15)
+            Button('展开').flatButton().width(72).height(40).responseRegion({ y: -4, width: '100%', height: 48 }).padding(4).fontSize(15)
               .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline }).borderRadius(20)
               .onClick(() => this.setVideoFloating(false))
           } else {
             if (this.videoFullscreen) {
-              Button('■ 停止').flatButton().width(76).height(40).padding(4).fontSize(15)
+              Button('■ 停止').flatButton().width(76).height(40).responseRegion({ y: -4, width: '100%', height: 48 }).padding(4).fontSize(15)
                 .backgroundColor(UiStyle.dangerSoft).fontColor(UiStyle.danger).border({ width: 0 }).borderRadius(20)
                 .accessibilityText('停止输出和播放').onClick(() => this.stop())
             }
             if (this.currentScreen !== 'player' && this.widthVp >= 300) {
-              Button('浮窗').flatButton().width(56).height(40).padding(4).fontSize(15)
+              Button('浮窗').flatButton().width(56).height(40).responseRegion({ y: -4, width: '100%', height: 48 }).padding(4).fontSize(15)
                 .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline }).borderRadius(20)
                 .onClick(() => this.setVideoFloating(true))
             }
-            Button(this.videoFullscreen ? '退出' : '全屏').flatButton().width(this.widthVp < 360 ? 52 : 64).height(40).padding(4).fontSize(15)
+            Button(this.videoFullscreen ? '退出' : '全屏').flatButton().width(this.widthVp < 360 ? 52 : 64).height(40).responseRegion({ y: -4, width: '100%', height: 48 }).padding(4).fontSize(15)
               .backgroundColor(UiStyle.field).border({ width: 1, color: UiStyle.hairline }).borderRadius(20)
               .accessibilityText(this.videoFullscreen ? (this.presentationMode === 'native-fullscreen' ? '退出系统全屏' : '退出窗口内全屏') : '全屏')
               .onClick(() => this.setVideoFullscreen(!this.videoFullscreen))
@@ -4121,7 +4119,7 @@ struct Index {
     Row({ space: 2 }) {
       ForEach(['script', 'output', 'media', 'settings'], (tool: string) => {
         Button(tool === 'script' ? '脚本' : tool === 'output' ? '连接' : tool === 'media' ? '媒体' : '设置').flatButton()
-          .width('25%').height(40).padding({ left: 4, right: 4 }).fontSize(15)
+          .width('25%').height(40).responseRegion({ y: -4, width: '100%', height: 48 }).padding({ left: 4, right: 4 }).fontSize(15)
           .backgroundColor(this.workspaceTool === tool ? UiStyle.card : Color.Transparent)
           .fontColor(this.workspaceTool === tool ? UiStyle.accent : UiStyle.muted)
           .fontWeight(this.workspaceTool === tool ? FontWeight.Medium : FontWeight.Normal)

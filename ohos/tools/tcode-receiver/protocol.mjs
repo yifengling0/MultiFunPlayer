@@ -102,7 +102,7 @@ export class ReceiverStats {
     this.lastPayload = String(payload).slice(0, 4096);
     const frames = parseTCodePayload(payload);
     for (const frame of frames) {
-      if (frame.axes.length === 0) {
+      if (frame.axes.length === 0 || frame.unknown.length > 0) {
         this.invalidFrames++;
       } else {
         this.frames++;
@@ -132,20 +132,25 @@ export class ReceiverStats {
   refreshRate() {
     const now = Date.now();
     const elapsed = now - this.bucketStart;
+    const idle = this.lastFrameAt === 0 || now - this.lastFrameAt >= 1000;
+    if (idle) this.rateHz = 0;
     if (elapsed >= 1000) {
-      this.rateHz = Math.round((this.bucketFrames * 1000 / elapsed) * 10) / 10;
+      this.rateHz = idle ? 0 :
+        Math.round((this.bucketFrames * 1000 / elapsed) * 10) / 10;
       this.bucketStart = now;
       this.bucketFrames = 0;
     }
   }
   reset() {
     this.startedAt = Date.now(); this.packets = 0; this.bytes = 0; this.frames = 0;
-    this.invalidFrames = 0; this.connections = 0; this.peakConnections = 0;
-    this.activeConnections = 0; this.axes.clear(); this.recent.length = 0;
+    this.invalidFrames = 0; this.connections = this.activeConnections; this.peakConnections = this.activeConnections;
+    this.axes.clear(); this.recent.length = 0;
     this.lastFrameAt = 0; this.lastPayload = ''; this.transports = { tcp: 0, udp: 0 };
     this.bucketStart = Date.now(); this.bucketFrames = 0; this.rateHz = 0;
   }
   snapshot() {
+    // Refresh even when no new packets arrive (pause, Stop, or disconnect).
+    this.refreshRate();
     return {
       startedAt: new Date(this.startedAt).toISOString(),
       uptimeSeconds: Math.round((Date.now() - this.startedAt) / 100) / 10,

@@ -5,7 +5,8 @@ over TCP or UDP. It parses real TCode frames, tracks per-axis values/ranges and
 frame rate, and serves a live dashboard.
 
 This is a **receiver simulator**, not a hardware emulator. A locally accepted
-write proves that the phone reached this PC and sent syntactically valid TCode;
+write alone does not prove receipt. A receiver-counted valid frame proves receipt
+of a parseable TCode line;
 it does not prove that a physical device moved.
 
 ## Run
@@ -24,7 +25,8 @@ or on Windows:
 ```
 
 Open <http://127.0.0.1:8099/> for the live dashboard, or read JSON at
-<http://127.0.0.1:8099/stats.json>. `GET /reset` clears the counters.
+<http://127.0.0.1:8099/stats.json>. `GET /reset` clears traffic counters and ranges while preserving live TCP
+connections (connection totals restart at the number still connected).
 
 The receiver prints the PC LAN addresses to use on the phone. Allow Node.js on
 Private networks in Windows Firewall (or add inbound rules for TCP 8000 and UDP
@@ -50,8 +52,11 @@ shows TCP and UDP packet counts separately.
 - UDP datagrams that contain one or many newline-separated frames.
 - Axis commands such as `L05000I16` (value precision inferred from the digits)
   and multi-axis lines such as `L09999 R15000 I16`.
-- Invalid/unknown tokens are counted; they do not crash the receiver.
-- Per-axis count, last value, minimum and maximum, frame rate and recent frames.
+- Lines with no axes or any unknown token count as invalid frames. Partially
+  parseable lines do not contribute to valid-frame counts or axis ranges.
+- Per-axis count, last value, minimum and maximum, frame rate and recent valid frames.
+  Snapshot reads refresh the rate; one second without a valid frame reports 0 Hz.
+  For Pause/Stop checks, compare frame counts and lastFrameAt as well as rate.
 - No unbounded memory growth: recent frames are a fixed ring and the TCP buffer
   is capped.
 

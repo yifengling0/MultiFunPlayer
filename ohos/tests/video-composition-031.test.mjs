@@ -30,15 +30,15 @@ function compose(page){
 }
 function pageFor(w,h,screen='workspace',floating=true,full=false){const {page,calls}=setupIndex();Object.assign(page,{widthVp:w,heightVp:h,currentScreen:screen,videoMode:true,videoReady:true,videoFloating:floating,videoFullscreen:full,videoControlsVisible:true,durationMs:10000,positionMs:100});return {page,calls};}
 test('recorded builder comes from exact current videoStage source',()=>{const s=source.slice(source.indexOf('  videoStage() {'),source.indexOf('  @Builder\n  workspaceSettings()'));assert.equal(crypto.createHash('sha256').update(s).digest('hex'),fixture.sourceBuilderSha256);});
-for(const [w,h] of [[240,640],[390,844],[844,390],[1024,768]])test(`actual SDK builder has isolated Surface/input/chrome and bounded floating buttons ${w}x${h}`,()=>{
+for(const [w,h] of [[240,640],[390,844],[844,390],[1024,768]])test(`recorded builder has isolated Surface/input/chrome and bounded floating buttons ${w}x${h}`,()=>{
  const {page}=pageFor(w,h);const nodes=compose(page);const surface=nodes.find(n=>n.type==='XComponent'),input=nodes.find(n=>n.gestures),chrome=nodes.find(n=>n.type==='Column'&&n.props.zIndex===2);
  assert.equal(nodes.filter(n=>n.type==='XComponent').length,1);assert.equal(surface.props.hitTestBehavior,'none');assert.equal(surface.props.onClick,undefined);assert.equal(surface.parent,input.parent);assert.equal(input.parent,chrome.parent);assert.equal(input.props.zIndex,1);assert.equal(chrome.props.hitTestBehavior,'default');
  assert.equal(input.gestures.find(g=>g.type==='GestureGroup').options,'exclusive');assert.equal(input.gestures.find(g=>g.type==='PanGesture').options.distance,8);assert.equal(input.gestures.find(g=>g.type==='TapGesture').options.count,1);
- const buttons=nodes.filter(n=>n.type==='Button');assert.equal(buttons.length,2);assert.ok(buttons.every(n=>n.props.height===40));assert.equal(buttons[1].props.width,72);assert.equal(chrome.props.height,88);assert.equal(nodes.find(n=>n.type==='Canvas').props.height,32);
+ const buttons=nodes.filter(n=>n.type==='Button');assert.equal(buttons.length,2);assert.ok(buttons.every(n=>n.props.height===40));assert.ok(buttons.every(n=>n.props.responseRegion.height===48));assert.equal(buttons[1].props.width,72);assert.equal(chrome.props.height,88);assert.equal(nodes.find(n=>n.type==='Canvas').props.height,32);
  assert.equal(input.props.height,chrome.props.position.y);assert.ok(!chrome.gestures);assert.ok(buttons.every(b=>!b.gestures));
  for(const child of nodes.filter(n=>['Button','Canvas','Slider'].includes(n.type)))for(let p=child.parent;p;p=p.parent)assert.notEqual(p.props.hitTestBehavior,'block','SDK Block excludes children: '+p.type+' blocks '+child.type);
 });
-test('actual compiled tap/button binding invokes the same action once; expand and drag never invoke playback',async()=>{
+test('recorded tap/button binding invokes the same action once; expand and drag never invoke playback',async()=>{
  const {page}=pageFor(390,844);let actions=0;page.videoPlaybackAction=async()=>{actions++;};const nodes=compose(page);const input=nodes.find(n=>n.gestures),buttons=nodes.filter(n=>n.type==='Button');input.gestures.find(g=>g.type==='TapGesture').handlers.onAction({});assert.equal(actions,1);buttons[0].props.onClick();assert.equal(actions,2);
  const pan=input.gestures.find(g=>g.type==='PanGesture');pan.handlers.onActionStart({offsetX:-8,offsetY:-8});pan.handlers.onActionUpdate({offsetX:-60,offsetY:-100});pan.handlers.onActionEnd({offsetX:-60,offsetY:-100});assert.equal(actions,2);input.gestures.find(g=>g.type==='TapGesture').handlers.onAction({});assert.equal(actions,2);
  buttons[1].props.onClick();assert.equal(page.videoFloating,false);assert.equal(actions,2);

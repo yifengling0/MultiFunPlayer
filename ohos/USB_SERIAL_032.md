@@ -134,3 +134,31 @@ the CH340 backend is write-only and has no execution ACK.
   FTDI, the actual divisor/line-coding behavior.
 - Do not claim every HarmonyOS phone/tablet exposes USB host mode or the same
   power budget.
+
+## Protocol correction after review (2026-10-18)
+
+The original CP210x/FTDI initialization vectors were not wire-correct. The
+corrected implementation is still experimental and has no new hardware evidence:
+
+- CP210x discovery is now limited to `10c4:ea60`; opening additionally requires
+  `GET_PARTNUM == 0x02` (legacy CP2102). CP2102N, CP2103/4/5/8 and unknown variants
+  are rejected before UART writes. Baud is a four-byte little-endian data stage,
+  `wIndex` is the selected interface, and 8N1 uses `0x0800`. SET_FLOW carries the
+  full 16-byte structure, disables automatic flow control and retains the chosen
+  manual DTR/RTS states; SET_MHS follows with both update masks.
+- FTDI discovery is now limited to `0403:6001`; opening requires the raw device
+  descriptor's `bcdDevice == 0x0600` (FT232R), one vendor interface, interface 0.
+  Fractional baud encoding includes the 17th divisor bit and special 2/3 Mbaud
+  values. Rates above 3 Mbaud or with more than 1.5% achievable error are rejected.
+  MODEM_CTRL includes both line-update masks. Other FTDI chip families are not
+  supported by this profile.
+- Discovery lists candidates, not verified silicon: the variant checks happen
+  only after explicit permission and connection. No probe runs during listing.
+- `serial-usb-vendor-032.test.mjs` now verifies independent wire vectors and
+  executes the actual backend with a mocked usbManager, including control data
+  lengths, partial writes, cancellation settlement and variant rejection.
+  These checks do not substitute for ArkTS SDK compilation or target-device tests.
+
+Protocol references: [Linux CP210x driver](https://github.com/torvalds/linux/blob/master/drivers/usb/serial/cp210x.c),
+[Linux FTDI driver](https://github.com/torvalds/linux/blob/master/drivers/usb/serial/ftdi_sio.c),
+[FTDI control-request definitions](https://github.com/torvalds/linux/blob/master/drivers/usb/serial/ftdi_sio.h).

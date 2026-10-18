@@ -40,7 +40,7 @@ test('non-video inspector reserves the real transport, spacing and padding inste
  const {page:p}=setupIndex();p.videoMode=false;
  for(const [w,h] of [[240,640],[390,844],[568,320],[800,1280],[1024,768],[1920,1080]]){
   p.widthVp=w;p.heightVp=h;p.generalConfiguration.appOrientation='vertical';const available=p.workspaceLayout().settings.height;
-  assert.equal(p.inspectorHeight()+52+12+24,available,`${w}×${h}`);assert.ok(p.inspectorHeight()>100);
+  assert.equal(p.inspectorHeight()+48+16+12+24,available,`${w}×${h}`);assert.ok(p.inspectorHeight()>100);
  }
  p.widthVp=1024;p.heightVp=768;p.generalConfiguration.appOrientation='horizontal';assert.equal(p.inspectorHeight()+32,p.workspaceLayout().settings.height);
  p.videoMode=true;p.currentScreen='workspace';assert.equal(p.inspectorHeight(),p.workspaceLayout().settings.height);

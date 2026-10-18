@@ -39,3 +39,58 @@ test('receiver stats count both transports, frames and per-axis ranges', () => {
   assert.equal(snapshot.recent.length, 2);
   assert.equal(snapshot.recent[0].transport, 'tcp');
 });
+
+test('mixed valid and unknown commands invalidate the whole line', () => {
+  const stats = new ReceiverStats();
+  stats.record('tcp', 20, 'L05000I16 garbage\n');
+  stats.record('udp', 20, 'L05000I16 R1oops\n');
+  const snapshot = stats.snapshot();
+  assert.equal(snapshot.invalidFrames, 2);
+  assert.equal(snapshot.frames, 0);
+  assert.deepEqual(snapshot.axes, []);
+  assert.deepEqual(snapshot.recent, []);
+  stats.record('udp', 20, 'L05000I16\nR19999I16\n');
+  assert.equal(stats.snapshot().frames, 2);
+});
+
+test('idle snapshots clear rate without requiring another packet', () => {
+  const originalNow = Date.now;
+  let now = 1000;
+  Date.now = () => now;
+  try {
+    const stats = new ReceiverStats();
+    stats.record('tcp', 10, 'L05000I16');
+    now = 2000;
+    stats.record('tcp', 10, 'L05000I16');
+    assert.equal(stats.snapshot().rateHz, 2);
+    now = 12000;
+    const idle = stats.snapshot();
+    assert.equal(idle.rateHz, 0);
+    assert.equal(idle.frames, 2);
+    assert.equal(idle.lastFrameAt, new Date(2000).toISOString());
+    now = 13000;
+    assert.equal(stats.snapshot().rateHz, 0);
+    stats.record('udp', 10, 'L05000I16');
+    now = 14000;
+    stats.record('udp', 10, 'L05000I16');
+    assert.ok(stats.snapshot().rateHz > 0);
+  } finally { Date.now = originalNow; }
+});
+
+test('reset preserves active connections and subsequent close accounting', () => {
+  const stats = new ReceiverStats();
+  stats.connectionOpened(); stats.connectionOpened(); stats.connectionOpened();
+  stats.connectionClosed();
+  stats.record('tcp', 10, 'L05000I16');
+  stats.reset();
+  const snapshot = stats.snapshot();
+  assert.equal(snapshot.activeConnections, 2);
+  assert.equal(snapshot.connections, 2);
+  assert.equal(snapshot.peakConnections, 2);
+  assert.equal(snapshot.frames, 0);
+  assert.equal(snapshot.rateHz, 0);
+  stats.connectionClosed();
+  assert.equal(stats.snapshot().activeConnections, 1);
+  stats.connectionOpened();
+  assert.equal(stats.snapshot().activeConnections, 2);
+});
