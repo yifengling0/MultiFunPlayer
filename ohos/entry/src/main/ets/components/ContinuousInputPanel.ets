@@ -3,6 +3,7 @@ import { SettingsDraftOwner } from '../presentation/SettingsDraftOwner';
 import { ContinuousInputConfiguration, ContinuousInputMapping, ContinuousInputAction, ContinuousActionSpec, continuousActionCatalog } from '../input/ContinuousInputConfiguration';
 import { LocalInputPhase, LocalNativeSource, LocalAxisTool, LocalTouchPoint, LocalTouchPacket, LocalMousePacket, LocalWheelPacket, LocalSurfaceGeometry } from '../input/LocalDrivePointer';
 import { SettingsNumberField, SettingsTextField, SettingsSwitchField, SettingsChoiceField, SettingsOption, SettingsSectionTitle } from './CurvePointEditor';
+import { t } from '../l10n/Texts';
 
 /** Detached validated edits only. No gesture, reception or output state is saved. */
 export class ContinuousInputEdits {
@@ -398,7 +399,7 @@ export struct ContinuousInputPanel {
         .fontSize(UiStyle.body(this.compact)).fontColor(this.receiving ? UiStyle.accent : UiStyle.muted).width('100%')
       if (this.status.length > 0) { Text(this.status).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
       if (this.error.length > 0) { Text(this.error).fontSize(UiStyle.helper).fontColor(UiStyle.danger).width('100%') }
-      Text('Value ' + this.latestValue.toFixed(3) + ' · Delta ' + this.latestDelta.toFixed(3) + (this.lastAction.length > 0 ? ' · 最近动作：' + this.lastAction : ''))
+      Text(t('Value ' + this.latestValue.toFixed(3) + ' · Delta ' + this.latestDelta.toFixed(3)) + (this.lastAction.length > 0 ? ' · 最近动作：' + this.lastAction : ''))
         .fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%').wordBreak(WordBreak.BREAK_ALL)
       Flex({ wrap: FlexWrap.Wrap }) {
         Button('明确启用本地接收').type(ButtonType.Normal).buttonStyle(ButtonStyleMode.NORMAL).controlSize(ControlSize.NORMAL).stateEffect(true).labelStyle({ maxLines: 10, overflow: TextOverflow.Clip })

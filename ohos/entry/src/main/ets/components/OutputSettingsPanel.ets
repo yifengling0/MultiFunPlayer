@@ -320,7 +320,7 @@ export struct OutputSettingsPanel {
   build() {
     Column({ space: 6 }) {
       Text(this.model.kind === 'serial' ? '串口输出 · 手动连接' : '网络输出 · 手动连接').fontSize(UiStyle.section).fontWeight(FontWeight.Medium).fontColor(UiStyle.ink).width('100%')
-      Text((this.model.kind === 'serial' ? 'Serial · ' : 'TCP / UDP / WebSocket · ') + t(this.connection) + (this.armed ? (this.dispatchSuspended ? ' · 待命，无输出' : ' · 发送门开放') : ' · 未启用发送')).fontSize(UiStyle.body(this.compact))
+      Text(t(this.model.kind === 'serial' ? 'Serial · ' : 'TCP / UDP / WebSocket · ') + t(this.connection) + (this.armed ? (this.dispatchSuspended ? ' · 待命，无输出' : ' · 发送门开放') : ' · 未启用发送')).fontSize(UiStyle.body(this.compact))
       // Connection destination is always first and never hidden in an accordion.
       Column({ space: 4 }) {
         if (this.model.kind === 'serial') {

@@ -216,7 +216,17 @@ const ENTRIES: string[][] = [
   ['completed', '已播完'],
   ['stopped', '已停止'],
   ['released', '已释放'],
-  ['error', '出错']
+  ['error', '出错'],
+  ['Internal connected · choose a script, then press Play · output remains disarmed',
+    '内部已连接 · 选择脚本后按播放键 · 输出仍未启用'],
+  ['Connect Internal before playing a script.', '播放脚本前请先连接内部来源。'],
+  ['Stopped · output disarmed', '已停止 · 输出已解除'],
+  ['Offset changed · positive offset delays the script', '偏移已更改 · 正偏移会延后脚本'],
+  ['Looping script unavailable in Download: ', 'Download 中没有可用的循环脚本：'],
+  ['Motion settings: ', '运动设置：'],
+  ['Serial · ', '串口 · '],
+  ['Value ', '数值 '],
+  [' · Delta ', ' · 增量 ']
 ];
 
 class Texts {
