@@ -3628,7 +3628,7 @@ struct Index {
   }
   @Builder
   outputAddChoice(kind: SavedOutputTargetKind, title: string, detail: string, glyph: string) {
-    Button() {
+    Row() {
       Row({ space: 12 }) {
         Stack({ alignContent: Alignment.Center }) {
           Text(glyph).fontSize(UiStyle.helper).fontWeight(FontWeight.Bold).fontColor(UiStyle.accent)
@@ -3639,8 +3639,9 @@ struct Index {
         }.layoutWeight(1).alignItems(HorizontalAlign.Start)
         Text('添加 ›').fontSize(UiStyle.helper).fontColor(UiStyle.accent)
       }.width('100%').padding(14).alignItems(VerticalAlign.Center)
-    }.flatButton().width('100%').backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline })
+    }.width('100%').backgroundColor(UiStyle.card).border({ width: 1, color: UiStyle.hairline })
       .borderRadius(UiStyle.radiusCard).enabled(!this.settingsReadOnly && !this.recoveryRequired)
+      .accessibilityText('添加 ' + title)
       .onClick(() => this.addOutputAndOpen(kind))
   }
   @Builder

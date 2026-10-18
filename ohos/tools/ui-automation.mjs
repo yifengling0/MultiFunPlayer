@@ -91,7 +91,7 @@ async function waitFor(needle, { timeout = 9000, label = needle } = {}) {
   while (Date.now() - started < timeout) {
     last = dump('wait-' + label.replace(/[^\w\u4e00-\u9fa5-]+/g, '_') + '-' + attempt);
     if (hit(last, needle) !== null) return last;
-    run(['shell', 'uitest', 'uiInput', 'swipe', '640', '2200', '640', '1200', '350']);
+    run(['shell', 'uitest', 'uiInput', 'swipe', '100', '2400', '100', '1200', '400']);
     await sleep(500);
     attempt++;
   }
@@ -217,7 +217,7 @@ async function smoke() {
   await click('脚本', { label: 'script-again' });
   await toggleExpand('运动与曲线');
   await waitFor('Motion 编辑器');
-  await requireLabels(['速度', '最小值', '最大值']);
+  await requireLabels(['速度 · 倍', 'Random · 生成器参数']);
   capture('07-motion');
   await toggleExpand('运动与曲线');
 
