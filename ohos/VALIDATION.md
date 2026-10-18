@@ -1,3 +1,5 @@
+> 0.30 更新：单播放器/单Surface 首页与控制页同步预览，向下滚动浮窗，热力图随同一轴和时间显示；全屏点击唤出播放/暂停控制，旋转确认后隐藏系统栏。详见 PLAYER_CONTROLS_030_CONTRACT.md 和 LOCAL_TEST_030.md。官方编译/模拟测试不等于真机验收。
+
 # 0.29.0 / code30 validation
 
 - Final fresh isolated full aggregate: **3806/3806 tests,0 failed,0 skipped** with official.NET9.0.319/runtime9.0.21 and the pinned original C# numerical oracles. The preceding candidate passed3805tests; the final candidate adds one overlay-priority regression.

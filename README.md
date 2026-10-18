@@ -1,3 +1,5 @@
+> 0.30 更新：单播放器/单Surface 首页与控制页同步预览，向下滚动浮窗，热力图随同一轴和时间显示；全屏点击唤出播放/暂停控制，旋转确认后隐藏系统栏。详见 ohos/PLAYER_CONTROLS_030_CONTRACT.md 和 LOCAL_TEST_030.md。官方编译/模拟测试不等于真机验收。
+
 > OHOS **0.29.0 / code30**: dedicated video library and player, compact axis accordion, discoverable connection settings, and observed mobile fullscreen lifecycle. [Contract](ohos/PLAYER_WORKSPACE_029_CONTRACT.md) · [Device checks](ohos/LOCAL_TEST_029.md). Actual device rendering/hardware still needs validation.
 
 > OHOS **0.27.0 / code28** official immersive-control integration: [contract](ohos/IMMERSIVE_UI_027_CONTRACT.md), [device checks](ohos/LOCAL_TEST_027.md). API26 dynamically guarded native Select/menu/Toggle/Slider/dialog material requests; API20 fallback, real owned confirmations and modal Stop. Approved workspace retained. Device rendering remains unverified.

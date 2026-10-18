@@ -1,3 +1,5 @@
+> 0.30 更新：单播放器/单Surface 首页与控制页同步预览，向下滚动浮窗，热力图随同一轴和时间显示；全屏点击唤出播放/暂停控制，旋转确认后隐藏系统栏。详见 PLAYER_CONTROLS_030_CONTRACT.md 和 LOCAL_TEST_030.md。官方编译/模拟测试不等于真机验收。
+
 # 0.28 checkpoint: local continuous input, remaining parity
 
 Nine original continuous registration sites are now reachable through a bounded local input editor/surface and actual native callback/controller path. All remain partial: total163/188=110full-portable+53partial,25unwired. The separate9-template continuous catalog does not inflate the existing182button IDs. See ACTION_COVERAGE_028.md.

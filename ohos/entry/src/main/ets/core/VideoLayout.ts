@@ -79,19 +79,34 @@ export function videoWorkspaceLayout(width: number, height: number,
 /** Three destinations share one permanently mounted Surface. Library and phone
  * controls hide that surface; the player owns all content below its small bar. */
 export function applicationWorkspaceLayout(width: number, height: number, screen: string,
-  videoVisible: boolean, fullscreen: boolean, orientation: 'auto' | 'vertical' | 'horizontal' = 'auto'): VideoWorkspaceLayout {
+  videoVisible: boolean, fullscreen: boolean, orientation: 'auto' | 'vertical' | 'horizontal' = 'auto', floating: boolean = false): VideoWorkspaceLayout {
   const w = Number.isFinite(width) && width > 0 ? width : 1;
   const h = Number.isFinite(height) && height > 0 ? height : 1;
   if (screen === 'player' && videoVisible) {
     const header = fullscreen ? 0 : Math.min(60, h);
     const available = Math.max(0, h - header);
     return new VideoWorkspaceLayout(header, new WorkspaceRect(0, header, w, available),
-      new WorkspaceRect(0, h, w, 0), false, Math.min(100, available));
+      new WorkspaceRect(0, h, w, 0), false, Math.min(140, available));
   }
-  if (screen === 'workspace' && videoVisible && w >= 900) {
-    return videoWorkspaceLayout(w, h, true, false, orientation);
+  if (screen === 'workspace' && videoVisible && w >= 900 && !floating) {
+    const layout = videoWorkspaceLayout(w, h, true, false, orientation);
+    layout.controlsHeight = Math.min(layout.video.height < 240 ? 88 : 140, layout.video.height);
+    return layout;
   }
   const header = Math.min(60, h);
+  const available = Math.max(0, h - header);
+  if (videoVisible) {
+    if (floating) {
+      const vw = Math.min(300, Math.max(180, w * 0.52), Math.max(1, w - 16));
+      const vh = Math.min(available, vw * 9 / 16 + 88);
+      return new VideoWorkspaceLayout(header,
+        new WorkspaceRect(Math.max(0, w - vw - 8), Math.max(header, h - vh - 8), vw, vh),
+        new WorkspaceRect(0, header, w, available), false, Math.min(88, vh));
+    }
+    const vh = Math.min(available * 0.46, w * 9 / 16 + 140);
+    return new VideoWorkspaceLayout(header, new WorkspaceRect(0, header, w, vh),
+      new WorkspaceRect(0, header + vh + Math.min(8, available - vh), w, Math.max(0, available - vh - 8)), false, Math.min(vh < 240 ? 88 : 140, vh));
+  }
   return new VideoWorkspaceLayout(header, new WorkspaceRect(0, header, 0, 0),
     new WorkspaceRect(0, header, w, Math.max(0, h - header)), false, 0);
 }
