@@ -350,3 +350,9 @@ MigrationBackup/
 
 # Fody
 **/FodyWeavers.xsd
+# Local signing material: keystores, CSRs, certificates and provisioning profiles.
+# Never commit - these are the private half of release publishing.
+/sign/
+*.p12
+*.p7b
+*.keystore

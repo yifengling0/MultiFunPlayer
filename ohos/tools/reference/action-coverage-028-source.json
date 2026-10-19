@@ -1755,7 +1755,7 @@
     },
     {
       "path": "ohos/entry/src/main/ets/pages/Index.ets",
-      "sha256": "d6e95600d6a4eb52245b032d3ae6241b29da8369ae4cf39607406dde539a2651"
+      "sha256": "d294f860d6749471ab4e832257de35a7128a3672eb7fbc4f256cddc09e4099eb"
     },
     {
       "path": "ohos/entry/src/main/ets/core/PlaybackSessionCore.ts",

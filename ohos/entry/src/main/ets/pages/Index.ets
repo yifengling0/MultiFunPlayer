@@ -4106,7 +4106,7 @@ struct Index {
             this.preferencesPanel()
             this.devicePanel()
             Text(this.materialStatusLabel()).fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
-            Text('MultiFunPlayer ' + APP_VERSION_NAME + ' · OHOS').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
+            Text('旧柚趣播 ' + APP_VERSION_NAME + ' · OHOS').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%')
             if (this.showPortInfo) { Text('需要明确连接和启用发送。本地写成功不等于硬件执行确认；串口 CH 实验仅写。设备视觉、IME 与硬件互通仍需实测。').fontSize(UiStyle.helper).fontColor(UiStyle.muted).width('100%') }
           }
           if (!this.videoMode && !this.wideWorkspace() && this.workspaceTool === 'script') { this.traceArea() }
@@ -4156,7 +4156,7 @@ struct Index {
           .linearGradient({ angle: 135, colors: [[UiStyle.accent, 0.0], ['#5B94FF', 1.0]] })
         Text('M').fontSize(18).fontWeight(FontWeight.Bold).fontColor('#FFFFFF')
       }.width(36).height(36).borderRadius(10).clip(true)
-      Text(this.widthVp < 520 ? 'MFP' : 'MultiFunPlayer')
+      Text(this.widthVp < 520 ? '旧柚' : '旧柚趣播')
         .fontSize(this.widthVp < 520 ? 18 : 20).fontColor(UiStyle.ink).fontWeight(FontWeight.Bold).maxLines(1)
     }.layoutWeight(1).alignItems(VerticalAlign.Center)
   }
