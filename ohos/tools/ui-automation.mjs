@@ -153,6 +153,31 @@ async function requireLabels(labels) {
   }
 }
 
+// Match the active rendered provider, without changing the user's saved choice.
+// Order follows MotionSettingsPanel so scrolling forward can reach each field.
+const motionFields = {
+  'Random': ['速度 · 倍', '输出范围 · RANGE', '最小值 · 0–1 · 控件值', '最大值 · 0–1 · 控件值',
+    'Octaves · 叠加层数 · 1–8 · 控件值', 'Persistence · 持续度', 'Lacunarity · 频率倍率'],
+  'Pattern': ['波形', '速度 · 倍', '输出范围 · RANGE', '最小值 · 0–1 · 控件值', '最大值 · 0–1 · 控件值'],
+  'Custom Curve': ['插值类型', '时长 · 秒', '速度 · 倍', '循环', '结束时同步',
+    '输出范围 · RANGE', '最小值 · 0–1 · 控件值', '最大值 · 0–1 · 控件值', '自定义控制点 · CURVE'],
+  'Looping Script': ['Download 脚本', '插值类型', '速度 · 倍', '输出范围 · RANGE',
+    '最小值 · 0–1 · 控件值', '最大值 · 0–1 · 控件值']
+};
+export function motionSmokeLabels(tree) {
+  const suffix = ' · 生成器参数';
+  const titles = new Set(flatten(tree).flatMap(node => {
+    const bounds = parseBounds(node.bounds);
+    if (bounds === null || bounds.x2 <= bounds.x1 || bounds.y2 <= bounds.y1) return [];
+    return [node.text, node.accessibilityText].filter(value => typeof value === 'string' && value.endsWith(suffix));
+  }));
+  if (titles.size !== 1) throw new Error('Expected exactly one rendered Motion provider title');
+  const title = [...titles][0];
+  const provider = title.slice(0, -suffix.length);
+  if (!Object.hasOwn(motionFields, provider)) throw new Error('Unsupported rendered Motion provider: ' + provider);
+  return [title, ...motionFields[provider]];
+}
+
 const failures = [];
 function check(condition, message) {
   if (!condition) { failures.push(message); console.error('FAIL ' + message); } else { console.log('ok   ' + message); }
@@ -217,7 +242,8 @@ async function smoke() {
   await click('脚本', { label: 'script-again' });
   await toggleExpand('运动与曲线');
   await waitFor('Motion 编辑器');
-  await requireLabels(['速度 · 倍', 'Random · 生成器参数']);
+  const motionTree = await waitFor(' · 生成器参数', { label: 'motion-provider' });
+  await requireLabels(motionSmokeLabels(motionTree));
   capture('07-motion');
   await toggleExpand('运动与曲线');
 
