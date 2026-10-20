@@ -1,0 +1,32 @@
+{
+  "source": "icon.svg",
+  "source_sha256": "cbc95582c88c0766742aaa1eeab104bdf07222c5b9b9b17a2f9691512c368f23",
+  "artwork": "foreground-art.png",
+  "artwork_sha256": "118710e9b06baa068d2d523abc383b9f22f047864fd3084b17e8b3f3f0e7938e",
+  "canvas": [
+    1024,
+    1024
+  ],
+  "safe_circle": {
+    "cx": 512,
+    "cy": 512,
+    "radius": 500
+  },
+  "clip_radius": 508,
+  "visible_alpha_threshold": 64,
+  "tested_translation_px": 8,
+  "exports": {
+    "app_icon.png": {
+      "sha256": "cc7e17a3880b9bdcccdd6f6c26c637f6d520f1ef60929de7314336bb3256c51b",
+      "mode": "RGB"
+    },
+    "app_icon_foreground.png": {
+      "sha256": "fe439baf33f08047d8b730ea894a689c10459d2bda1292e40e3dc6f304cadf52",
+      "mode": "RGBA"
+    },
+    "app_icon_background.png": {
+      "sha256": "7cf211e30926b782e03680e3af94273dbbab94ec97486d2417e2681202dc9c3d",
+      "mode": "RGB"
+    }
+  }
+}

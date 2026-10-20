@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>旧柚趣播 · Upright Linked Pixel Player</title>
+  <desc>A warm pixel-art media player physically linked by cable to a compact hardware control module. The reference girl peeks upright from behind its upper-left corner. Layered raster artwork with editable SVG layout.</desc>
+  <defs><clipPath id="safe-circle"><circle cx="512" cy="512" r="508"/></clipPath></defs>
+  <g id="background"><rect width="1024" height="1024" fill="#FFE6A3"/></g>
+  <g id="foreground" clip-path="url(#safe-circle)">
+    <image id="pixel-artwork" x="34" y="47" width="896" height="896" xlink:href="foreground-art.png"/>
+  </g>
+</svg>

@@ -19,7 +19,7 @@
         "orientation": "auto_rotation_restricted",
         "srcEntry": "./ets/entryability/EntryAbility.ets",
         "description": "$string:module_desc",
-        "icon": "$media:app_icon",
+        "icon": "$media:app_icon_layered",
         "label": "$string:app_name",
         "exported": true,
         "skills": [
@@ -32,7 +32,7 @@
             ]
           }
         ],
-        "startWindowIcon": "$media:app_icon",
+        "startWindowIcon": "$media:app_icon_foreground",
         "startWindowBackground": "$color:start_window_background"
       }
     ]
